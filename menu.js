@@ -252,3 +252,4 @@ document.getElementById('infinitySolveBtn').onclick = function() {
     document.getElementById('infinityResult').innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + currentInfinityProblem.a + '</strong></span>';
   }
 };
+ 
