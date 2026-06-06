@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aventuras Numéricas - Menú</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
-  <script src="menu.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -20,9 +20,7 @@
       </div>
       <button id="logoutBtn" class="logout-btn">🚪 Salir</button>
     </div>
-
     <div id="avatarDisplay" class="avatar-anime">🦸</div>
-
     <div class="menu-grid">
       <button class="menu-btn" data-page="avatar"><span class="icon">👤</span>Avatar</button>
       <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
@@ -30,12 +28,10 @@
       <button class="menu-btn" data-page="infinito"><span class="icon">∞</span>Infinito</button>
       <button class="menu-btn" data-page="logros"><span class="icon">🏆</span>Logros</button>
     </div>
-
     <div id="avatarSection" class="section hidden">
       <h2>👤 Avatar</h2>
       <div id="avatarEditor" class="avatar-editor"></div>
     </div>
-
     <div id="configSection" class="section hidden">
       <h2>⚙️ Configuraciones</h2>
       <label class="config-label">Fondo</label>
@@ -51,12 +47,10 @@
         🎵 Música de fondo
       </label>
     </div>
-
     <div id="logrosSection" class="section hidden">
       <h2>🏆 Logros</h2>
       <div id="logrosList" class="logros-list"></div>
     </div>
-
     <div id="infinitoSection" class="section hidden">
       <h2>∞ Modo Infinito</h2>
       <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
@@ -68,6 +62,6 @@
       <div id="infinityResult" class="result-box"></div>
     </div>
   </div>
-  <script src="src/menu.js"></script>
+  <script src="menu.js"></script>
 </body>
 </html>
