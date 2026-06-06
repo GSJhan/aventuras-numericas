@@ -16,8 +16,8 @@ function saveUser() { localStorage.setItem('users', JSON.stringify(users)); }
 
 function getAvatarSrc(name) {
   var jpgList = ['batman', 'kakashi'];
-  if (jpgList.indexOf(name) !== -1) return 'src/images/avatars/' + name + '.jpg';
-  return 'src/images/avatars/' + name + '.png';
+  if (jpgList.indexOf(name) !== -1) return 'avatars/' + name + '.jpg';
+  return 'avatars/' + name + '.png';
 }
 
 document.getElementById('displayUsername').textContent = currentUser;
@@ -38,11 +38,11 @@ function playMusic(bg) {
   var musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
   if (!musicEnabled) return;
   var tracks = {
-    ciudad:  'src/music/ciudad.mp3',
-    galaxia: 'src/music/galaxia.mp3',
-    parque:  'src/music/parque.mp3',
-    fondo1:  'src/music/bosque.mp3',
-    fondo2:  'src/music/neon.mp3'
+    ciudad:  'music/ciudad.mp3',
+    galaxia: 'music/galaxia.mp3',
+    parque:  'music/parque.mp3',
+    fondo1:  'music/bosque.mp3',
+    fondo2:  'music/neon.mp3'
   };
   if (tracks[bg]) {
     currentAudio = new Audio(tracks[bg]);
@@ -163,7 +163,7 @@ function showAvatarEditor() {
 var logrosData = [
   { id: 'mision3',      icon: '🏆', title: 'Primeros Pasos',  desc: 'Completa 3 problemas en modo infinito',       skin: null       },
   { id: 'mision10',     icon: '🎯', title: 'En Racha',        desc: 'Completa 10 problemas en modo infinito',      skin: null       },
-  { id: 'mision50',     icon: '💫', title: 'Imparable',       desc: 'Completa 50 problemas en modo infinito',      skin: 'saitama'  },
+  { id: 'mision50',     icon: '💫', title: 'Imparable',       desc: 'Completa 50 problemas en modo infinito',      skin: null       },
   { id: 'rach5',        icon: '🔥', title: 'Racha x5',        desc: '5 respuestas correctas seguidas en quiz',     skin: null       },
   { id: 'rach10',       icon: '⚡', title: 'Racha x10',       desc: '10 respuestas correctas seguidas en quiz',    skin: 'itachi'   },
   { id: 'rach20',       icon: '🌪️', title: 'Racha x20',       desc: '20 respuestas correctas seguidas en quiz',    skin: 'vegeta'   },
