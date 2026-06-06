@@ -16,8 +16,8 @@ function saveUser() { localStorage.setItem('users', JSON.stringify(users)); }
 
 function getAvatarSrc(name) {
   var jpgList = ['batman', 'kakashi'];
-  if (jpgList.indexOf(name) !== -1) return 'avatars/' + name + '.jpg';
-  return 'avatars/' + name + '.png';
+  if (jpgList.indexOf(name) !== -1) return name + '.jpg';
+  return name + '.png';
 }
 
 document.getElementById('displayUsername').textContent = currentUser;
@@ -38,11 +38,11 @@ function playMusic(bg) {
   var musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
   if (!musicEnabled) return;
   var tracks = {
-    ciudad:  'music/ciudad.mp3',
-    galaxia: 'music/galaxia.mp3',
-    parque:  'music/parque.mp3',
-    fondo1:  'music/bosque.mp3',
-    fondo2:  'music/neon.mp3'
+    ciudad:  'ciudad.mp3',
+    galaxia: 'galaxia.mp3',
+    parque:  'parque.mp3',
+    fondo1:  'bosque.mp3',
+    fondo2:  'neon.mp3'
   };
   if (tracks[bg]) {
     currentAudio = new Audio(tracks[bg]);
