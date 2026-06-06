@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aventuras Numéricas - Menú</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <h1>Aventuras Numéricas</h1>
+        <div class="user-info">
+          <span class="username-badge">👤 <span id="displayUsername">Usuario</span></span>
+          <span class="coins-badge" id="displayCoins">💰 0 monedas</span>
+          <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
+        </div>
+      </div>
+      <button id="logoutBtn" class="logout-btn">🚪 Salir</button>
+    </div>
+
+    <div id="avatarDisplay" class="avatar-anime">🦸</div>
+
+    <div class="menu-grid">
+      <button class="menu-btn" data-page="avatar"><span class="icon">👤</span>Avatar</button>
+      <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
+      <button class="menu-btn" data-page="game"><span class="icon">🎮</span>Jugar</button>
+      <button class="menu-btn" data-page="infinito"><span class="icon">∞</span>Infinito</button>
+      <button class="menu-btn" data-page="logros"><span class="icon">🏆</span>Logros</button>
+    </div>
+
+    <div id="avatarSection" class="section hidden">
+      <h2>👤 Avatar</h2>
+      <div id="avatarEditor" class="avatar-editor"></div>
+    </div>
+
+    <div id="configSection" class="section hidden">
+      <h2>⚙️ Configuraciones</h2>
+      <label class="config-label">Fondo</label>
+      <select id="backgroundSelect">
+        <option value="ciudad">🌆 Ciudad Nocturna</option>
+        <option value="galaxia">🌌 Galaxia</option>
+        <option value="parque">🌿 Parque</option>
+        <option value="fondo1">🌲 Bosque</option>
+        <option value="fondo2">🌃 Neón</option>
+      </select>
+      <label class="config-label music-label">
+        <input type="checkbox" id="musicToggle" checked />
+        🎵 Música de fondo
+      </label>
+    </div>
+
+    <div id="logrosSection" class="section hidden">
+      <h2>🏆 Logros</h2>
+      <div id="logrosList" class="logros-list"></div>
+    </div>
+
+    <div id="infinitoSection" class="section hidden">
+      <h2>∞ Modo Infinito</h2>
+      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
+      <div id="infinityProblemBox" class="problem-box"></div>
+      <div class="infinity-input-row">
+        <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
+        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
+      </div>
+      <div id="infinityResult" class="result-box"></div>
+    </div>
+  </div>
+  <script src="src/menu.js"></script>
+</body>
+</html>
