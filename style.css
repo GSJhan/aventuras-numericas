@@ -18,11 +18,11 @@ body {
   min-height: 100vh;
 }
 
-body.ciudad  { background: url('images/ciudad.jpg')  center/cover fixed !important; }
-body.galaxia { background: url('images/galaxia.jpg') center/cover fixed !important; }
-body.parque  { background: url('images/parque.jpg')  center/cover fixed !important; }
-body.fondo1  { background: url('images/bosque.jpg')  center/cover fixed !important; }
-body.fondo2  { background: url('images/neon.jpg')    center/cover fixed !important; }
+body.ciudad  { background: url('ciudad.jpg')  center/cover fixed !important; }
+body.galaxia { background: url('galaxia.jpg') center/cover fixed !important; }
+body.parque  { background: url('parque.jpg')  center/cover fixed !important; }
+body.fondo1  { background: url('bosque.jpg')  center/cover fixed !important; }
+body.fondo2  { background: url('neon.jpg')    center/cover fixed !important; }
 
 body.ciudad::before, body.galaxia::before, body.parque::before,
 body.fondo1::before, body.fondo2::before {
@@ -55,9 +55,9 @@ body.fondo1::before, body.fondo2::before {
   font-family: 'Orbitron', monospace; font-size: 30px; line-height: 1.25;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   -webkit-background-clip: text;
-background-clip: text;
--webkit-text-fill-color: transparent;
-color: transparent;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .card {
@@ -112,9 +112,9 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
   font-family: 'Orbitron', monospace; font-size: 17px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   -webkit-background-clip: text;
-background-clip: text;
--webkit-text-fill-color: transparent;
-color: transparent;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 .user-info { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .username-badge, .coins-badge, .xp-badge {
