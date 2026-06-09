@@ -3,28 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aventuras Numéricas - Calculadora</title>
+  <title>Aventuras Numéricas - Juego</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <button class="back-btn" onclick="window.location.href='menu.html'">← Menú</button>
       <div class="user-info">
-        <h1>🧮 Calculadora de Ecuaciones</h1>
-        <div class="stats">
-          <span class="stat stat-coins">💰 <span id="displayCoins">0</span></span>
-          <span class="stat stat-xp">⭐ <span id="displayXP">0</span> XP</span>
-          <span class="stat stat-level">🏆 Nivel <span id="displayLevel">1</span></span>
-        </div>
+        <span class="coins-badge" id="displayCoins">💰 0</span>
+        <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
       </div>
-      <button id="backToMenu" class="logout-btn">← Volver</button>
     </div>
-    
-    <div class="section">
-      <p class="hint">Ejemplo: x^2-3x+2=0</p>
-      <input type="text" id="eqInput" placeholder="x^2-3x+2=0">
+    <h2 style="text-align:center;margin:20px 0;font-family:'Orbitron',monospace;color:#4c90ff;">🎮 ¿Cómo quieres jugar?</h2>
+    <div class="game-options">
+      <button class="game-btn" id="calcBtn">
+        <span class="icon">🧮</span>
+        Calcular<br><small>Ecuaciones</small>
+      </button>
+      <button class="game-btn" id="quizBtn">
+        <span class="icon">❓</span>
+        Preguntas<br><small>Elige dificultad</small>
+      </button>
+    </div>
+    <div id="calculatorSection" class="section hidden">
+      <h2>🧮 Calcular Ecuaciones</h2>
+      <p style="opacity:0.7;margin-bottom:12px">Ejemplo: x^2-3x+2=0</p>
+      <input id="eqInput" placeholder="x^2-3x+2=0" />
       <button id="solveBtn" class="btn-primary">Resolver</button>
       <div id="calcResult" class="result-box"></div>
+    </div>
+    <div id="quizSection" class="section hidden">
+      <h2>❓ Responder Preguntas</h2>
+      <select id="quizDifficulty">
+        <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
+        <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
+        <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
+        <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
+      </select>
+      <button id="startQuizBtn" class="btn-primary">Comenzar</button>
+      <div id="quizGame"></div>
+      <div id="quizStats" class="result-box" style="display:none"></div>
     </div>
   </div>
   <script type="module" src="game.js"></script>
