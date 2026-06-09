@@ -44,26 +44,29 @@ async function handleAuth() {
       level: 1,
       skin: 'spiderman',
       skins: ['spiderman'],
-      logros: {},
-      estadisticas: {
-        totalPreguntas: 0,
-        respuestasCorrectas: 0,
-        rachaMaxima: 0,
-        totalMonedasGastadas: 0,
-        tiempoJugado: 0,
-        misionesCompletadas: 0
+      logros: {
+        mision3: false,
+        rach5: false,
+        nivel10: false,
+        experto1: false,
+        comprador: false
       },
-      misionesDiarias: {
-        fecha: new Date().toDateString(),
-        misiones: [],
-        reclamada: false
-      },
-      ultimoLogin: new Date().toISOString(),
-      rachaActual: 0
+      misionesCompletas: 0,
+      totalMonedas: 100
     };
     await setDoc(userRef, newUser);
+    
+    // También guardar en ranking
+    await setDoc(doc(db, 'ranking', username), {
+      username: username,
+      xp: 0,
+      coins: 100,
+      level: 1,
+      skin: 'spiderman'
+    });
+    
     localStorage.setItem('currentUser', username);
-    showMessage('✅ ¡Cuenta creada! +100💰 de regalo', true);
+    showMessage('✅ ¡Cuenta creada!', true);
     setTimeout(function() {
       window.location.href = 'menu.html';
     }, 1000);
