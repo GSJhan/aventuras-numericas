@@ -2,16 +2,167 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aventuras Numéricas - Menú</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0e27">
+  <title>Aventuras Numéricas - Menú Principal</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container" style="max-width:1200px;margin:auto;padding:20px;position:relative;z-index:1">
-    <div class="header" style="display:flex;justify-content:space-between;align-items:center;background:rgba(16,24,52,0.85);backdrop-filter:blur(14px);border:1px solid rgba(76,144,255,0.18);border-radius:18px;padding:16px 22px;margin-bottom:22px;flex-wrap:wrap;gap:10px">
+  <div class="particles" id="particles"></div>
+  
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
       <div class="header-left">
-        <h1 style="font-family:Orbitron,monospace;font-size:17px;background:linear-gradient(135deg,#4c90ff,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Aventuras Numéricas</h1>
-        <div class="user-info" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
-          <span class="username-badge" style="background:rgba(76,144,255,0.12);border:1px solid rgba(76,144,255,0.3);border-radius:20px;padding:4px 13px;font-size:13px">👤 <span id="displayUsername">Usuario</span></span>
-          <span class="coins-badge" id="displayCoins" style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);
+        <h1>✨ Aventuras Numéricas ✨</h1>
+        <div class="user-info">
+          <span class="badge">👤 <span id="displayUsername">Usuario</span></span>
+          <span class="badge badge-coins">💰 <span id="displayCoins">0</span> monedas</span>
+          <span class="badge badge-xp">⭐ <span id="displayXP">0</span> XP</span>
+          <span class="badge badge-level">🏆 Nivel <span id="displayLevel">1</span></span>
+        </div>
+      </div>
+      <button id="logoutBtn" class="btn-logout">🚪 Salir</button>
+    </div>
+
+    <!-- Avatar -->
+    <div id="avatarDisplay" class="avatar-anime">
+      <div>🕷️</div>
+    </div>
+
+    <!-- Menú Principal -->
+    <div class="menu-grid">
+      <button class="menu-btn" data-page="game">
+        <span class="icon">🎮</span>
+        <span>Jugar</span>
+      </button>
+      <button class="menu-btn" data-page="infinito">
+        <span class="icon">∞</span>
+        <span>Infinito</span>
+      </button>
+      <button class="menu-btn" data-page="avatar">
+        <span class="icon">👤</span>
+        <span>Avatar</span>
+      </button>
+      <button class="menu-btn" data-page="ranking">
+        <span class="icon">🏆</span>
+        <span>Ranking</span>
+      </button>
+      <button class="menu-btn" data-page="logros">
+        <span class="icon">🎖️</span>
+        <span>Logros</span>
+      </button>
+      <button class="menu-btn" data-page="config">
+        <span class="icon">⚙️</span>
+        <span>Config</span>
+      </button>
+    </div>
+
+    <!-- Sección Juego -->
+    <div id="gameSection" class="section hidden">
+      <h2>🎮 Selecciona tu modo de juego</h2>
+      <div class="game-options">
+        <button class="game-btn" id="goToGameBtn">
+          <span class="icon">📝</span>
+          Modo Quiz<br><small>Preguntas con opciones</small>
+        </button>
+        <button class="game-btn" id="goToCalculatorBtn">
+          <span class="icon">🧮</span>
+          Calculadora<br><small>Resuelve ecuaciones</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sección Infinito -->
+    <div id="infinitoSection" class="section hidden">
+      <h2>∞ Modo Infinito</h2>
+      <p class="inf-desc">🎯 Resuelve problemas uno tras otro. ¡Entre más aciertes, más ganas!</p>
+      <div id="infinityProblemBox" class="problem-box">
+        <div class="prob-level">Problema #1</div>
+        <div class="prob-question">Cargando...</div>
+      </div>
+      <div class="infinity-input-row">
+        <input id="infinityEquation" placeholder="Escribe tu respuesta..." type="number">
+        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
+      </div>
+      <div id="infinityResult" class="result-box"></div>
+      <div class="infinity-stats" style="margin-top: 16px; display: flex; gap: 20px; justify-content: center;">
+        <span>📊 Problemas: <strong id="infinityCount">0</strong></span>
+        <span>🔥 Racha: <strong id="infinityStreak">0</strong></span>
+      </div>
+    </div>
+
+    <!-- Sección Avatar -->
+    <div id="avatarSection" class="section hidden">
+      <h2>👤 Tienda de Avatares</h2>
+      <div id="avatarEditor" class="avatar-editor"></div>
+    </div>
+
+    <!-- Sección Ranking -->
+    <div id="rankingSection" class="section hidden">
+      <h2>🏆 Ranking Global</h2>
+      <p style="margin-bottom: 16px; color: var(--text-muted);">📊 Los mejores jugadores por XP</p>
+      <div id="rankingList" class="ranking-container"></div>
+      <div style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--text-muted);">
+        ⭐ El ranking se actualiza automáticamente
+      </div>
+    </div>
+
+    <!-- Sección Logros -->
+    <div id="logrosSection" class="section hidden">
+      <h2>🎖️ Logros Desbloqueables</h2>
+      <div id="logrosList" class="logros-grid"></div>
+      <div style="margin-top: 20px; text-align: center; padding: 12px; background: rgba(76, 144, 255, 0.1); border-radius: 12px;">
+        <span id="logrosCount">0/0</span> logros completados
+      </div>
+    </div>
+
+    <!-- Sección Configuración -->
+    <div id="configSection" class="section hidden">
+      <h2>⚙️ Configuración</h2>
+      <label class="config-label">🎨 Fondo de pantalla</label>
+      <select id="backgroundSelect">
+        <option value="ciudad">🌆 Ciudad Nocturna</option>
+        <option value="galaxia">🌌 Galaxia</option>
+        <option value="parque">🌿 Parque</option>
+        <option value="fondo1">🌲 Bosque</option>
+        <option value="fondo2">🌃 Neón</option>
+        <option value="espacio">🚀 Espacio</option>
+        <option value="templo">⛩️ Templo</option>
+        <option value="castillo">🏰 Castillo</option>
+        <option value="volcan">🌋 Volcán</option>
+        <option value="hielo">❄️ Hielo</option>
+      </select>
+      <label class="config-label music-label">
+        <input type="checkbox" id="musicToggle" checked>
+        🎵 Música de fondo
+      </label>
+      <label class="config-label music-label">
+        <input type="checkbox" id="soundToggle" checked>
+        🔊 Efectos de sonido
+      </label>
+      <hr style="margin: 20px 0; border-color: rgba(76,144,255,0.2);">
+      <div style="text-align: center;">
+        <button id="resetStatsBtn" class="btn-danger" style="background: rgba(255,77,109,0.2); border-color: var(--danger);">🔄 Reiniciar Estadísticas</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="menu.js"></script>
+  <script>
+    (function() {
+      var p = document.getElementById('particles');
+      if (p) {
+        for (var i = 0; i < 50; i++) {
+          var d = document.createElement('div');
+          d.className = 'particle';
+          var size = 2 + Math.random() * 5;
+          d.style.cssText = 'left:' + Math.random() * 100 + '%;top:' + Math.random() * 100 + '%;width:' + size + 'px;height:' + size + 'px;animation-delay:' + Math.random() * 6 + 's;animation-duration:' + (4 + Math.random() * 8) + 's;background:' + ['#4c90ff', '#9b59ff', '#4cff90'][Math.floor(Math.random() * 3)];
+          p.appendChild(d);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
