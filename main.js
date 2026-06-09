@@ -32,7 +32,7 @@ async function handleAuth() {
   if (isRegister) {
     if (userSnap.exists()) { showMessage('⚠️ Ese usuario ya existe'); return; }
     var newUser = {
-      password: password, xp: 0, coins: 100, level: 1,
+      password: password, xp: 0, coins: 0, level: 1,
       skin: 'spiderman', skins: ['spiderman'],
       logros: { mision3: false, rach5: false, nivel10: false, experto1: false, comprador: false },
       misionesCompletas: 0
