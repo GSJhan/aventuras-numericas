@@ -4,129 +4,70 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aventuras Numéricas - Menú</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
     <div class="header">
-      <div class="user-info">
-        <h1>✨ Aventuras Numéricas ✨</h1>
-        <div class="stats">
-          <span class="stat">👤 <span id="displayUsername">---</span></span>
-          <span class="stat stat-coins">💰 <span id="displayCoins">0</span></span>
-          <span class="stat stat-xp">⭐ <span id="displayXP">0</span> XP</span>
-          <span class="stat stat-level">🏆 Nivel <span id="displayLevel">1</span></span>
+      <div class="header-left">
+        <h1>Aventuras Numéricas</h1>
+        <div class="user-info">
+          <span class="username-badge">👤 <span id="displayUsername">Usuario</span></span>
+          <span class="coins-badge">💰 <span id="displayCoins">0</span> monedas</span>
+          <span class="xp-badge">⭐ <span id="displayXP">0</span> XP</span>
+          <span class="level-badge">🏆 Nivel <span id="displayLevel">1</span></span>
         </div>
       </div>
       <button id="logoutBtn" class="logout-btn">🚪 Salir</button>
     </div>
-
-    <!-- Avatar -->
-    <div class="avatar-container">
-      <div class="avatar" id="avatarDisplay">🕷️</div>
-    </div>
-
-    <!-- Menú -->
+    <div id="avatarDisplay" class="avatar-anime"></div>
     <div class="menu-grid">
-      <button class="menu-btn" data-page="game">
-        <span class="icon">🎮</span>
-        Jugar
-      </button>
-      <button class="menu-btn" data-page="infinito">
-        <span class="icon">∞</span>
-        Infinito
-      </button>
-      <button class="menu-btn" data-page="tienda">
-        <span class="icon">🛒</span>
-        Tienda
-      </button>
-      <button class="menu-btn" data-page="ranking">
-        <span class="icon">🏆</span>
-        Ranking
-      </button>
-      <button class="menu-btn" data-page="logros">
-        <span class="icon">🎖️</span>
-        Logros
-      </button>
-      <button class="menu-btn" data-page="config">
-        <span class="icon">⚙️</span>
-        Config
-      </button>
+      <button class="menu-btn" data-page="avatar"><span class="icon">👤</span>Avatar</button>
+      <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
+      <button class="menu-btn" data-page="game"><span class="icon">🎮</span>Jugar</button>
+      <button class="menu-btn" data-page="infinito"><span class="icon">∞</span>Infinito</button>
+      <button class="menu-btn" data-page="ranking"><span class="icon">🏆</span>Ranking</button>
+      <button class="menu-btn" data-page="logros"><span class="icon">🏆</span>Logros</button>
     </div>
-
-    <!-- Secciones -->
-    <div id="gameSection" class="section hidden">
-      <h2>🎮 Modos de Juego</h2>
-      <div class="game-modes">
-        <button id="goToQuiz" class="mode-btn">❓ Modo Quiz</button>
-        <button id="goToCalculator" class="mode-btn">🧮 Calculadora</button>
-      </div>
+    <div id="avatarSection" class="section hidden">
+      <h2>👤 Avatar</h2>
+      <div id="avatarEditor" class="avatar-editor"></div>
     </div>
-
-    <div id="quizSection" class="section hidden">
-      <button class="back-btn" id="backFromQuiz">← Volver</button>
-      <h2>❓ Modo Quiz</h2>
-      <select id="difficultySelect">
-        <option value="facil">😊 Fácil (+10 XP, +2💰)</option>
-        <option value="normal">😐 Normal (+25 XP, +5💰)</option>
-        <option value="dificil">😤 Difícil (+50 XP, +10💰)</option>
+    <div id="configSection" class="section hidden">
+      <h2>⚙️ Configuraciones</h2>
+      <label class="config-label">Fondo</label>
+      <select id="backgroundSelect">
+        <option value="ciudad">🌆 Ciudad Nocturna</option>
+        <option value="galaxia">🌌 Galaxia</option>
+        <option value="parque">🌿 Parque</option>
+        <option value="fondo1">🌲 Bosque</option>
+        <option value="fondo2">🌃 Neón</option>
       </select>
-      <button id="startQuiz" class="btn-primary">🎯 Comenzar</button>
-      <div id="quizArea"></div>
-      <div id="quizResult" class="result-box hidden"></div>
+      <label class="config-label music-label">
+        <input type="checkbox" id="musicToggle" checked />
+        🎵 Música de fondo
+      </label>
     </div>
-
-    <div id="calculatorSection" class="section hidden">
-      <button class="back-btn" id="backFromCalc">← Volver</button>
-      <h2>🧮 Calculadora</h2>
-      <p class="hint">Ejemplo: x^2-3x+2=0</p>
-      <input type="text" id="equationInput" placeholder="x^2-3x+2=0">
-      <button id="solveBtn" class="btn-primary">Resolver</button>
-      <div id="calcResult" class="result-box"></div>
+    <div id="logrosSection" class="section hidden">
+      <h2>🏆 Logros</h2>
+      <div id="logrosList" class="logros-list"></div>
     </div>
-
+    <div id="rankingSection" class="section hidden">
+      <h2>🏆 Ranking Global</h2>
+      <div id="rankingList" class="ranking-container"></div>
+    </div>
     <div id="infinitoSection" class="section hidden">
-      <button class="back-btn" id="backFromInfinito">← Volver</button>
       <h2>∞ Modo Infinito</h2>
-      <div id="infinityProblem" class="problem-box">
-        <div class="problem-text">Cargando...</div>
+      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
+      <div id="infinityProblemBox" class="problem-box"></div>
+      <div class="infinity-input-row">
+        <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
+        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
       </div>
-      <input type="number" id="infinityAnswer" placeholder="Tu respuesta">
-      <button id="checkInfinity" class="btn-primary">Verificar</button>
       <div id="infinityResult" class="result-box"></div>
     </div>
-
-    <div id="tiendaSection" class="section hidden">
-      <button class="back-btn" id="backFromTienda">← Volver</button>
-      <h2>🛒 Tienda de Avatares</h2>
-      <div id="shopItems" class="skins-grid"></div>
-    </div>
-
-    <div id="rankingSection" class="section hidden">
-      <button class="back-btn" id="backFromRanking">← Volver</button>
-      <h2>🏆 Ranking Global</h2>
-      <div id="rankingList"></div>
-    </div>
-
-    <div id="logrosSection" class="section hidden">
-      <button class="back-btn" id="backFromLogros">← Volver</button>
-      <h2>🎖️ Logros</h2>
-      <div id="logrosList" class="logros-grid"></div>
-    </div>
-
-    <div id="configSection" class="section hidden">
-      <button class="back-btn" id="backFromConfig">← Volver</button>
-      <h2>⚙️ Configuración</h2>
-      <label>Tema de fondo:</label>
-      <select id="themeSelect">
-        <option value="default">🌈 Por defecto</option>
-        <option value="dark">🌙 Oscuro</option>
-        <option value="nature">🌿 Naturaleza</option>
-      </select>
-    </div>
   </div>
-
-  <script src="menu.js"></script>
+  <script type="module" src="menu.js"></script>
 </body>
 </html>
