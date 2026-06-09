@@ -4,332 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aventuras Numéricas - Menú</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    /* Header */
-    .header {
-      background: white;
-      border-radius: 20px;
-      padding: 20px 30px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-
-    .user-info h2 {
-      color: #667eea;
-      margin-bottom: 8px;
-    }
-
-    .stats {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      background: #f0f0f0;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .stat.coins { background: #ffd70020; color: #b8860b; }
-    .stat.xp { background: #a78bfa20; color: #6d28d9; }
-
-    .logout-btn {
-      background: #ff4d6d;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    /* Avatar */
-    .avatar-section {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .avatar {
-      font-size: 80px;
-      background: white;
-      width: 120px;
-      height: 120px;
-      border-radius: 60px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    /* Menú Grid */
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .menu-btn {
-      background: white;
-      border: none;
-      padding: 25px 15px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: all 0.3s;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .menu-btn:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    .menu-btn .icon {
-      font-size: 40px;
-      display: block;
-      margin-bottom: 10px;
-    }
-
-    /* Secciones */
-    .section {
-      background: white;
-      border-radius: 20px;
-      padding: 25px;
-      margin-top: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-
-    .section h3 {
-      color: #667eea;
-      margin-bottom: 20px;
-      font-size: 24px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    /* Botón atrás */
-    .back-btn {
-      background: #667eea;
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-
-    /* Juego */
-    .question {
-      font-size: 32px;
-      text-align: center;
-      margin: 30px 0;
-      font-weight: bold;
-    }
-
-    .options {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-
-    .option {
-      background: #f0f0f0;
-      border: none;
-      padding: 15px;
-      border-radius: 10px;
-      font-size: 20px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .option:hover {
-      background: #667eea;
-      color: white;
-    }
-
-    .result {
-      text-align: center;
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 10px;
-    }
-
-    .result.correct {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .result.wrong {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    /* Calculadora */
-    .calc-input {
-      width: 100%;
-      padding: 15px;
-      font-size: 16px;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-
-    .calc-result {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 10px;
-    }
-
-    /* Tienda */
-    .skins-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 15px;
-    }
-
-    .skin-card {
-      background: #f8f9fa;
-      border-radius: 15px;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .skin-card:hover {
-      transform: scale(1.05);
-    }
-
-    .skin-card.active {
-      border: 3px solid #4cff90;
-      background: #d4edda;
-    }
-
-    .skin-emoji {
-      font-size: 50px;
-    }
-
-    /* Ranking */
-    .ranking-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .ranking-table th,
-    .ranking-table td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .ranking-table tr.current {
-      background: #d4edda;
-      font-weight: bold;
-    }
-
-    /* Logros */
-    .logros-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 15px;
-    }
-
-    .logro-card {
-      background: #f8f9fa;
-      border-radius: 15px;
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .logro-card.achieved {
-      background: #d4edda;
-      border-left: 5px solid #28a745;
-    }
-
-    .logro-icon {
-      font-size: 40px;
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .header {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .options {
-        grid-template-columns: 1fr;
-      }
-      
-      .menu-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <!-- Header -->
     <div class="header">
       <div class="user-info">
-        <h2>✨ Aventuras Numéricas ✨</h2>
+        <h1>✨ Aventuras Numéricas ✨</h1>
         <div class="stats">
-          <span class="stat">👤 <span id="username">Cargando...</span></span>
-          <span class="stat coins">💰 <span id="coins">0</span></span>
-          <span class="stat xp">⭐ <span id="xp">0</span> XP</span>
-          <span class="stat">🏆 Nivel <span id="level">1</span></span>
+          <span class="stat">👤 <span id="displayUsername">---</span></span>
+          <span class="stat stat-coins">💰 <span id="displayCoins">0</span></span>
+          <span class="stat stat-xp">⭐ <span id="displayXP">0</span> XP</span>
+          <span class="stat stat-level">🏆 Nivel <span id="displayLevel">1</span></span>
         </div>
       </div>
-      <button class="logout-btn" id="logoutBtn">🚪 Salir</button>
+      <button id="logoutBtn" class="logout-btn">🚪 Salir</button>
     </div>
 
     <!-- Avatar -->
-    <div class="avatar-section">
-      <div class="avatar" id="avatar">🕷️</div>
+    <div class="avatar-container">
+      <div class="avatar" id="avatarDisplay">🕷️</div>
     </div>
 
-    <!-- Menú Principal -->
+    <!-- Menú -->
     <div class="menu-grid">
       <button class="menu-btn" data-page="game">
         <span class="icon">🎮</span>
@@ -357,83 +55,71 @@
       </button>
     </div>
 
-    <!-- Sección Juego -->
+    <!-- Secciones -->
     <div id="gameSection" class="section hidden">
-      <h3>🎮 Selecciona tu modo</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <button id="quizModeBtn" style="padding: 40px; font-size: 18px; background: #667eea; color: white; border: none; border-radius: 15px; cursor: pointer;">
-          ❓ Modo Quiz<br>
-          <small>Responde preguntas</small>
-        </button>
-        <button id="calcModeBtn" style="padding: 40px; font-size: 18px; background: #764ba2; color: white; border: none; border-radius: 15px; cursor: pointer;">
-          🧮 Calculadora<br>
-          <small>Resuelve ecuaciones</small>
-        </button>
+      <h2>🎮 Modos de Juego</h2>
+      <div class="game-modes">
+        <button id="goToQuiz" class="mode-btn">❓ Modo Quiz</button>
+        <button id="goToCalculator" class="mode-btn">🧮 Calculadora</button>
       </div>
     </div>
 
-    <!-- Sección Quiz -->
     <div id="quizSection" class="section hidden">
       <button class="back-btn" id="backFromQuiz">← Volver</button>
-      <h3>❓ Modo Quiz</h3>
-      <select id="difficulty" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px;">
+      <h2>❓ Modo Quiz</h2>
+      <select id="difficultySelect">
         <option value="facil">😊 Fácil (+10 XP, +2💰)</option>
         <option value="normal">😐 Normal (+25 XP, +5💰)</option>
         <option value="dificil">😤 Difícil (+50 XP, +10💰)</option>
       </select>
-      <button id="startQuiz" style="width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer;">🎯 Comenzar Quiz</button>
+      <button id="startQuiz" class="btn-primary">🎯 Comenzar</button>
       <div id="quizArea"></div>
+      <div id="quizResult" class="result-box hidden"></div>
     </div>
 
-    <!-- Sección Calculadora -->
     <div id="calculatorSection" class="section hidden">
       <button class="back-btn" id="backFromCalc">← Volver</button>
-      <h3>🧮 Calculadora de Ecuaciones</h3>
-      <p style="margin-bottom: 10px;">Ejemplo: x^2-3x+2=0</p>
-      <input type="text" id="equation" class="calc-input" placeholder="x^2-3x+2=0">
-      <button id="solveBtn" style="width: 100%; padding: 15px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer;">🔍 Resolver</button>
-      <div id="calcResult" class="calc-result"></div>
+      <h2>🧮 Calculadora</h2>
+      <p class="hint">Ejemplo: x^2-3x+2=0</p>
+      <input type="text" id="equationInput" placeholder="x^2-3x+2=0">
+      <button id="solveBtn" class="btn-primary">Resolver</button>
+      <div id="calcResult" class="result-box"></div>
     </div>
 
-    <!-- Sección Infinito -->
     <div id="infinitoSection" class="section hidden">
       <button class="back-btn" id="backFromInfinito">← Volver</button>
-      <h3>∞ Modo Infinito</h3>
-      <div id="infinityProblem" style="background: #f8f9fa; padding: 40px; text-align: center; border-radius: 15px; margin-bottom: 20px;">
-        <div style="font-size: 36px; font-weight: bold;">Cargando...</div>
+      <h2>∞ Modo Infinito</h2>
+      <div id="infinityProblem" class="problem-box">
+        <div class="problem-text">Cargando...</div>
       </div>
-      <input type="number" id="infinityAnswer" class="calc-input" placeholder="Tu respuesta">
-      <button id="infinityCheck" style="width: 100%; padding: 15px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer;">✔ Verificar</button>
-      <div id="infinityResult" class="calc-result"></div>
+      <input type="number" id="infinityAnswer" placeholder="Tu respuesta">
+      <button id="checkInfinity" class="btn-primary">Verificar</button>
+      <div id="infinityResult" class="result-box"></div>
     </div>
 
-    <!-- Sección Tienda -->
     <div id="tiendaSection" class="section hidden">
       <button class="back-btn" id="backFromTienda">← Volver</button>
-      <h3>🛒 Tienda de Avatares</h3>
+      <h2>🛒 Tienda de Avatares</h2>
       <div id="shopItems" class="skins-grid"></div>
     </div>
 
-    <!-- Sección Ranking -->
     <div id="rankingSection" class="section hidden">
       <button class="back-btn" id="backFromRanking">← Volver</button>
-      <h3>🏆 Ranking Global</h3>
+      <h2>🏆 Ranking Global</h2>
       <div id="rankingList"></div>
     </div>
 
-    <!-- Sección Logros -->
     <div id="logrosSection" class="section hidden">
       <button class="back-btn" id="backFromLogros">← Volver</button>
-      <h3>🎖️ Mis Logros</h3>
+      <h2>🎖️ Logros</h2>
       <div id="logrosList" class="logros-grid"></div>
     </div>
 
-    <!-- Sección Config -->
     <div id="configSection" class="section hidden">
       <button class="back-btn" id="backFromConfig">← Volver</button>
-      <h3>⚙️ Configuración</h3>
-      <label style="display: block; margin-bottom: 10px;">🎨 Tema de fondo:</label>
-      <select id="themeSelect" style="width: 100%; padding: 12px; border-radius: 10px;">
+      <h2>⚙️ Configuración</h2>
+      <label>Tema de fondo:</label>
+      <select id="themeSelect">
         <option value="default">🌈 Por defecto</option>
         <option value="dark">🌙 Oscuro</option>
         <option value="nature">🌿 Naturaleza</option>
@@ -441,328 +127,6 @@
     </div>
   </div>
 
-  <script>
-    // ========== DATOS DEL USUARIO ==========
-    let currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      window.location.href = 'index.html';
-    }
-
-    let userData = JSON.parse(localStorage.getItem('userData_' + currentUser)) || {
-      username: currentUser,
-      xp: 0,
-      coins: 100,
-      skin: '🕷️',
-      skins: ['🕷️'],
-      logros: []
-    };
-
-    function saveUser() {
-      localStorage.setItem('userData_' + currentUser, JSON.stringify(userData));
-    }
-
-    function updateUI() {
-      document.getElementById('username').textContent = userData.username;
-      document.getElementById('coins').textContent = userData.coins;
-      document.getElementById('xp').textContent = userData.xp;
-      document.getElementById('level').textContent = Math.floor(userData.xp / 100) + 1;
-      document.getElementById('avatar').textContent = userData.skin;
-    }
-
-    // ========== NAVEGACIÓN ==========
-    function showSection(sectionId) {
-      const sections = ['gameSection', 'quizSection', 'calculatorSection', 'infinitoSection', 'tiendaSection', 'rankingSection', 'logrosSection', 'configSection'];
-      sections.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-      });
-      if (sectionId) {
-        document.getElementById(sectionId).classList.remove('hidden');
-      }
-    }
-
-    // Botones del menú
-    document.querySelectorAll('.menu-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const page = btn.dataset.page;
-        if (page === 'game') showSection('gameSection');
-        else if (page === 'infinito') { showSection('infinitoSection'); newInfinityProblem(); }
-        else if (page === 'tienda') { showSection('tiendaSection'); loadShop(); }
-        else if (page === 'ranking') { showSection('rankingSection'); loadRanking(); }
-        else if (page === 'logros') { showSection('logrosSection'); loadLogros(); }
-        else if (page === 'config') showSection('configSection');
-      });
-    });
-
-    // Botones de regreso
-    document.getElementById('backFromQuiz').onclick = () => showSection('gameSection');
-    document.getElementById('backFromCalc').onclick = () => showSection('gameSection');
-    document.getElementById('backFromInfinito').onclick = () => showSection('gameSection');
-    document.getElementById('backFromTienda').onclick = () => showSection('gameSection');
-    document.getElementById('backFromRanking').onclick = () => showSection('gameSection');
-    document.getElementById('backFromLogros').onclick = () => showSection('gameSection');
-    document.getElementById('backFromConfig').onclick = () => showSection('gameSection');
-
-    document.getElementById('quizModeBtn').onclick = () => showSection('quizSection');
-    document.getElementById('calcModeBtn').onclick = () => showSection('calculatorSection');
-
-    // Logout
-    document.getElementById('logoutBtn').onclick = () => {
-      localStorage.removeItem('currentUser');
-      window.location.href = 'index.html';
-    };
-
-    // ========== MODO QUIZ ==========
-    let currentDifficulty = 'facil';
-    let currentStreak = 0;
-    let currentQuestion = null;
-
-    function random(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function generateQuizQuestion() {
-      let q, answer;
-      const type = random(0, 2);
-      
-      if (currentDifficulty === 'facil') {
-        if (type === 0) {
-          q = `${random(1, 20)} + ${random(1, 20)}`;
-          answer = eval(q);
-        } else if (type === 1) {
-          const a = random(10, 50);
-          const b = random(1, a);
-          q = `${a} - ${b}`;
-          answer = eval(q);
-        } else {
-          q = `${random(2, 10)} × ${random(2, 10)}`;
-          answer = eval(q);
-        }
-      } else if (currentDifficulty === 'normal') {
-        const num = random(2, 12);
-        q = `${num}²`;
-        answer = num * num;
-      } else {
-        const num = random(2, 8);
-        q = `${num}³`;
-        answer = num * num * num;
-      }
-      
-      return { question: q, answer: answer };
-    }
-
-    function showQuizQuestion() {
-      currentQuestion = generateQuizQuestion();
-      const options = [currentQuestion.answer];
-      while (options.length < 4) {
-        const opt = currentQuestion.answer + random(-5, 5);
-        if (opt > 0 && !options.includes(opt)) options.push(opt);
-      }
-      options.sort(() => Math.random() - 0.5);
-      
-      let html = `<div class="question">${currentQuestion.question} = ?</div>`;
-      html += `<div class="options">`;
-      options.forEach(opt => {
-        html += `<button class="option" data-value="${opt}">${opt}</button>`;
-      });
-      html += `</div>`;
-      document.getElementById('quizArea').innerHTML = html;
-      
-      document.querySelectorAll('.option').forEach(btn => {
-        btn.onclick = () => {
-          const isCorrect = Number(btn.dataset.value) === currentQuestion.answer;
-          const resultDiv = document.createElement('div');
-          
-          if (isCorrect) {
-            const xpGain = { facil: 10, normal: 25, dificil: 50 };
-            const coinGain = { facil: 2, normal: 5, dificil: 10 };
-            userData.xp += xpGain[currentDifficulty];
-            userData.coins += coinGain[currentDifficulty];
-            saveUser();
-            updateUI();
-            resultDiv.className = 'result correct';
-            resultDiv.innerHTML = `✅ Correcto! +${xpGain[currentDifficulty]} XP +${coinGain[currentDifficulty]}💰`;
-            currentStreak++;
-          } else {
-            resultDiv.className = 'result wrong';
-            resultDiv.innerHTML = `❌ Incorrecto! Era: ${currentQuestion.answer}`;
-            currentStreak = 0;
-          }
-          
-          document.getElementById('quizArea').appendChild(resultDiv);
-          setTimeout(() => {
-            resultDiv.remove();
-            showQuizQuestion();
-          }, 1500);
-        };
-      });
-    }
-
-    document.getElementById('startQuiz').onclick = () => {
-      currentDifficulty = document.getElementById('difficulty').value;
-      currentStreak = 0;
-      showQuizQuestion();
-    };
-
-    // ========== CALCULADORA ==========
-    document.getElementById('solveBtn').onclick = () => {
-      const eq = document.getElementById('equation').value.replace(/\s/g, '');
-      const match = eq.match(/x\^2([+-]\d+)x([+-]\d+)=0/);
-      
-      if (!match) {
-        document.getElementById('calcResult').innerHTML = '<span style="color: red;">❌ Formato incorrecto. Usa: x^2-3x+2=0</span>';
-        return;
-      }
-      
-      const b = Number(match[1]);
-      const c = Number(match[2]);
-      const delta = (b * b) - (4 * c);
-      
-      let result = `<strong>Ecuación:</strong> x² ${b >= 0 ? '+' : ''}${b}x ${c >= 0 ? '+' : ''}${c} = 0<br>`;
-      result += `<strong>Δ =</strong> ${delta}<br>`;
-      
-      if (delta < 0) {
-        result += '<span style="color: red;">❌ No tiene soluciones reales</span>';
-      } else if (delta === 0) {
-        const x = (-b / 2).toFixed(2);
-        result += `<span style="color: green;">✅ Solución única: x = ${x}</span>`;
-      } else {
-        const x1 = ((-b + Math.sqrt(delta)) / 2).toFixed(2);
-        const x2 = ((-b - Math.sqrt(delta)) / 2).toFixed(2);
-        result += `<span style="color: green;">✅ Soluciones: x₁ = ${x1}, x₂ = ${x2}</span>`;
-      }
-      
-      document.getElementById('calcResult').innerHTML = result;
-    };
-
-    // ========== MODO INFINITO ==========
-    let currentInfinityProblem = null;
-    
-    function newInfinityProblem() {
-      const a = random(2, 12);
-      const b = random(2, 12);
-      currentInfinityProblem = { question: `${a} × ${b}`, answer: a * b };
-      document.getElementById('infinityProblem').innerHTML = `<div style="font-size: 36px; font-weight: bold;">${currentInfinityProblem.question} = ?</div>`;
-      document.getElementById('infinityAnswer').value = '';
-      document.getElementById('infinityResult').innerHTML = '';
-    }
-    
-    document.getElementById('infinityCheck').onclick = () => {
-      const answer = Number(document.getElementById('infinityAnswer').value);
-      if (answer === currentInfinityProblem.answer) {
-        userData.xp += 5;
-        userData.coins += 2;
-        saveUser();
-        updateUI();
-        document.getElementById('infinityResult').innerHTML = '<span style="color: green;">✅ Correcto! +5 XP +2💰</span>';
-        setTimeout(newInfinityProblem, 1000);
-      } else {
-        document.getElementById('infinityResult').innerHTML = `<span style="color: red;">❌ Incorrecto! Era: ${currentInfinityProblem.answer}</span>`;
-      }
-    };
-
-    // ========== TIENDA ==========
-    const skins = [
-      { emoji: '🕷️', name: 'Spider-Man', price: 0 },
-      { emoji: '🦇', name: 'Batman', price: 80 },
-      { emoji: '🐉', name: 'Goku', price: 200 },
-      { emoji: '🤖', name: 'Iron Man', price: 150 },
-      { emoji: '🍥', name: 'Sasuke', price: 140 },
-      { emoji: '📖', name: 'Kakashi', price: 120 },
-      { emoji: '💪', name: 'Vegeta', price: 210 },
-      { emoji: '⚔️', name: 'Zoro', price: 95 },
-      { emoji: '🏴‍☠️', name: 'Luffy', price: 110 }
-    ];
-    
-    function loadShop() {
-      let html = '<div class="skins-grid">';
-      skins.forEach(skin => {
-        const owned = userData.skins.includes(skin.emoji);
-        const isActive = userData.skin === skin.emoji;
-        html += `
-          <div class="skin-card ${isActive ? 'active' : ''}" data-skin="${skin.emoji}" data-price="${skin.price}">
-            <div class="skin-emoji">${skin.emoji}</div>
-            <div><strong>${skin.name}</strong></div>
-            <div>${owned ? (isActive ? '✅ Activo' : '📌 Poseído') : `💰 ${skin.price}`}</div>
-          </div>
-        `;
-      });
-      html += '</div>';
-      document.getElementById('shopItems').innerHTML = html;
-      
-      document.querySelectorAll('.skin-card').forEach(card => {
-        card.onclick = () => {
-          const skinEmoji = card.dataset.skin;
-          const price = Number(card.dataset.price);
-          const owned = userData.skins.includes(skinEmoji);
-          
-          if (owned) {
-            userData.skin = skinEmoji;
-            saveUser();
-            updateUI();
-            loadShop();
-          } else if (userData.coins >= price) {
-            userData.coins -= price;
-            userData.skins.push(skinEmoji);
-            userData.skin = skinEmoji;
-            saveUser();
-            updateUI();
-            loadShop();
-          } else {
-            alert(`❌ No tienes suficientes monedas! Necesitas ${price}💰`);
-          }
-        };
-      });
-    }
-
-    // ========== RANKING ==========
-    function loadRanking() {
-      // Obtener todos los usuarios
-      const users = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('userData_')) {
-          const user = JSON.parse(localStorage.getItem(key));
-          users.push({
-            username: user.username,
-            xp: user.xp,
-            level: Math.floor(user.xp / 100) + 1
-          });
-        }
-      }
-      
-      users.sort((a, b) => b.xp - a.xp);
-      
-      let html = '<table class="ranking-table">';
-      html += '<tr><th>#</th><th>Usuario</th><th>⭐ XP</th><th>🏆 Nivel</th></tr>';
-      users.forEach((user, index) => {
-        const isCurrent = user.username === currentUser;
-        html += `<tr class="${isCurrent ? 'current' : ''}">
-          <td>${index + 1}</td>
-          <td>${user.username} ${isCurrent ? '👑' : ''}</td>
-          <td>${user.xp}</td>
-          <td>${user.level}</td>
-        </tr>`;
-      });
-      html += '</table>';
-      document.getElementById('rankingList').innerHTML = html;
-    }
-
-    // ========== LOGROS ==========
-    function loadLogros() {
-      const logros = [
-        { icon: '🏆', name: 'Primer paso', desc: 'Completa tu primera pregunta', condition: userData.xp > 0 },
-        { icon: '💰', name: 'Ahorrador', desc: 'Acumula 500 monedas', condition: userData.coins >= 500 },
-        { icon: '⭐', name: 'Principiante', desc: 'Alcanza nivel 5', condition: Math.floor(userData.xp / 100) + 1 >= 5 },
-        { icon: '🔥', name: 'En racha', desc: 'Responde 5 preguntas seguidas bien', condition: false },
-        { icon: '🎨', name: 'Coleccionista', desc: 'Compra 3 avatares', condition: userData.skins.length >= 4 }
-      ];
-      
-      let html = '';
-      logros.forEach(logro => {
-        html += `
-          <div class="logro-card ${logro.condition ? 'achieved' : ''}">
-            <div class="logro-icon">${logro.icon}</div>
-            <div>
-              <strong>${logro.name}</strong><br>
-              <small>${logro.desc}</small><br>
+  <script src="menu.js"></script>
+</body>
+</html>
