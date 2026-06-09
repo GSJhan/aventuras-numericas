@@ -2,82 +2,31 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Aventuras Numéricas - Juego</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aventuras Numéricas - Calculadora</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="particles" id="particles"></div>
-  
   <div class="container">
     <div class="header">
-      <button class="back-btn" onclick="window.location.href='menu.html'" style="background: rgba(76,144,255,0.15); border: none; padding: 10px 20px; border-radius: 30px;">← Volver al Menú</button>
       <div class="user-info">
-        <span class="badge badge-coins" id="displayCoins">💰 0</span>
-        <span class="badge badge-xp" id="displayXP">⭐ 0 XP</span>
-        <span class="badge badge-level" id="displayLevel">🏆 Nivel 1</span>
+        <h1>🧮 Calculadora de Ecuaciones</h1>
+        <div class="stats">
+          <span class="stat stat-coins">💰 <span id="displayCoins">0</span></span>
+          <span class="stat stat-xp">⭐ <span id="displayXP">0</span> XP</span>
+          <span class="stat stat-level">🏆 Nivel <span id="displayLevel">1</span></span>
+        </div>
       </div>
+      <button id="backToMenu" class="logout-btn">← Volver</button>
     </div>
-
-    <div id="gameSection">
-      <h2 style="text-align:center; margin-bottom: 20px;">🎮 ¿Cómo quieres jugar?</h2>
-      <div class="game-options">
-        <button class="game-btn" id="goToGameBtn">
-          <span class="icon">❓</span>
-          Modo Quiz<br><small>Preguntas con opciones</small>
-        </button>
-        <button class="game-btn" id="goToCalculatorBtn">
-          <span class="icon">🧮</span>
-          Calculadora<br><small>Resuelve ecuaciones</small>
-        </button>
-      </div>
-    </div>
-
-    <div id="quizSection" class="section hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>❓ Modo Quiz</h2>
-        <button id="backToGameMenu" class="back-btn">← Atrás</button>
-      </div>
-      <select id="quizDifficulty" style="margin-bottom: 16px;">
-        <option value="facil">😊 Fácil (+10 XP, +2💰)</option>
-        <option value="normal">😐 Normal (+25 XP, +5💰)</option>
-        <option value="dificil">😤 Difícil (+50 XP, +10💰)</option>
-        <option value="experto">🔥 Experto (+100 XP, +20💰)</option>
-      </select>
-      <button id="startQuizBtn" class="btn-primary">🎯 Comenzar Quiz</button>
-      <div id="quizGame" style="margin-top: 20px;"></div>
-      <div id="quizStats" class="result-box" style="display: none;"></div>
-    </div>
-
-    <div id="calculatorSection" class="section hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>🧮 Calculadora de Ecuaciones</h2>
-        <button id="backToGameMenu" class="back-btn">← Atrás</button>
-      </div>
-      <p style="margin-bottom: 12px;">📝 Ejemplo: <code>x^2-3x+2=0</code></p>
-      <div class="calc-input">
-        <input id="eqInput" placeholder="x^2-3x+2=0">
-      </div>
-      <button id="solveBtn" class="btn-primary">🔍 Resolver</button>
-      <div id="calcResult" class="calc-result"></div>
+    
+    <div class="section">
+      <p class="hint">Ejemplo: x^2-3x+2=0</p>
+      <input type="text" id="eqInput" placeholder="x^2-3x+2=0">
+      <button id="solveBtn" class="btn-primary">Resolver</button>
+      <div id="calcResult" class="result-box"></div>
     </div>
   </div>
-
   <script type="module" src="game.js"></script>
-  <script>
-    (function() {
-      var p = document.getElementById('particles');
-      if (p) {
-        for (var i = 0; i < 40; i++) {
-          var d = document.createElement('div');
-          d.className = 'particle';
-          var size = 2 + Math.random() * 5;
-          d.style.cssText = 'left:' + Math.random() * 100 + '%;top:' + Math.random() * 100 + '%;width:' + size + 'px;height:' + size + 'px;animation-delay:' + Math.random() * 6 + 's;animation-duration:' + (4 + Math.random() * 8) + 's;';
-          p.appendChild(d);
-        }
-      }
-    })();
-  </script>
 </body>
 </html>
