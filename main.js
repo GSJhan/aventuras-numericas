@@ -21,10 +21,23 @@ function showMessage(msg, ok) {
   el.style.color = ok ? '#4cff90' : '#ff6b6b';
 }
 
+function validateUsername(username) {
+  if (username.length < 3) return '⚠️ El usuario debe tener al menos 3 caracteres';
+  if (username.length > 16) return '⚠️ El usuario no puede tener más de 16 caracteres';
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) return '⚠️ Solo letras, números y guión bajo (_)';
+  return null;
+}
+
 async function handleAuth() {
   var username = document.getElementById('username').value.trim();
   var password = document.getElementById('password').value.trim();
   if (!username || !password) { showMessage('⚠️ Completa usuario y contraseña'); return; }
+
+  if (isRegister) {
+    var err = validateUsername(username);
+    if (err) { showMessage(err); return; }
+    if (password.length < 4) { showMessage('⚠️ La contraseña debe tener al menos 4 caracteres'); return; }
+  }
 
   var userRef = doc(db, 'users', username);
   var userSnap = await getDoc(userRef);
@@ -34,8 +47,8 @@ async function handleAuth() {
     var newUser = {
       password: password, xp: 0, coins: 0, level: 1,
       skin: 'spiderman', skins: ['spiderman'],
-      logros: { mision3: false, rach5: false, nivel10: false, experto1: false, comprador: false },
-      misionesCompletas: 0
+      logros: {}, misionesCompletas: 0, totalMonedas: 0,
+      infinityBestStreak: 0, stats: {}
     };
     await setDoc(userRef, newUser);
     localStorage.setItem('currentUser', username);
