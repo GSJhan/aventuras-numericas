@@ -2,11 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a0e27">
-  <meta name="description" content="Aventuras Numéricas - Juego educativo de matemáticas">
-  <title>Aventuras Numéricas - Aprende Matemáticas Jugando</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aventuras Numéricas</title>
   <style>
     * {
       margin: 0;
@@ -14,270 +11,175 @@
       box-sizing: border-box;
     }
 
-    :root {
-      --primary: #4c90ff;
-      --primary-dark: #3a6fcc;
-      --secondary: #9b59ff;
-      --success: #4cff90;
-      --danger: #ff4d6d;
-      --warning: #ffd700;
-      --dark: #0a0e27;
-      --dark-card: rgba(16, 24, 52, 0.9);
-      --text: #e8eaff;
-      --text-muted: #a0a4b8;
-    }
-
     body {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-      color: var(--text);
-      overflow-x: hidden;
-    }
-
-    /* Fondos temáticos */
-    body.ciudad { background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); }
-    body.galaxia { background: linear-gradient(135deg, #0a0033 0%, #1a0a3a 100%); }
-    body.parque { background: linear-gradient(135deg, #0a2710 0%, #1a3a20 100%); }
-    body.fondo1 { background: linear-gradient(135deg, #1a0a27 0%, #2a1a3a 100%); }
-    body.fondo2 { background: linear-gradient(135deg, #0a1a27 0%, #1a2a3a 100%); }
-    body.espacio { background: linear-gradient(135deg, #00001a 0%, #0a0a3a 100%); }
-    body.templo { background: linear-gradient(135deg, #1a0a0a 0%, #3a2a1a 100%); }
-    body.castillo { background: linear-gradient(135deg, #1a1a2a 0%, #2a2a3a 100%); }
-    body.volcan { background: linear-gradient(135deg, #2a0a0a 0%, #4a1a0a 100%); }
-    body.hielo { background: linear-gradient(135deg, #0a2a2a 0%, #1a4a4a 100%); }
-
-    /* Partículas */
-    .particles {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .particle {
-      position: absolute;
-      border-radius: 50%;
-      background: var(--primary);
-      opacity: 0.3;
-      animation: floatUp linear infinite;
-    }
-    @keyframes floatUp {
-      0% { transform: translateY(100vh) scale(0); opacity: 0; }
-      10% { opacity: 0.5; }
-      90% { opacity: 0.3; }
-      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-    }
-
-    /* Animaciones */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-    @keyframes levitate {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    @keyframes glow {
-      0%, 100% { text-shadow: 0 0 5px var(--primary); }
-      50% { text-shadow: 0 0 20px var(--primary); }
-    }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-    }
-
-    .auth-page {
       display: flex;
+      justify-content: center;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       padding: 20px;
-      position: relative;
-      z-index: 1;
     }
 
-    .auth-container {
-      max-width: 420px;
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
       width: 100%;
-      animation: fadeInUp 0.6s ease-out;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
 
-    .logo-area {
+    h1 {
       text-align: center;
-      margin-bottom: 32px;
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 28px;
     }
 
-    .logo-icon {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 14px;
-      animation: pulse 2.5s ease-in-out infinite;
-    }
-
-    .logo-area h1 {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(28px, 8vw, 38px);
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .logo-area p {
-      color: var(--text-muted);
-      margin-top: 8px;
-    }
-
-    .card {
-      background: var(--dark-card);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(76, 144, 255, 0.25);
-      padding: 34px;
-      border-radius: 28px;
-      box-shadow: 0 10px 50px rgba(0, 0, 0, 0.55);
-    }
-
-    .card h2 {
-      font-family: 'Orbitron', monospace;
-      font-size: 20px;
-      color: var(--primary);
+    .subtitle {
       text-align: center;
-      margin-bottom: 22px;
+      color: #666;
+      margin-bottom: 30px;
     }
 
     input {
       width: 100%;
-      padding: 14px 18px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
       font-size: 16px;
-      font-family: 'Rajdhani', sans-serif;
-      border-radius: 14px;
-      border: 1px solid rgba(76, 144, 255, 0.3);
-      margin-bottom: 14px;
-      background: rgba(8, 12, 26, 0.75);
-      color: var(--text);
-      transition: all 0.2s;
+      transition: border-color 0.3s;
     }
 
     input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 10px rgba(76, 144, 255, 0.3);
+      border-color: #667eea;
     }
 
     button {
-      padding: 12px 18px;
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
       border: none;
-      border-radius: 14px;
+      border-radius: 10px;
+      font-size: 18px;
       cursor: pointer;
-      font-size: 16px;
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 600;
-      transition: all 0.2s;
-      background: rgba(36, 48, 93, 0.8);
-      color: var(--text);
-      border: 1px solid rgba(76, 144, 255, 0.2);
+      transition: transform 0.2s;
     }
 
     button:hover {
       transform: translateY(-2px);
-      filter: brightness(1.1);
     }
 
-    button:active {
-      transform: translateY(0);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      width: 100%;
-      font-size: 18px;
-      padding: 15px;
-      margin: 0;
-      box-shadow: 0 4px 22px rgba(76, 144, 255, 0.35);
-      border: none;
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, var(--success), #2a8a4a);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, var(--danger), #aa2a4a);
-    }
-
-    #authMessage {
+    .message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 10px;
       text-align: center;
-      margin-top: 12px;
-      font-size: 15px;
+      display: none;
     }
 
-    .switch-auth {
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+
+    .switch {
       text-align: center;
-      margin-top: 18px;
-      font-size: 15px;
+      margin-top: 20px;
+      color: #666;
     }
 
-    .switch-auth a {
-      color: var(--primary);
+    .switch a {
+      color: #667eea;
       cursor: pointer;
       text-decoration: underline;
     }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .card {
-        padding: 24px;
-      }
-      input, button {
-        padding: 12px 16px;
-      }
-    }
   </style>
 </head>
-<body class="auth-page">
-  <div class="particles" id="particles"></div>
-  <div class="auth-container">
-    <div class="logo-area">
-      <div class="logo-icon">
-        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-          <circle cx="40" cy="40" r="38" stroke="#4c90ff" stroke-width="3" fill="rgba(76,144,255,0.08)"/>
-          <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="38" fill="#4c90ff" font-family="Orbitron">∑</text>
-        </svg>
-      </div>
-      <h1>Aventuras<br>Numéricas</h1>
-      <p>🎮 Aprende matemáticas jugando</p>
+<body>
+  <div class="login-container">
+    <h1>🎮 Aventuras Numéricas</h1>
+    <div class="subtitle">Aprende matemáticas jugando</div>
+    
+    <input type="text" id="username" placeholder="Nombre de usuario">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button id="loginBtn">Comenzar a Jugar</button>
+    
+    <div id="message" class="message"></div>
+    <div class="switch">
+      ¿No tienes cuenta? <a id="switchBtn">Regístrate gratis</a>
     </div>
-    <div class="card">
-      <h2 id="authTitle">Crear Cuenta</h2>
-      <input type="text" id="username" placeholder="Nombre de usuario" autocomplete="off">
-      <input type="password" id="password" placeholder="Contraseña">
-      <button id="authBtn" class="btn-primary">Crear Cuenta</button>
-      <p id="authMessage"></p>
-    </div>
-    <p class="switch-auth">¿Ya tienes cuenta? <a id="switchLink">Inicia aquí</a></p>
   </div>
-  <script type="module" src="main.js"></script>
+
   <script>
-    (function() {
-      var p = document.getElementById('particles');
-      for (var i = 0; i < 60; i++) {
-        var d = document.createElement('div');
-        d.className = 'particle';
-        var size = 2 + Math.random() * 6;
-        d.style.cssText = 'left:' + Math.random() * 100 + '%;top:' + Math.random() * 100 + '%;width:' + size + 'px;height:' + size + 'px;animation-delay:' + Math.random() * 6 + 's;animation-duration:' + (4 + Math.random() * 8) + 's;background:' + ['#4c90ff', '#9b59ff', '#4cff90', '#ffd700'][Math.floor(Math.random() * 4)];
-        p.appendChild(d);
+    // Modo demo - funciona sin Firebase
+    let isRegister = false;
+    const messageDiv = document.getElementById('message');
+    const loginBtn = document.getElementById('loginBtn');
+    const switchBtn = document.getElementById('switchBtn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+
+    function showMessage(text, type) {
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      setTimeout(() => {
+        messageDiv.className = 'message';
+      }, 3000);
+    }
+
+    function login() {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!username || !password) {
+        showMessage('❌ Por favor completa todos los campos', 'error');
+        return;
       }
-    })();
+
+      // Guardar usuario
+      localStorage.setItem('currentUser', username);
+      
+      // Crear datos de ejemplo si no existen
+      if (!localStorage.getItem('userData_' + username)) {
+        const newUser = {
+          username: username,
+          xp: 0,
+          coins: 100,
+          level: 1,
+          skin: '🕷️',
+          skins: ['🕷️'],
+          logros: []
+        };
+        localStorage.setItem('userData_' + username, JSON.stringify(newUser));
+      }
+      
+      showMessage('✅ ¡Bienvenido ' + username + '!', 'success');
+      setTimeout(() => {
+        window.location.href = 'menu.html';
+      }, 1500);
+    }
+
+    loginBtn.onclick = login;
+    
+    usernameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
+    
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
   </script>
 </body>
 </html>
