@@ -236,3 +236,11 @@ color: transparent;
 .correct { color: var(--green); font-weight: 700; }
 .wrong   { color: var(--red);   font-weight: 700; }
 #calcResult p { margin-bottom: 8px; font-size: 17px; }
+/* ── RANKING ── */
+@media(max-width:600px) {
+  .menu-grid { grid-template-columns: repeat(3,1fr); }
+}
+#rankingList { max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+#rankingList::-webkit-scrollbar { width: 5px; }
+#rankingList::-webkit-scrollbar-track { background: rgba(76,144,255,0.05); border-radius: 3px; }
+#rankingList::-webkit-scrollbar-thumb { background: rgba(76,144,255,0.3); border-radius: 3px; }
