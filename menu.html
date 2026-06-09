@@ -15,9 +15,8 @@
         <div class="user-info">
           <span class="username-badge">👤 <span id="displayUsername">Usuario</span></span>
           <span class="coins-badge" id="displayCoins">💰 0 monedas</span>
-          <span class="xp-badge" id="displayXP">⭐ Nv.1</span>
+          <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
         </div>
-        <div id="xpBarMenu" style="margin-top:8px;min-width:220px"></div>
       </div>
       <button id="logoutBtn" class="logout-btn">🚪 Salir</button>
     </div>
@@ -28,6 +27,7 @@
       <button class="menu-btn" data-page="game"><span class="icon">🎮</span>Jugar</button>
       <button class="menu-btn" data-page="infinito"><span class="icon">∞</span>Infinito</button>
       <button class="menu-btn" data-page="logros"><span class="icon">🏆</span>Logros</button>
+      <button class="menu-btn" data-page="ranking"><span class="icon">🥇</span>Ranking</button>
     </div>
     <div id="avatarSection" class="section hidden">
       <h2>👤 Avatar</h2>
@@ -52,9 +52,13 @@
       <h2>🏆 Logros</h2>
       <div id="logrosList" class="logros-list"></div>
     </div>
+    <div id="rankingSection" class="section hidden">
+      <h2>🥇 Tabla de Clasificación Global</h2>
+      <div id="rankingList"></div>
+    </div>
     <div id="infinitoSection" class="section hidden">
       <h2>∞ Modo Infinito</h2>
-      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas. Presiona Enter para verificar.</p>
+      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
       <div id="infinityProblemBox" class="problem-box"></div>
       <div class="infinity-input-row">
         <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
