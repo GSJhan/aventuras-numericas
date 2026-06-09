@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -26,7 +26,7 @@ async function loadUser() {
   user = snap.data();
   if (!user.logros) user.logros = { mision3: false, rach5: false, nivel10: false, experto1: false, comprador: false };
   if (!user.xp) user.xp = 0;
-  if (!user.coins) user.coins = 100;
+  if (!user.coins) user.coins = 0;
   if (!user.skins) user.skins = ['spiderman'];
   if (!user.skin) user.skin = 'spiderman';
   if (!user.misionesCompletas) user.misionesCompletas = 0;
@@ -44,93 +44,54 @@ function getAvatarSrc(name) {
 }
 
 function initMenu() {
-  // Mostrar datos del usuario
   document.getElementById('displayUsername').textContent = currentUser;
-  document.getElementById('displayCoins').innerHTML = '💰 ' + user.coins + ' monedas';
-  document.getElementById('displayXP').innerHTML = '⭐ ' + user.xp + ' XP';
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
+  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
 
-  // Mostrar avatar
   var initSkin = user.skin || 'spiderman';
-  var avatarDisplay = document.getElementById('avatarDisplay');
-  if (avatarDisplay) {
-    avatarDisplay.innerHTML = '<img src="' + getAvatarSrc(initSkin) + '" onerror="this.outerHTML=\'🦸\'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
-  }
+  document.getElementById('avatarDisplay').innerHTML = '<img src="' + getAvatarSrc(initSkin) + '" onerror="this.outerHTML=\'🦸\'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
 
-  // ==== FONDOS ====
   var savedBg = localStorage.getItem('background') || 'ciudad';
   document.body.className = savedBg;
-  var bgSelect = document.getElementById('backgroundSelect');
-  if (bgSelect) {
-    bgSelect.value = savedBg;
-    bgSelect.addEventListener('change', function(e) {
-      var newBg = e.target.value;
-      document.body.className = newBg;
-      localStorage.setItem('background', newBg);
-      playMusic(newBg);
-    });
-  }
+  document.getElementById('backgroundSelect').value = savedBg;
 
-  // ==== MÚSICA ====
   var currentAudio = null;
-  
-  window.playMusic = function(bg) {
-    // Detener música actual
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-    }
-    
-    // Verificar si la música está activada
+
+  function playMusic(bg) {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
     var musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
     if (!musicEnabled) return;
-    
-    // Mapeo de fondos a archivos de música
-    var musicFiles = {
-      'ciudad': 'ciudad.mp3',
-      'galaxia': 'galaxia.mp3',
-      'parque': 'parque.mp3',
-      'fondo1': 'bosque.mp3',
-      'fondo2': 'neon.mp3'
-    };
-    
-    var musicFile = musicFiles[bg];
-    if (musicFile) {
-      console.log('Intentando reproducir:', musicFile);
-      currentAudio = new Audio(musicFile);
+    var tracks = { ciudad: 'ciudad.mp3', galaxia: 'galaxia.mp3', parque: 'parque.mp3', fondo1: 'bosque.mp3', fondo2: 'neon.mp3' };
+    if (tracks[bg]) {
+      currentAudio = new Audio(tracks[bg]);
       currentAudio.loop = true;
       currentAudio.volume = 0.3;
-      currentAudio.play().catch(function(error) {
-        console.log('Error al reproducir música:', error);
-      });
+      currentAudio.play().catch(function() {});
     }
-  };
-
-  // Configurar el toggle de música
-  var musicToggle = document.getElementById('musicToggle');
-  if (musicToggle) {
-    musicToggle.checked = localStorage.getItem('musicEnabled') !== 'false';
-    musicToggle.addEventListener('change', function(e) {
-      localStorage.setItem('musicEnabled', e.target.checked);
-      if (e.target.checked) {
-        playMusic(document.getElementById('backgroundSelect').value);
-      } else if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
-    });
   }
 
-  // Iniciar música con el fondo guardado
+  var musicToggle = document.getElementById('musicToggle');
+  musicToggle.checked = localStorage.getItem('musicEnabled') !== 'false';
+  musicToggle.addEventListener('change', function(e) {
+    localStorage.setItem('musicEnabled', e.target.checked);
+    if (e.target.checked) playMusic(document.getElementById('backgroundSelect').value);
+    else if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  });
+
+  document.getElementById('backgroundSelect').addEventListener('change', function(e) {
+    document.body.className = e.target.value;
+    localStorage.setItem('background', e.target.value);
+    playMusic(e.target.value);
+  });
+
   playMusic(savedBg);
 
-  // Botón de logout
   document.getElementById('logoutBtn').onclick = function() {
     if (currentAudio) currentAudio.pause();
     localStorage.removeItem('currentUser');
     window.location.href = 'index.html';
   };
 
-  // Navegación del menú
   var menuBtns = document.querySelectorAll('.menu-btn');
   for (var i = 0; i < menuBtns.length; i++) {
     menuBtns[i].addEventListener('click', function() {
@@ -150,24 +111,20 @@ function initMenu() {
       } else if (page === 'logros') {
         document.getElementById('logrosSection').classList.remove('hidden');
         showLogros();
-      } else if (page === 'ranking') {
-        document.getElementById('rankingSection').classList.remove('hidden');
-        loadRanking();
       }
     });
   }
 
-  // Tienda de skins
   var skins = [
-    { avatar: 'spiderman', name: 'Spider-Man', price: 0 },
-    { avatar: 'batman',    name: 'Batman',     price: 80 },
+    { avatar: 'spiderman', name: 'Spider-Man', price: 0   },
+    { avatar: 'batman',    name: 'Batman',     price: 80  },
     { avatar: 'goku',      name: 'Goku',       price: 200 },
     { avatar: 'ironman',   name: 'Iron Man',   price: 150 },
     { avatar: 'sasuke',    name: 'Sasuke',     price: 140 },
     { avatar: 'kakashi',   name: 'Kakashi',    price: 120 },
     { avatar: 'vegeta',    name: 'Vegeta',     price: 210 },
     { avatar: 'itachi',    name: 'Itachi',     price: 220 },
-    { avatar: 'zoro',      name: 'Zoro',       price: 95 },
+    { avatar: 'zoro',      name: 'Zoro',       price: 95  },
     { avatar: 'luffy',     name: 'Luffy',      price: 110 }
   ];
 
@@ -211,7 +168,7 @@ function initMenu() {
           user.skin = skin;
           user.logros.comprador = true;
           saveUser();
-          document.getElementById('displayCoins').innerHTML = '💰 ' + user.coins + ' monedas';
+          document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
           document.getElementById('avatarDisplay').innerHTML = '<img src="' + getAvatarSrc(skin) + '" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
           showAvatarEditor();
         } else {
@@ -221,20 +178,27 @@ function initMenu() {
     }
   }
 
-  // Logros
   var logrosData = [
-    { id: 'mision3',       icon: '🏆', title: 'Primeros Pasos',  desc: 'Completa 3 problemas en modo infinito' },
-    { id: 'mision10',      icon: '🎯', title: 'En Racha',        desc: 'Completa 10 problemas en modo infinito' },
-    { id: 'mision50',      icon: '💫', title: 'Imparable',       desc: 'Completa 50 problemas en modo infinito' },
-    { id: 'rach5',         icon: '🔥', title: 'Racha x5',        desc: '5 respuestas correctas seguidas en quiz' },
-    { id: 'rach10',        icon: '⚡', title: 'Racha x10',       desc: '10 respuestas correctas seguidas en quiz' },
-    { id: 'rach20',        icon: '🌪️', title: 'Racha x20',       desc: '20 respuestas correctas seguidas en quiz' },
-    { id: 'nivel5',        icon: '📈', title: 'Nivel 5',         desc: 'Llega al nivel 5' },
-    { id: 'nivel10',       icon: '⭐', title: 'Nivel 10',        desc: 'Llega al nivel 10' },
-    { id: 'nivel20',       icon: '🌟', title: 'Nivel 20',        desc: 'Llega al nivel 20' },
-    { id: 'nivel50',       icon: '👑', title: 'Leyenda',         desc: 'Llega al nivel 50' },
-    { id: 'experto1',      icon: '💎', title: 'Experto',         desc: 'Responde 1 pregunta en dificultad Experto' },
-    { id: 'comprador',     icon: '🛍️', title: 'Comprador',       desc: 'Compra tu primer aspecto' }
+    { id: 'mision3',       icon: '🏆', title: 'Primeros Pasos',  desc: 'Completa 3 problemas en modo infinito'       },
+    { id: 'mision10',      icon: '🎯', title: 'En Racha',        desc: 'Completa 10 problemas en modo infinito'      },
+    { id: 'mision50',      icon: '💫', title: 'Imparable',       desc: 'Completa 50 problemas en modo infinito'      },
+    { id: 'rach5',         icon: '🔥', title: 'Racha x5',        desc: '5 respuestas correctas seguidas en quiz'     },
+    { id: 'rach10',        icon: '⚡', title: 'Racha x10',       desc: '10 respuestas correctas seguidas en quiz'    },
+    { id: 'rach20',        icon: '🌪️', title: 'Racha x20',       desc: '20 respuestas correctas seguidas en quiz'    },
+    { id: 'nivel5',        icon: '📈', title: 'Nivel 5',         desc: 'Llega al nivel 5'                            },
+    { id: 'nivel10',       icon: '⭐', title: 'Nivel 10',        desc: 'Llega al nivel 10'                           },
+    { id: 'nivel20',       icon: '🌟', title: 'Nivel 20',        desc: 'Llega al nivel 20'                           },
+    { id: 'nivel50',       icon: '👑', title: 'Leyenda',         desc: 'Llega al nivel 50'                           },
+    { id: 'experto1',      icon: '💎', title: 'Experto',         desc: 'Responde 1 pregunta en dificultad Experto'   },
+    { id: 'experto10',     icon: '🔮', title: 'Gran Experto',    desc: 'Responde 10 preguntas en dificultad Experto' },
+    { id: 'comprador',     icon: '🛍️', title: 'Comprador',       desc: 'Compra tu primer aspecto'                    },
+    { id: 'coleccionista', icon: '🎨', title: 'Coleccionista',   desc: 'Desbloquea 5 aspectos'                       },
+    { id: 'millonario',    icon: '💰', title: 'Millonario',      desc: 'Acumula 500 monedas en total'                },
+    { id: 'monedas1000',   icon: '🤑', title: 'Rico Rico',       desc: 'Acumula 1000 monedas en total'               },
+    { id: 'facil50',       icon: '😊', title: 'Calentando',      desc: 'Responde 50 preguntas en dificultad Fácil'   },
+    { id: 'normal50',      icon: '😐', title: 'Constante',       desc: 'Responde 50 preguntas en dificultad Normal'  },
+    { id: 'dificil20',     icon: '😤', title: 'Valiente',        desc: 'Responde 20 preguntas en dificultad Difícil' },
+    { id: 'perfecto',      icon: '✨', title: 'Perfeccionista',  desc: 'Completa un quiz sin fallar ninguna'         }
   ];
 
   function showLogros() {
@@ -252,45 +216,6 @@ function initMenu() {
     list.innerHTML = html;
   }
 
-  // Ranking
-  async function loadRanking() {
-    try {
-      const rankingQuery = query(collection(db, 'ranking'), orderBy('xp', 'desc'), limit(50));
-      const querySnapshot = await getDocs(rankingQuery);
-      var rankingList = [];
-      querySnapshot.forEach(function(doc) {
-        rankingList.push(doc.data());
-      });
-      
-      var rankingHtml = '<table class="ranking-table"><thead><tr><th>#</th><th>Avatar</th><th>Usuario</th><th>⭐ XP</th><th>💰 Monedas</th><th>🏆 Nivel</th></tr></thead><tbody>';
-      
-      for (var i = 0; i < rankingList.length; i++) {
-        var r = rankingList[i];
-        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
-        var isCurrent = r.username === currentUser;
-        rankingHtml += '<tr class="' + (isCurrent ? 'current-user' : '') + '">';
-        rankingHtml += '<td>' + medal + '</td>';
-        rankingHtml += '<td><img src="' + getAvatarSrc(r.skin || 'spiderman') + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover"></td>';
-        rankingHtml += '<td>' + r.username + (isCurrent ? ' 👑' : '') + '</td>';
-        rankingHtml += '<td>' + (r.xp || 0) + '</td>';
-        rankingHtml += '<td>' + (r.coins || 0) + '</td>';
-        rankingHtml += '<td>' + (r.level || 1) + '</td>';
-        rankingHtml += '</tr>';
-      }
-      
-      if (rankingList.length === 0) {
-        rankingHtml += '<tr><td colspan="6" style="text-align:center">Aún no hay jugadores en el ranking</td></tr>';
-      }
-      
-      rankingHtml += '</tbody></table>';
-      document.getElementById('rankingList').innerHTML = rankingHtml;
-    } catch (error) {
-      console.error("Error al cargar ranking:", error);
-      document.getElementById('rankingList').innerHTML = '<p>Error al cargar ranking. Conecta a Firebase.</p>';
-    }
-  }
-
-  // Modo Infinito
   var infinityLevel = 0;
   var currentInfinityProblem = null;
   var infinityCount = 0;
@@ -301,11 +226,11 @@ function initMenu() {
     infinityLevel++;
     var type = rnd(0, 7);
     var q, a;
-    if (type === 0) { var x=rnd(1,50), y=rnd(1,50); q=x+' + '+y; a=x+y; }
-    else if (type === 1) { var x=rnd(10,80), y=rnd(1,x); q=x+' - '+y; a=x-y; }
-    else if (type === 2) { var x=rnd(2,15), y=rnd(2,12); q=x+' × '+y; a=x*y; }
-    else if (type === 3) { var x=rnd(2,15); q=x+'²'; a=x*x; }
-    else if (type === 4) { var x=rnd(2,6), y=rnd(2,3); q=x+'^'+y; a=Math.pow(x,y); }
+    if (type === 0) { var x=rnd(1,50),y=rnd(1,50); q=x+' + '+y; a=x+y; }
+    else if (type === 1) { var x=rnd(10,80),y=rnd(1,x); q=x+' - '+y; a=x-y; }
+    else if (type === 2) { var x=rnd(2,15),y=rnd(2,12); q=x+' × '+y; a=x*y; }
+    else if (type === 3) { var x=rnd(2,12); q=x+'²'; a=x*x; }
+    else if (type === 4) { var x=rnd(2,6),y=rnd(2,3); q=x+'^'+y; a=Math.pow(x,y); }
     else if (type === 5) { var x=rnd(1,9)*10,y=rnd(1,9)*10; q='('+x+' + '+y+') ÷ 2'; a=(x+y)/2; }
     else if (type === 6) { var x=rnd(2,9),y=rnd(2,9),z=rnd(1,5); q=x+' × '+y+' + '+z; a=x*y+z; }
     else { var x=rnd(2,9),y=rnd(2,9); q=x+' × '+y; a=x*y; }
@@ -332,9 +257,12 @@ function initMenu() {
       if (user.misionesCompletas >= 3) user.logros.mision3 = true;
       if (user.misionesCompletas >= 10) user.logros.mision10 = true;
       if (user.misionesCompletas >= 50) user.logros.mision50 = true;
+      user.totalMonedas = (user.totalMonedas || 0) + 2;
+      if (user.totalMonedas >= 500) user.logros.millonario = true;
+      if (user.totalMonedas >= 1000) user.logros.monedas1000 = true;
       saveUser();
-      document.getElementById('displayCoins').innerHTML = '💰 ' + user.coins + ' monedas';
-      document.getElementById('displayXP').innerHTML = '⭐ ' + user.xp + ' XP';
+      document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
+      document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
       document.getElementById('infinityResult').innerHTML = '<span class="correct">✅ ¡Correcto! +2💰 +5⭐</span>';
       setTimeout(nextProblem, 1000);
     } else {
