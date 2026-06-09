@@ -22,9 +22,9 @@ var userRef = null;
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
   var snap = await getDoc(userRef);
-  if (!snap.exists()) {
-    window.location.href = 'index.html';
-    return;
+  if (!snap.exists()) { 
+    window.location.href = 'index.html'; 
+    return; 
   }
   user = snap.data();
   if (!user.logros) user.logros = { mision3: false, rach5: false, nivel10: false, experto1: false, comprador: false };
@@ -34,6 +34,11 @@ async function loadUser() {
   if (!user.skin) user.skin = 'spiderman';
   if (!user.misionesCompletas) user.misionesCompletas = 0;
   if (!user.totalMonedas) user.totalMonedas = 100;
+  
+  // Actualizar UI
+  document.getElementById('displayUsername').textContent = currentUser;
+  document.getElementById('displayCoins').innerHTML = '💰 ' + user.coins + ' monedas';
+  document.getElementById('displayXP').innerHTML = '⭐ ' + user.xp + ' XP';
   
   initMenu();
 }
@@ -57,35 +62,26 @@ function getAvatarSrc(name) {
 }
 
 function initMenu() {
-  document.getElementById('displayUsername').textContent = currentUser;
-  document.getElementById('displayCoins').textContent = user.coins;
-  document.getElementById('displayXP').textContent = user.xp;
-  document.getElementById('displayLevel').textContent = Math.floor(user.xp / 100) + 1;
-
+  // Avatar
   var initSkin = user.skin || 'spiderman';
-  document.getElementById('avatarDisplay').innerHTML = '<img src="' + getAvatarSrc(initSkin) + '" onerror="this.outerHTML=\'🦸\'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+  var avatarDisplay = document.getElementById('avatarDisplay');
+  if (avatarDisplay) {
+    avatarDisplay.innerHTML = '<img src="' + getAvatarSrc(initSkin) + '" onerror="this.outerHTML=\'🦸\'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+  }
 
+  // Fondo
   var savedBg = localStorage.getItem('background') || 'ciudad';
   document.body.className = savedBg;
   var bgSelect = document.getElementById('backgroundSelect');
   if (bgSelect) bgSelect.value = savedBg;
 
+  // Música
   var currentAudio = null;
-
   function playMusic(bg) {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-    }
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
     var musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
     if (!musicEnabled) return;
-    var tracks = { 
-      ciudad: 'ciudad.mp3', 
-      galaxia: 'galaxia.mp3', 
-      parque: 'parque.mp3', 
-      fondo1: 'bosque.mp3', 
-      fondo2: 'neon.mp3' 
-    };
+    var tracks = { ciudad: 'ciudad.mp3', galaxia: 'galaxia.mp3', parque: 'parque.mp3', fondo1: 'bosque.mp3', fondo2: 'neon.mp3' };
     if (tracks[bg]) {
       currentAudio = new Audio(tracks[bg]);
       currentAudio.loop = true;
@@ -114,11 +110,15 @@ function initMenu() {
 
   playMusic(savedBg);
 
-  document.getElementById('logoutBtn').onclick = function() {
-    if (currentAudio) currentAudio.pause();
-    localStorage.removeItem('currentUser');
-    window.location.href = 'index.html';
-  };
+  // Logout
+  var logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.onclick = function() {
+      if (currentAudio) currentAudio.pause();
+      localStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    };
+  }
 
   // Navegación del menú
   var menuBtns = document.querySelectorAll('.menu-btn');
@@ -130,18 +130,23 @@ function initMenu() {
       if (page === 'game') {
         window.location.href = 'game.html';
       } else if (page === 'infinito') {
-        document.getElementById('infinitoSection').classList.remove('hidden');
+        var infinitoSection = document.getElementById('infinitoSection');
+        if (infinitoSection) infinitoSection.classList.remove('hidden');
         if (!currentInfinityProblem) nextProblem();
       } else if (page === 'avatar') {
-        document.getElementById('avatarSection').classList.remove('hidden');
+        var avatarSection = document.getElementById('avatarSection');
+        if (avatarSection) avatarSection.classList.remove('hidden');
         showAvatarEditor();
       } else if (page === 'config') {
-        document.getElementById('configSection').classList.remove('hidden');
+        var configSection = document.getElementById('configSection');
+        if (configSection) configSection.classList.remove('hidden');
       } else if (page === 'logros') {
-        document.getElementById('logrosSection').classList.remove('hidden');
+        var logrosSection = document.getElementById('logrosSection');
+        if (logrosSection) logrosSection.classList.remove('hidden');
         showLogros();
       } else if (page === 'ranking') {
-        document.getElementById('rankingSection').classList.remove('hidden');
+        var rankingSection = document.getElementById('rankingSection');
+        if (rankingSection) rankingSection.classList.remove('hidden');
         loadRanking();
       }
     });
@@ -163,6 +168,7 @@ function initMenu() {
 
   function showAvatarEditor() {
     var editor = document.getElementById('avatarEditor');
+    if (!editor) return;
     var html = '<div class="current-avatar"><img src="' + getAvatarSrc(user.skin) + '" onerror="this.style.display=\'none\'" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 24px rgba(76,144,255,0.7)"/></div>';
     html += '<h3 style="margin-bottom:14px;color:#aaa;font-family:Orbitron,monospace;font-size:14px;">Aspectos Disponibles</h3>';
     html += '<div class="skins-grid">';
@@ -170,7 +176,7 @@ function initMenu() {
       var s = skins[i];
       var owned = user.skins.indexOf(s.avatar) !== -1;
       var active = user.skin === s.avatar;
-      html += '<div class="skin-item ' + (active ? 'active' : '') + ' ' + (!owned ? 'locked' : '') + '" data-skin="' + s.avatar + '" data-price="' + s.price + '">';
+      html += '<div class="skin-item ' + (active ? 'active' : '') + ' ' + (!owned ? 'locked' : '') + '" data-skin="' + s.avatar + '" data-price="' + s.price + '" style="position:relative">';
       html += '<img src="' + getAvatarSrc(s.avatar) + '" onerror="this.style.display=\'none\'" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:6px;border:2px solid ' + (active ? '#4cff90' : 'rgba(76,144,255,0.3)') + '"/>';
       html += '<div class="skin-name">' + s.name + '</div>';
       if (owned) {
@@ -193,7 +199,10 @@ function initMenu() {
         if (owned) {
           user.skin = skin;
           saveUser();
-          document.getElementById('avatarDisplay').innerHTML = '<img src="' + getAvatarSrc(skin) + '" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+          var avatarDisplay2 = document.getElementById('avatarDisplay');
+          if (avatarDisplay2) {
+            avatarDisplay2.innerHTML = '<img src="' + getAvatarSrc(skin) + '" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+          }
           showAvatarEditor();
         } else if (user.coins >= price) {
           user.coins -= price;
@@ -202,8 +211,12 @@ function initMenu() {
           user.totalMonedas = (user.totalMonedas || 0) + price;
           user.logros.comprador = true;
           saveUser();
-          document.getElementById('displayCoins').textContent = user.coins;
-          document.getElementById('avatarDisplay').innerHTML = '<img src="' + getAvatarSrc(skin) + '" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+          var coinsDisplay = document.getElementById('displayCoins');
+          if (coinsDisplay) coinsDisplay.innerHTML = '💰 ' + user.coins + ' monedas';
+          var avatarDisplay3 = document.getElementById('avatarDisplay');
+          if (avatarDisplay3) {
+            avatarDisplay3.innerHTML = '<img src="' + getAvatarSrc(skin) + '" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+          }
           showAvatarEditor();
         } else {
           alert('❌ Necesitas ' + price + ' 💰 (tienes ' + user.coins + ')');
@@ -214,22 +227,23 @@ function initMenu() {
 
   // Logros
   var logrosData = [
-    { id: 'mision3',       icon: '🏆', title: 'Primeros Pasos',  desc: 'Completa 3 problemas en modo infinito' },
-    { id: 'mision10',      icon: '🎯', title: 'En Racha',        desc: 'Completa 10 problemas en modo infinito' },
-    { id: 'mision50',      icon: '💫', title: 'Imparable',       desc: 'Completa 50 problemas en modo infinito' },
-    { id: 'rach5',         icon: '🔥', title: 'Racha x5',        desc: '5 respuestas correctas seguidas en quiz' },
-    { id: 'rach10',        icon: '⚡', title: 'Racha x10',       desc: '10 respuestas correctas seguidas en quiz' },
-    { id: 'rach20',        icon: '🌪️', title: 'Racha x20',       desc: '20 respuestas correctas seguidas en quiz' },
-    { id: 'nivel5',        icon: '📈', title: 'Nivel 5',         desc: 'Llega al nivel 5' },
-    { id: 'nivel10',       icon: '⭐', title: 'Nivel 10',        desc: 'Llega al nivel 10' },
-    { id: 'nivel20',       icon: '🌟', title: 'Nivel 20',        desc: 'Llega al nivel 20' },
-    { id: 'nivel50',       icon: '👑', title: 'Leyenda',         desc: 'Llega al nivel 50' },
-    { id: 'experto1',      icon: '💎', title: 'Experto',         desc: 'Responde 1 pregunta en dificultad Experto' },
-    { id: 'comprador',     icon: '🛍️', title: 'Comprador',       desc: 'Compra tu primer aspecto' }
+    { id: 'mision3', icon: '🏆', title: 'Primeros Pasos', desc: 'Completa 3 problemas en modo infinito' },
+    { id: 'mision10', icon: '🎯', title: 'En Racha', desc: 'Completa 10 problemas en modo infinito' },
+    { id: 'mision50', icon: '💫', title: 'Imparable', desc: 'Completa 50 problemas en modo infinito' },
+    { id: 'rach5', icon: '🔥', title: 'Racha x5', desc: '5 respuestas correctas seguidas en quiz' },
+    { id: 'rach10', icon: '⚡', title: 'Racha x10', desc: '10 respuestas correctas seguidas en quiz' },
+    { id: 'rach20', icon: '🌪️', title: 'Racha x20', desc: '20 respuestas correctas seguidas en quiz' },
+    { id: 'nivel5', icon: '📈', title: 'Nivel 5', desc: 'Llega al nivel 5' },
+    { id: 'nivel10', icon: '⭐', title: 'Nivel 10', desc: 'Llega al nivel 10' },
+    { id: 'nivel20', icon: '🌟', title: 'Nivel 20', desc: 'Llega al nivel 20' },
+    { id: 'nivel50', icon: '👑', title: 'Leyenda', desc: 'Llega al nivel 50' },
+    { id: 'experto1', icon: '💎', title: 'Experto', desc: 'Responde 1 pregunta en dificultad Experto' },
+    { id: 'comprador', icon: '🛍️', title: 'Comprador', desc: 'Compra tu primer aspecto' }
   ];
 
   function showLogros() {
     var list = document.getElementById('logrosList');
+    if (!list) return;
     var html = '';
     for (var i = 0; i < logrosData.length; i++) {
       var log = logrosData[i];
@@ -245,6 +259,8 @@ function initMenu() {
 
   // Ranking desde Firebase
   async function loadRanking() {
+    var rankingListDiv = document.getElementById('rankingList');
+    if (!rankingListDiv) return;
     try {
       const rankingQuery = query(collection(db, 'ranking'), orderBy('xp', 'desc'), limit(50));
       const querySnapshot = await getDocs(rankingQuery);
@@ -253,8 +269,7 @@ function initMenu() {
         rankingList.push(doc.data());
       });
       
-      var rankingHtml = '<table class="ranking-table">';
-      rankingHtml += '<thead><tr><th>#</th><th>Avatar</th><th>Usuario</th><th>⭐ XP</th><th>💰 Monedas</th><th>🏆 Nivel</th></tr></thead><tbody>';
+      var rankingHtml = '<table class="ranking-table"><thead><tr><th>#</th><th>Avatar</th><th>Usuario</th><th>⭐ XP</th><th>💰 Monedas</th><th>🏆 Nivel</th></tr></thead><tbody>';
       
       for (var i = 0; i < rankingList.length; i++) {
         var r = rankingList[i];
@@ -275,17 +290,16 @@ function initMenu() {
       }
       
       rankingHtml += '</tbody></table>';
-      document.getElementById('rankingList').innerHTML = rankingHtml;
+      rankingListDiv.innerHTML = rankingHtml;
     } catch (error) {
       console.error("Error al cargar ranking:", error);
-      document.getElementById('rankingList').innerHTML = '<p>Error al cargar ranking. Conecta a Firebase.</p>';
+      rankingListDiv.innerHTML = '<p>Error al cargar ranking. Asegúrate de estar conectado a Firebase.</p>';
     }
   }
 
   // Modo Infinito
   var infinityLevel = 0;
   var currentInfinityProblem = null;
-  var infinityCount = 0;
 
   function rnd(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -306,20 +320,23 @@ function initMenu() {
 
   function nextProblem() {
     currentInfinityProblem = generateInfinityProblem();
-    document.getElementById('infinityProblemBox').innerHTML =
-      '<div class="prob-level">Problema #' + currentInfinityProblem.level + '</div>' +
-      '<div class="prob-question">' + currentInfinityProblem.q + ' = ?</div>';
-    document.getElementById('infinityEquation').value = '';
-    document.getElementById('infinityResult').innerHTML = '';
+    var problemBox = document.getElementById('infinityProblemBox');
+    if (problemBox) {
+      problemBox.innerHTML = '<div class="prob-level">Problema #' + currentInfinityProblem.level + '</div><div class="prob-question">' + currentInfinityProblem.q + ' = ?</div>';
+    }
+    var inputEq = document.getElementById('infinityEquation');
+    if (inputEq) inputEq.value = '';
+    var resultDiv = document.getElementById('infinityResult');
+    if (resultDiv) resultDiv.innerHTML = '';
   }
 
   var solveBtn = document.getElementById('infinitySolveBtn');
   if (solveBtn) {
     solveBtn.onclick = function() {
-      var input = document.getElementById('infinityEquation').value.trim();
-      if (!currentInfinityProblem) return;
-      if (Number(input) === currentInfinityProblem.a) {
-        infinityCount++;
+      var input = document.getElementById('infinityEquation');
+      if (!input || !currentInfinityProblem) return;
+      var inputValue = input.value.trim();
+      if (Number(inputValue) === currentInfinityProblem.a) {
         user.coins += 2;
         user.xp += 5;
         user.misionesCompletas = (user.misionesCompletas || 0) + 1;
@@ -327,16 +344,17 @@ function initMenu() {
         if (user.misionesCompletas >= 3) user.logros.mision3 = true;
         if (user.misionesCompletas >= 10) user.logros.mision10 = true;
         if (user.misionesCompletas >= 50) user.logros.mision50 = true;
-        if (user.totalMonedas >= 500) user.logros.millonario = true;
-        if (user.totalMonedas >= 1000) user.logros.monedas1000 = true;
         saveUser();
-        document.getElementById('displayCoins').textContent = user.coins;
-        document.getElementById('displayXP').textContent = user.xp;
-        document.getElementById('displayLevel').textContent = Math.floor(user.xp / 100) + 1;
-        document.getElementById('infinityResult').innerHTML = '<span class="correct">✅ ¡Correcto! +2💰 +5⭐</span>';
+        var coinsDisplay = document.getElementById('displayCoins');
+        if (coinsDisplay) coinsDisplay.innerHTML = '💰 ' + user.coins + ' monedas';
+        var xpDisplay = document.getElementById('displayXP');
+        if (xpDisplay) xpDisplay.innerHTML = '⭐ ' + user.xp + ' XP';
+        var resultDiv2 = document.getElementById('infinityResult');
+        if (resultDiv2) resultDiv2.innerHTML = '<span class="correct">✅ ¡Correcto! +2💰 +5⭐</span>';
         setTimeout(nextProblem, 1000);
       } else {
-        document.getElementById('infinityResult').innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + currentInfinityProblem.a + '</strong></span>';
+        var resultDiv3 = document.getElementById('infinityResult');
+        if (resultDiv3) resultDiv3.innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + currentInfinityProblem.a + '</strong></span>';
       }
     };
   }
