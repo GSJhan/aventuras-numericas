@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -21,46 +21,51 @@ function showMessage(msg, ok) {
   el.style.color = ok ? '#4cff90' : '#ff6b6b';
 }
 
-function validateUsername(username) {
-  if (username.length < 3) return '⚠️ El usuario debe tener al menos 3 caracteres';
-  if (username.length > 16) return '⚠️ El usuario no puede tener más de 16 caracteres';
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) return '⚠️ Solo letras, números y guión bajo (_)';
-  return null;
-}
-
 async function handleAuth() {
   var username = document.getElementById('username').value.trim();
   var password = document.getElementById('password').value.trim();
-  if (!username || !password) { showMessage('⚠️ Completa usuario y contraseña'); return; }
-
-  if (isRegister) {
-    var err = validateUsername(username);
-    if (err) { showMessage(err); return; }
-    if (password.length < 4) { showMessage('⚠️ La contraseña debe tener al menos 4 caracteres'); return; }
+  if (!username || !password) {
+    showMessage('⚠️ Completa usuario y contraseña');
+    return;
   }
 
   var userRef = doc(db, 'users', username);
   var userSnap = await getDoc(userRef);
 
   if (isRegister) {
-    if (userSnap.exists()) { showMessage('⚠️ Ese usuario ya existe'); return; }
+    if (userSnap.exists()) {
+      showMessage('⚠️ Ese usuario ya existe');
+      return;
+    }
     var newUser = {
-      password: password, xp: 0, coins: 0, level: 1,
-      skin: 'spiderman', skins: ['spiderman'],
-      logros: {}, misionesCompletas: 0, totalMonedas: 0,
-      infinityBestStreak: 0, stats: {}
+      password: password,
+      xp: 0,
+      coins: 0,
+      level: 1,
+      skin: 'spiderman',
+      skins: ['spiderman'],
+      logros: {},
+      misionesCompletas: 0,
+      totalMonedas: 0,
+      preguntasRespondidas: 0,
+      respuestasCorrectas: 0
     };
     await setDoc(userRef, newUser);
     localStorage.setItem('currentUser', username);
     showMessage('✅ ¡Cuenta creada!', true);
-    setTimeout(function() { window.location.href = 'menu.html'; }, 1000);
+    setTimeout(function() {
+      window.location.href = 'menu.html';
+    }, 1000);
   } else {
     if (!userSnap.exists() || userSnap.data().password !== password) {
-      showMessage('⚠️ Usuario o contraseña incorrectos'); return;
+      showMessage('⚠️ Usuario o contraseña incorrectos');
+      return;
     }
     localStorage.setItem('currentUser', username);
     showMessage('✅ ¡Bienvenido de vuelta!', true);
-    setTimeout(function() { window.location.href = 'menu.html'; }, 1000);
+    setTimeout(function() {
+      window.location.href = 'menu.html';
+    }, 1000);
   }
 }
 
