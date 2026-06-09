@@ -40,19 +40,30 @@ async function handleAuth() {
     var newUser = {
       password: password,
       xp: 0,
-      coins: 0,
+      coins: 100,
       level: 1,
       skin: 'spiderman',
       skins: ['spiderman'],
       logros: {},
-      misionesCompletas: 0,
-      totalMonedas: 0,
-      preguntasRespondidas: 0,
-      respuestasCorrectas: 0
+      estadisticas: {
+        totalPreguntas: 0,
+        respuestasCorrectas: 0,
+        rachaMaxima: 0,
+        totalMonedasGastadas: 0,
+        tiempoJugado: 0,
+        misionesCompletadas: 0
+      },
+      misionesDiarias: {
+        fecha: new Date().toDateString(),
+        misiones: [],
+        reclamada: false
+      },
+      ultimoLogin: new Date().toISOString(),
+      rachaActual: 0
     };
     await setDoc(userRef, newUser);
     localStorage.setItem('currentUser', username);
-    showMessage('✅ ¡Cuenta creada!', true);
+    showMessage('✅ ¡Cuenta creada! +100💰 de regalo', true);
     setTimeout(function() {
       window.location.href = 'menu.html';
     }, 1000);
