@@ -44,59 +44,93 @@ function getAvatarSrc(name) {
 }
 
 function initMenu() {
+  // Mostrar datos del usuario
   document.getElementById('displayUsername').textContent = currentUser;
   document.getElementById('displayCoins').innerHTML = '💰 ' + user.coins + ' monedas';
   document.getElementById('displayXP').innerHTML = '⭐ ' + user.xp + ' XP';
 
+  // Mostrar avatar
   var initSkin = user.skin || 'spiderman';
-  document.getElementById('avatarDisplay').innerHTML = '<img src="' + getAvatarSrc(initSkin) + '" onerror="this.outerHTML=\'🦸\'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+  var avatarDisplay = document.getElementById('avatarDisplay');
+  if (avatarDisplay) {
+    avatarDisplay.innerHTML = '<img src="' + getAvatarSrc(initSkin) + '" onerror="this.outerHTML=\'🦸\'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #4c90ff;box-shadow:0 0 22px rgba(76,144,255,0.55)"/>';
+  }
 
+  // ==== FONDOS ====
   var savedBg = localStorage.getItem('background') || 'ciudad';
   document.body.className = savedBg;
   var bgSelect = document.getElementById('backgroundSelect');
-  if (bgSelect) bgSelect.value = savedBg;
-
-  var currentAudio = null;
-
-  function playMusic(bg) {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-    var musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
-    if (!musicEnabled) return;
-    var tracks = { ciudad: 'ciudad.mp3', galaxia: 'galaxia.mp3', parque: 'parque.mp3', fondo1: 'bosque.mp3', fondo2: 'neon.mp3' };
-    if (tracks[bg]) {
-      currentAudio = new Audio(tracks[bg]);
-      currentAudio.loop = true;
-      currentAudio.volume = 0.3;
-      currentAudio.play().catch(function() {});
-    }
+  if (bgSelect) {
+    bgSelect.value = savedBg;
+    bgSelect.addEventListener('change', function(e) {
+      var newBg = e.target.value;
+      document.body.className = newBg;
+      localStorage.setItem('background', newBg);
+      playMusic(newBg);
+    });
   }
 
+  // ==== MÚSICA ====
+  var currentAudio = null;
+  
+  window.playMusic = function(bg) {
+    // Detener música actual
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+    
+    // Verificar si la música está activada
+    var musicEnabled = localStorage.getItem('musicEnabled') !== 'false';
+    if (!musicEnabled) return;
+    
+    // Mapeo de fondos a archivos de música
+    var musicFiles = {
+      'ciudad': 'ciudad.mp3',
+      'galaxia': 'galaxia.mp3',
+      'parque': 'parque.mp3',
+      'fondo1': 'bosque.mp3',
+      'fondo2': 'neon.mp3'
+    };
+    
+    var musicFile = musicFiles[bg];
+    if (musicFile) {
+      console.log('Intentando reproducir:', musicFile);
+      currentAudio = new Audio(musicFile);
+      currentAudio.loop = true;
+      currentAudio.volume = 0.3;
+      currentAudio.play().catch(function(error) {
+        console.log('Error al reproducir música:', error);
+      });
+    }
+  };
+
+  // Configurar el toggle de música
   var musicToggle = document.getElementById('musicToggle');
   if (musicToggle) {
     musicToggle.checked = localStorage.getItem('musicEnabled') !== 'false';
     musicToggle.addEventListener('change', function(e) {
       localStorage.setItem('musicEnabled', e.target.checked);
-      if (e.target.checked) playMusic(document.getElementById('backgroundSelect').value);
-      else if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+      if (e.target.checked) {
+        playMusic(document.getElementById('backgroundSelect').value);
+      } else if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
     });
   }
 
-  if (bgSelect) {
-    bgSelect.addEventListener('change', function(e) {
-      document.body.className = e.target.value;
-      localStorage.setItem('background', e.target.value);
-      playMusic(e.target.value);
-    });
-  }
-
+  // Iniciar música con el fondo guardado
   playMusic(savedBg);
 
+  // Botón de logout
   document.getElementById('logoutBtn').onclick = function() {
     if (currentAudio) currentAudio.pause();
     localStorage.removeItem('currentUser');
     window.location.href = 'index.html';
   };
 
+  // Navegación del menú
   var menuBtns = document.querySelectorAll('.menu-btn');
   for (var i = 0; i < menuBtns.length; i++) {
     menuBtns[i].addEventListener('click', function() {
@@ -123,6 +157,7 @@ function initMenu() {
     });
   }
 
+  // Tienda de skins
   var skins = [
     { avatar: 'spiderman', name: 'Spider-Man', price: 0 },
     { avatar: 'batman',    name: 'Batman',     price: 80 },
@@ -186,6 +221,7 @@ function initMenu() {
     }
   }
 
+  // Logros
   var logrosData = [
     { id: 'mision3',       icon: '🏆', title: 'Primeros Pasos',  desc: 'Completa 3 problemas en modo infinito' },
     { id: 'mision10',      icon: '🎯', title: 'En Racha',        desc: 'Completa 10 problemas en modo infinito' },
@@ -216,6 +252,7 @@ function initMenu() {
     list.innerHTML = html;
   }
 
+  // Ranking
   async function loadRanking() {
     try {
       const rankingQuery = query(collection(db, 'ranking'), orderBy('xp', 'desc'), limit(50));
@@ -253,6 +290,7 @@ function initMenu() {
     }
   }
 
+  // Modo Infinito
   var infinityLevel = 0;
   var currentInfinityProblem = null;
   var infinityCount = 0;
@@ -263,11 +301,11 @@ function initMenu() {
     infinityLevel++;
     var type = rnd(0, 7);
     var q, a;
-    if (type === 0) { var x=rnd(1,50),y=rnd(1,50); q=x+' + '+y; a=x+y; }
-    else if (type === 1) { var x=rnd(10,80),y=rnd(1,x); q=x+' - '+y; a=x-y; }
-    else if (type === 2) { var x=rnd(2,15),y=rnd(2,12); q=x+' × '+y; a=x*y; }
+    if (type === 0) { var x=rnd(1,50), y=rnd(1,50); q=x+' + '+y; a=x+y; }
+    else if (type === 1) { var x=rnd(10,80), y=rnd(1,x); q=x+' - '+y; a=x-y; }
+    else if (type === 2) { var x=rnd(2,15), y=rnd(2,12); q=x+' × '+y; a=x*y; }
     else if (type === 3) { var x=rnd(2,15); q=x+'²'; a=x*x; }
-    else if (type === 4) { var x=rnd(2,6),y=rnd(2,3); q=x+'^'+y; a=Math.pow(x,y); }
+    else if (type === 4) { var x=rnd(2,6), y=rnd(2,3); q=x+'^'+y; a=Math.pow(x,y); }
     else if (type === 5) { var x=rnd(1,9)*10,y=rnd(1,9)*10; q='('+x+' + '+y+') ÷ 2'; a=(x+y)/2; }
     else if (type === 6) { var x=rnd(2,9),y=rnd(2,9),z=rnd(1,5); q=x+' × '+y+' + '+z; a=x*y+z; }
     else { var x=rnd(2,9),y=rnd(2,9); q=x+' × '+y; a=x*y; }
