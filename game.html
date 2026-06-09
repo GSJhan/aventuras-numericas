@@ -11,9 +11,12 @@
   <div class="container">
     <div class="header">
       <button class="back-btn" onclick="window.location.href='menu.html'">← Menú</button>
+      <div style="flex:1;margin:0 12px">
+        <div id="xpBarContainer" style="min-width:160px"></div>
+      </div>
       <div class="user-info">
         <span class="coins-badge" id="displayCoins">💰 0</span>
-        <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
+        <span class="xp-badge" id="displayXP">⭐ Nv.1</span>
       </div>
     </div>
     <h2 style="text-align:center;margin:20px 0;font-family:'Orbitron',monospace;color:#4c90ff;">🎮 ¿Cómo quieres jugar?</h2>
@@ -36,13 +39,16 @@
     </div>
     <div id="quizSection" class="section hidden">
       <h2>❓ Responder Preguntas</h2>
-      <select id="quizDifficulty">
-        <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
-        <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
-        <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
-        <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
-      </select>
-      <button id="startQuizBtn" class="btn-primary">Comenzar</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="quizDifficulty" style="flex:1;min-width:200px">
+          <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
+          <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
+          <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
+          <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
+        </select>
+        <button id="startQuizBtn" class="btn-primary" style="width:auto;padding:13px 24px">Comenzar</button>
+      </div>
+      <p style="font-size:13px;color:#888;margin:8px 0 16px">Serie de 10 preguntas. Presiona 💡 si necesitas una pista.</p>
       <div id="quizGame"></div>
       <div id="quizStats" class="result-box" style="display:none"></div>
     </div>
