@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -24,62 +24,30 @@ function showMessage(msg, ok) {
 async function handleAuth() {
   var username = document.getElementById('username').value.trim();
   var password = document.getElementById('password').value.trim();
-  if (!username || !password) {
-    showMessage('⚠️ Completa usuario y contraseña');
-    return;
-  }
+  if (!username || !password) { showMessage('⚠️ Completa usuario y contraseña'); return; }
 
   var userRef = doc(db, 'users', username);
   var userSnap = await getDoc(userRef);
 
   if (isRegister) {
-    if (userSnap.exists()) {
-      showMessage('⚠️ Ese usuario ya existe');
-      return;
-    }
+    if (userSnap.exists()) { showMessage('⚠️ Ese usuario ya existe'); return; }
     var newUser = {
-      password: password,
-      xp: 0,
-      coins: 100,
-      level: 1,
-      skin: 'spiderman',
-      skins: ['spiderman'],
-      logros: {
-        mision3: false,
-        rach5: false,
-        nivel10: false,
-        experto1: false,
-        comprador: false
-      },
-      misionesCompletas: 0,
-      totalMonedas: 100
+      password: password, xp: 0, coins: 100, level: 1,
+      skin: 'spiderman', skins: ['spiderman'],
+      logros: { mision3: false, rach5: false, nivel10: false, experto1: false, comprador: false },
+      misionesCompletas: 0
     };
     await setDoc(userRef, newUser);
-    
-    // También guardar en ranking
-    await setDoc(doc(db, 'ranking', username), {
-      username: username,
-      xp: 0,
-      coins: 100,
-      level: 1,
-      skin: 'spiderman'
-    });
-    
     localStorage.setItem('currentUser', username);
     showMessage('✅ ¡Cuenta creada!', true);
-    setTimeout(function() {
-      window.location.href = 'menu.html';
-    }, 1000);
+    setTimeout(function() { window.location.href = 'menu.html'; }, 1000);
   } else {
     if (!userSnap.exists() || userSnap.data().password !== password) {
-      showMessage('⚠️ Usuario o contraseña incorrectos');
-      return;
+      showMessage('⚠️ Usuario o contraseña incorrectos'); return;
     }
     localStorage.setItem('currentUser', username);
     showMessage('✅ ¡Bienvenido de vuelta!', true);
-    setTimeout(function() {
-      window.location.href = 'menu.html';
-    }, 1000);
+    setTimeout(function() { window.location.href = 'menu.html'; }, 1000);
   }
 }
 
