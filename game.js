@@ -272,135 +272,192 @@ function initGame() {
 function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
 function generateQuestion() {
-  var q = '', correct = 0, hint = '';
+  var q = '', correct = 0, hint = '', steps = '';
 
   if (difficulty === 'facil') {
-    // Las 4 operaciones básicas con números simples
+    // ── FÁCIL: las 4 operaciones básicas ──────────────────────────────
     var t = rnd(0, 3);
     if (t === 0) {
-      var a = rnd(1, 50), b = rnd(1, 50);
-      q = a + ' + ' + b; correct = a + b;
+      var a = rnd(10, 99), b = rnd(10, 99);
+      q = a + ' + ' + b;
+      correct = a + b;
+      hint = '➕ Suma los dos números directamente.';
+      steps = 'Alinea las unidades y suma columna por columna: ' + a + ' + ' + b + ' = ' + correct;
     } else if (t === 1) {
-      var a = rnd(10, 80), b = rnd(1, a);
-      q = a + ' - ' + b; correct = a - b;
+      var a = rnd(20, 99), b = rnd(10, a - 1);
+      q = a + ' − ' + b;
+      correct = a - b;
+      hint = '➖ Resta el número de abajo al de arriba. Si necesitas, lleva prestado.';
+      steps = a + ' − ' + b + ' = ' + correct;
     } else if (t === 2) {
-      var a = rnd(2, 12), b = rnd(2, 10);
-      q = a + ' × ' + b; correct = a * b;
+      var a = rnd(3, 15), b = rnd(3, 12);
+      q = a + ' × ' + b;
+      correct = a * b;
+      hint = '✖️ Multiplica: suma ' + a + ' exactamente ' + b + ' veces, o usa las tablas.';
+      steps = a + ' × ' + b + ' = ' + correct;
     } else {
-      var b = rnd(2, 10), a = b * rnd(2, 10);
-      q = a + ' ÷ ' + b; correct = a / b;
+      var b = rnd(3, 12), a = b * rnd(3, 10);
+      q = a + ' ÷ ' + b;
+      correct = a / b;
+      hint = '➗ Pregúntate: ¿cuántas veces cabe ' + b + ' en ' + a + '?';
+      steps = a + ' ÷ ' + b + ' = ' + correct + '  (porque ' + b + ' × ' + correct + ' = ' + a + ')';
     }
 
   } else if (difficulty === 'normal') {
-    // Potencias y radicación (raíces cuadradas y cúbicas exactas)
+    // ── NORMAL: potencias y radicación ────────────────────────────────
     var t = rnd(0, 3);
     if (t === 0) {
       var a = rnd(2, 15);
-      q = a + '²'; correct = a * a;
+      q = a + '²';
+      correct = a * a;
+      hint = '🔢 Potencia cuadrada: multiplica ' + a + ' × ' + a + '.';
+      steps = a + '² = ' + a + ' × ' + a + ' = ' + correct;
     } else if (t === 1) {
-      var a = rnd(2, 10);
-      q = a + '³'; correct = a * a * a;
+      var a = rnd(2, 9);
+      q = a + '³';
+      correct = a * a * a;
+      hint = '🔢 Potencia cúbica: ' + a + ' × ' + a + ' × ' + a + '.';
+      steps = a + '³ = ' + a + ' × ' + a + ' × ' + a + ' = ' + (a*a) + ' × ' + a + ' = ' + correct;
     } else if (t === 2) {
-      // Raíz cuadrada exacta
       var base = rnd(2, 15);
-      q = '√' + (base * base); correct = base;
+      q = '√' + (base * base);
+      correct = base;
+      hint = '🔍 Raíz cuadrada: ¿qué número multiplicado por sí mismo da ' + (base*base) + '?';
+      steps = '√' + (base*base) + ' = ' + correct + '  (porque ' + correct + '² = ' + (base*base) + ')';
     } else {
-      // Raíz cúbica exacta
-      var base = rnd(2, 8);
-      q = '∛' + (base * base * base); correct = base;
+      var base = rnd(2, 7);
+      q = '∛' + (base * base * base);
+      correct = base;
+      hint = '🔍 Raíz cúbica: ¿qué número al cubo da ' + (base*base*base) + '?';
+      steps = '∛' + (base*base*base) + ' = ' + correct + '  (porque ' + correct + '³ = ' + (base*base*base) + ')';
     }
 
   } else if (difficulty === 'dificil') {
-    // Leyes de exponentes y propiedades de radicación
+    // ── DIFÍCIL: leyes de exponentes y propiedades de radicación ──────
     var t = rnd(0, 4);
     if (t === 0) {
-      // a^m × a^n = a^(m+n)  →  pregunta el resultado numérico
-      var a = rnd(2, 5), m = rnd(1, 3), n = rnd(1, 3);
-      q = a + '^' + m + ' × ' + a + '^' + n + '  =  ' + a + '^?';
+      // aᵐ × aⁿ = aᵐ⁺ⁿ  → ¿cuánto vale el exponente resultado?
+      var a = rnd(2, 6), m = rnd(2, 5), n = rnd(2, 5);
+      q = a + '^' + m + ' × ' + a + '^' + n + ' = ' + a + '^?';
       correct = m + n;
-      hint = 'Ley: aᵐ × aⁿ = aᵐ⁺ⁿ';
+      hint = '📖 Ley del producto: cuando la base es igual, los exponentes se SUMAN.';
+      steps = 'aᵐ × aⁿ = aᵐ⁺ⁿ  →  ' + a + '^' + m + ' × ' + a + '^' + n + ' = ' + a + '^(' + m + '+' + n + ') = ' + a + '^' + correct;
     } else if (t === 1) {
-      // a^m ÷ a^n = a^(m-n)
-      var a = rnd(2, 5), n = rnd(1, 3), m = n + rnd(1, 3);
-      q = a + '^' + m + ' ÷ ' + a + '^' + n + '  =  ' + a + '^?';
+      // aᵐ ÷ aⁿ = aᵐ⁻ⁿ
+      var a = rnd(2, 6), n = rnd(1, 3), m = n + rnd(2, 4);
+      q = a + '^' + m + ' ÷ ' + a + '^' + n + ' = ' + a + '^?';
       correct = m - n;
-      hint = 'Ley: aᵐ ÷ aⁿ = aᵐ⁻ⁿ';
+      hint = '📖 Ley del cociente: cuando la base es igual, los exponentes se RESTAN (numerador − denominador).';
+      steps = 'aᵐ ÷ aⁿ = aᵐ⁻ⁿ  →  ' + a + '^' + m + ' ÷ ' + a + '^' + n + ' = ' + a + '^(' + m + '−' + n + ') = ' + a + '^' + correct;
     } else if (t === 2) {
-      // (a^m)^n = a^(m×n)
-      var a = rnd(2, 4), m = rnd(2, 3), n = rnd(2, 3);
-      q = '(' + a + '^' + m + ')^' + n + '  =  ' + a + '^?';
+      // (aᵐ)ⁿ = aᵐⁿ
+      var a = rnd(2, 5), m = rnd(2, 4), n = rnd(2, 3);
+      q = '(' + a + '^' + m + ')^' + n + ' = ' + a + '^?';
       correct = m * n;
-      hint = 'Ley: (aᵐ)ⁿ = aᵐⁿ';
+      hint = '📖 Ley de la potencia de potencia: los exponentes se MULTIPLICAN.';
+      steps = '(aᵐ)ⁿ = aᵐⁿ  →  (' + a + '^' + m + ')^' + n + ' = ' + a + '^(' + m + '×' + n + ') = ' + a + '^' + correct;
     } else if (t === 3) {
-      // √(a²·b) simplificado: √(n²·m) = n·√m — pregunta el coeficiente
-      var n = rnd(2, 7), m = rnd(2, 5);
-      q = '√' + (n * n * m) + '  =  ? × √' + m;
+      // √(n²·m) = n·√m  → ¿cuál es el coeficiente n?
+      var n = rnd(2, 8), m = rnd(2, 6);
+      q = '√' + (n*n*m) + ' = ? × √' + m;
       correct = n;
-      hint = 'Propiedad: √(n²·m) = n·√m';
+      hint = '📖 Simplifica la raíz: busca qué cuadrado perfecto divide a ' + (n*n*m) + '. Pista: ' + (n*n) + ' × ' + m + ' = ' + (n*n*m) + '.';
+      steps = '√(' + (n*n) + '×' + m + ') = √' + (n*n) + ' × √' + m + ' = ' + n + '√' + m + '  →  coeficiente = ' + correct;
     } else {
-      // a^0 = 1 ó a^1 = a, con distractor
-      var a = rnd(2, 12);
-      var tipo = rnd(0, 1);
-      if (tipo === 0) { q = a + '^0'; correct = 1; }
-      else { q = a + '^1'; correct = a; }
-      hint = 'Leyes básicas de exponentes';
+      // Producto de radicales: √a × √b = √(a·b)
+      var a = rnd(2, 9), b = rnd(2, 9);
+      q = '√' + a + ' × √' + b + ' = √?';
+      correct = a * b;
+      hint = '📖 Producto de radicales: √a × √b = √(a × b). Multiplica los radicandos.';
+      steps = '√' + a + ' × √' + b + ' = √(' + a + '×' + b + ') = √' + correct;
     }
 
   } else {
-    // Experto: ecuaciones cuadráticas, lineales con fracciones, sistemas simples
+    // ── EXPERTO: ecuaciones cuadráticas, lineales, sistemas ───────────
     var t = rnd(0, 3);
     if (t === 0) {
-      // Ecuación cuadrática factorizable: (x-r1)(x-r2)=0, pide la SUMA de raíces
-      var r1 = rnd(1, 8), r2 = rnd(1, 8);
-      var b = -(r1 + r2), c = r1 * r2;
-      q = 'x² ' + (b >= 0 ? '+ ' + b : '- ' + Math.abs(b)) + 'x ' + (c >= 0 ? '+ ' + c : '- ' + Math.abs(c)) + ' = 0\n¿Suma de raíces?';
+      // x² − (r1+r2)x + r1·r2 = 0  → suma de raíces
+      var r1 = rnd(1, 9), r2 = rnd(1, 9);
+      var bCoef = r1 + r2, cCoef = r1 * r2;
+      q = 'x² − ' + bCoef + 'x + ' + cCoef + ' = 0\n¿Cuánto vale x₁ + x₂?';
       correct = r1 + r2;
-      hint = 'Suma de raíces = -b/a';
+      hint = '📖 Por Vieta: la suma de las raíces de x²+bx+c=0 es igual a −b/a. Aquí b = −' + bCoef + ', a = 1.';
+      steps = 'Factoriza: (x−' + r1 + ')(x−' + r2 + ')=0  →  x₁=' + r1 + ', x₂=' + r2 + '  →  suma = ' + correct;
     } else if (t === 1) {
-      // Ecuación cuadrática: pide el PRODUCTO de raíces
-      var r1 = rnd(1, 7), r2 = rnd(1, 7);
-      var b = -(r1 + r2), c = r1 * r2;
-      q = 'x² ' + (b >= 0 ? '+ ' + b : '- ' + Math.abs(b)) + 'x ' + (c >= 0 ? '+ ' + c : '- ' + Math.abs(c)) + ' = 0\n¿Producto de raíces?';
-      correct = r1 * r2;
-      hint = 'Producto de raíces = c/a';
+      // producto de raíces
+      var r1 = rnd(1, 8), r2 = rnd(1, 8);
+      var bCoef = r1 + r2, cCoef = r1 * r2;
+      q = 'x² − ' + bCoef + 'x + ' + cCoef + ' = 0\n¿Cuánto vale x₁ × x₂?';
+      correct = cCoef;
+      hint = '📖 Por Vieta: el producto de las raíces es c/a. Aquí c = ' + cCoef + ', a = 1.';
+      steps = 'Factoriza: (x−' + r1 + ')(x−' + r2 + ')=0  →  x₁=' + r1 + ', x₂=' + r2 + '  →  producto = ' + r1 + '×' + r2 + ' = ' + correct;
     } else if (t === 2) {
-      // Ecuación lineal: ax + b = c  →  ¿x?
-      var a = rnd(2, 9), x = rnd(1, 12), b = rnd(1, 20);
+      // ecuación lineal: ax + b = c
+      var a = rnd(2, 9), x = rnd(2, 15), b = rnd(1, 25);
       var c = a * x + b;
-      q = a + 'x + ' + b + ' = ' + c + '\n¿x?';
+      q = a + 'x + ' + b + ' = ' + c + '\n¿Cuánto vale x?';
       correct = x;
-      hint = 'Despeja x';
+      hint = '📖 Despeja x: primero pasa el ' + b + ' restando al otro lado, luego divide entre ' + a + '.';
+      steps = a + 'x = ' + c + '−' + b + ' = ' + (c-b) + '  →  x = ' + (c-b) + '÷' + a + ' = ' + correct;
     } else {
-      // Sistema 2×2 simple: x+y=s, x-y=d  →  pide x
-      var x = rnd(1, 10), y = rnd(1, 10);
-      q = 'x + y = ' + (x + y) + '\nx - y = ' + (x - y) + '\n¿x?';
+      // sistema: x+y=S, x−y=D  → halla x
+      var x = rnd(2, 12), y = rnd(2, 12);
+      var S = x + y, D = x - y;
+      q = 'x + y = ' + S + '\nx − y = ' + D + '\n¿Cuánto vale x?';
       correct = x;
-      hint = 'Sistema de ecuaciones';
+      hint = '📖 Suma las dos ecuaciones: las y se cancelan. Obtendrás 2x = ' + (S + D) + ', entonces x = ' + (S+D) + '÷2.';
+      steps = 'Suma: (x+y)+(x−y) = ' + S + '+' + D + '  →  2x = ' + (S+D) + '  →  x = ' + correct;
     }
   }
 
-  return { q: q, correct: correct, hint: hint };
+  return { q: q, correct: correct, hint: hint, steps: steps };
 }
 
 function showQuestion() {
   var qObj = generateQuestion();
-  var q = qObj.q, correct = qObj.correct, hint = qObj.hint || '';
-  var spread = difficulty==='facil' ? 8 : difficulty==='normal' ? 5 : difficulty==='dificil' ? 4 : 10;
-  var opts = [correct], attempts = 0;
-  while (opts.length < 4 && attempts < 400) {
-    var v = correct + rnd(-spread, spread);
-    if (v > 0 && opts.indexOf(v) === -1 && v !== correct) opts.push(v);
+  var q = qObj.q, correct = qObj.correct, hint = qObj.hint || '', steps = qObj.steps || '';
+
+  // Generar opciones con distractores inteligentes según dificultad
+  var spread = difficulty === 'facil' ? 12 : difficulty === 'normal' ? 8 : difficulty === 'dificil' ? 5 : 8;
+  var opts = [correct];
+  var attempts = 0;
+  while (opts.length < 4 && attempts < 600) {
+    var delta = rnd(1, spread);
+    var sign = Math.random() < 0.5 ? 1 : -1;
+    var v = correct + sign * delta;
+    if (v >= 0 && opts.indexOf(v) === -1) opts.push(v);
     attempts++;
   }
-  while (opts.length < 4) opts.push(correct + opts.length * (difficulty==='experto' ? 7 : 3));
+  // Fallback si no se llenaron
+  var filler = 1;
+  while (opts.length < 4) { if (opts.indexOf(correct + filler) === -1) opts.push(correct + filler); filler++; }
   opts.sort(function() { return Math.random() - 0.5; });
 
   var qDisplay = q.replace(/\n/g, '<br>');
-  var needsEquals = q.indexOf('?') === -1 && q.indexOf('=') === -1;
-  var hintHtml = hint ? '<div style="font-size:12px;color:#9b59ff;margin-bottom:10px;font-family:Rajdhani,sans-serif">💡 Pista: ' + hint + '</div>' : '';
-  var html = '<div class="question-box">' + hintHtml + '<div class="question-text" style="font-size:' + (q.indexOf('\n') !== -1 ? '22px' : '34px') + '">' + qDisplay + (needsEquals ? ' = ?' : '') + '</div><div class="options">';
-  for (var i = 0; i < opts.length; i++) html += '<button class="op" data-val="' + opts[i] + '">' + opts[i] + '</button>';
+  var needsQ = (q.indexOf('?') === -1 && q.indexOf('=') === -1);
+  var isMultiline = q.indexOf('\n') !== -1;
+  var fontSize = isMultiline ? '20px' : '32px';
+
+  var html = '<div class="question-box">';
+
+  // Botón de foco (pista oculta, se revela al hacer clic)
+  if (hint) {
+    html += '<div style="text-align:right;margin-bottom:8px">';
+    html += '<button id="hintBtn" onclick="document.getElementById(\'hintBox\').style.display=\'block\';this.style.display=\'none\'" style="background:rgba(155,89,255,0.18);border:1px solid rgba(155,89,255,0.5);color:#b07fff;border-radius:10px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:600;transition:all 0.2s">💡 Pista</button>';
+    html += '</div>';
+    html += '<div id="hintBox" style="display:none;background:rgba(155,89,255,0.1);border:1px solid rgba(155,89,255,0.35);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#c9a7ff;font-family:Rajdhani,sans-serif;line-height:1.6">';
+    html += '<strong style="color:#b07fff">💡 Pista:</strong> ' + hint;
+    if (steps) html += '<div style="margin-top:8px;color:#888;font-size:12px"><strong style="color:#9b59ff">Resolución:</strong> ' + steps + '</div>';
+    html += '</div>';
+  }
+
+  html += '<div class="question-text" style="font-size:' + fontSize + ';margin-bottom:20px">' + qDisplay + (needsQ ? ' = ?' : '') + '</div>';
+  html += '<div class="options">';
+  for (var i = 0; i < opts.length; i++) {
+    html += '<button class="op" data-val="' + opts[i] + '">' + opts[i] + '</button>';
+  }
   html += '</div></div>';
+
   document.getElementById('quizGame').innerHTML = html;
 
   var opBtns = document.querySelectorAll('.op');
@@ -411,24 +468,48 @@ function showQuestion() {
       if (Number(this.dataset.val) === correct) {
         this.style.background = '#1a5c2a'; this.style.borderColor = '#4cff90';
         streak++; quizPoints++;
-        var xpR = { facil:10, normal:25, dificil:50, experto:100 };
-        var coinR = { facil:2, normal:5, dificil:10, experto:20 };
+        var xpR  = { facil:10, normal:25, dificil:50, experto:100 };
+        var coinR = { facil:2,  normal:5,  dificil:10, experto:20  };
         user.xp += xpR[difficulty]; user.coins += coinR[difficulty];
-        if (quizPoints >= 3) user.logros.mision3 = true;
-        if (streak >= 5) user.logros.rach5 = true;
-        if (calcLevel() >= 10) user.logros.nivel10 = true;
-        if (difficulty === 'experto') user.logros.experto1 = true;
+        if (!user.logros) user.logros = {};
+        if (quizPoints >= 3)      user.logros.mision3  = true;
+        if (streak >= 5)          user.logros.rach5    = true;
+        if (streak >= 10)         user.logros.rach10   = true;
+        if (streak >= 20)         user.logros.rach20   = true;
+        if (calcLevel() >= 5)     user.logros.nivel5   = true;
+        if (calcLevel() >= 10)    user.logros.nivel10  = true;
+        if (calcLevel() >= 20)    user.logros.nivel20  = true;
+        if (difficulty === 'experto') {
+          user.logros.experto1 = true;
+          user.expertCount = (user.expertCount || 0) + 1;
+          if (user.expertCount >= 10) user.logros.experto10 = true;
+        }
+        if (difficulty === 'facil')  { user.facilCount  = (user.facilCount  || 0) + 1; if (user.facilCount  >= 50) user.logros.facil50  = true; }
+        if (difficulty === 'normal') { user.normalCount = (user.normalCount || 0) + 1; if (user.normalCount >= 50) user.logros.normal50 = true; }
+        if (difficulty === 'dificil'){ user.dificilCount= (user.dificilCount|| 0) + 1; if (user.dificilCount>= 20) user.logros.dificil20= true; }
+        user.totalMonedas = (user.totalMonedas || 0) + coinR[difficulty];
+        if (user.totalMonedas >= 500)  user.logros.millonario  = true;
+        if (user.totalMonedas >= 1000) user.logros.monedas1000 = true;
         saveUser();
         document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-        document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+        document.getElementById('displayXP').textContent    = '⭐ ' + user.xp + ' XP';
         document.getElementById('quizStats').innerHTML = '<span class="correct">✅ ¡Correcto! +' + xpR[difficulty] + '⭐ +' + coinR[difficulty] + '💰</span><br>Racha: ' + streak + ' | Puntos: ' + quizPoints + ' | Nivel: ' + calcLevel();
-        setTimeout(showQuestion, 1200);
+        setTimeout(showQuestion, 1400);
       } else {
         this.style.background = '#5c1a1a'; this.style.borderColor = '#ff4444';
         streak = 0;
-        for (var m = 0; m < allBtns.length; m++) { if (Number(allBtns[m].dataset.val)===correct) { allBtns[m].style.background='#1a5c2a'; allBtns[m].style.borderColor='#4cff90'; } }
+        for (var m = 0; m < allBtns.length; m++) {
+          if (Number(allBtns[m].dataset.val) === correct) {
+            allBtns[m].style.background = '#1a5c2a'; allBtns[m].style.borderColor = '#4cff90';
+          }
+        }
+        // Mostrar la pista automáticamente cuando falla
+        var hb = document.getElementById('hintBox');
+        var hBtn = document.getElementById('hintBtn');
+        if (hb)   hb.style.display = 'block';
+        if (hBtn) hBtn.style.display = 'none';
         document.getElementById('quizStats').innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + correct + '</strong></span><br>Racha perdida | Puntos: ' + quizPoints;
-        setTimeout(showQuestion, 1800);
+        setTimeout(showQuestion, 2200);
       }
     });
   }
