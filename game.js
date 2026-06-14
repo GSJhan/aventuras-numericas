@@ -47,6 +47,8 @@ async function loadUser() {
   }
   if (!user.xp) user.xp = 0;
   if (!user.coins) user.coins = 0;
+  if (user.streak === undefined) user.streak = 0;
+  streak = user.streak;
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
   initGame();
@@ -535,6 +537,8 @@ function showQuestion() {
       if (Number(this.dataset.val) === correct) {
         this.style.background='#1a5c2a'; this.style.borderColor='#4cff90';
         streak++; quizPoints++;
+        user.streak = streak;
+        if (streak > (user.infinityBestStreak || 0)) user.infinityBestStreak = streak;
         var xpR={facil:10,normal:25,dificil:50,experto:100};
         var coinR={facil:2,normal:5,dificil:10,experto:20};
         user.xp+=xpR[difficulty]; user.coins+=coinR[difficulty];
@@ -551,6 +555,8 @@ function showQuestion() {
       } else {
         this.style.background='#5c1a1a'; this.style.borderColor='#ff4444';
         streak=0;
+        user.streak = 0;
+        saveUser();
         for (var m=0;m<allBtns.length;m++) { if (Number(allBtns[m].dataset.val)===correct) { allBtns[m].style.background='#1a5c2a'; allBtns[m].style.borderColor='#4cff90'; } }
         document.getElementById('quizStats').innerHTML='<span class="wrong">❌ Incorrecto. Era: <strong>'+correct+'</strong></span><br>Racha perdida | Puntos: '+quizPoints;
         setTimeout(showQuestion,1500);
