@@ -40,9 +40,11 @@ async function loadUser() {
   
   const displayCoins = document.getElementById('displayCoins');
   const displayXP = document.getElementById('displayXP');
+  const displayUsername = document.getElementById('displayUsername');
   
   if (displayCoins) displayCoins.textContent = '💰 ' + user.coins;
   if (displayXP) displayXP.textContent = '⭐ ' + user.xp + ' XP';
+  if (displayUsername) displayUsername.textContent = user.username || currentUser;
   
   initMenu();
 }
@@ -70,7 +72,10 @@ function initMenu() {
   });
   setupBtn('habilidadesBtn', () => {
     showSection('skillsSection');
-    import('./skills.js').then(m => m.showSkills());
+    import('./skills.js').then(m => {
+      // Llamamos a renderSkillsTree con los parámetros necesarios
+      m.renderSkillsTree(user, userRef, saveUser);
+    });
   });
   setupBtn('infinitoBtn', () => {
     showSection('infinitoSection');
