@@ -1,57 +1,84 @@
 export function renderSkillsTree(user, userRef, saveUser) {
   const container = document.getElementById('skillsTree');
   if (!user.skills) user.skills = {};
-  if (!user.skillPoints) user.skillPoints = 0;
   if (!user.duelsWon) user.duelsWon = 0;
   if (!user.infinityBestStreak) user.infinityBestStreak = 0;
+  if (!user.xp) user.xp = 0;
+  if (!user.coins) user.coins = 0;
 
   // Calcular nivel
   let level = 1, needed = 100, total = user.xp || 0;
   while (total >= needed && level < 100) { total -= needed; level++; needed += 100; }
 
-  // Datos para el gráfico radial (pentágono)
+  // Definir las 5 categorías para el pentágono (Escala 0-10)
   const stats = [
-    { label: 'Duelos Ganados', value: Math.min((user.duelsWon || 0) / 5, 10), actual: user.duelsWon || 0 },
-    { label: 'Racha Máxima', value: Math.min((user.infinityBestStreak || 0) / 10, 10), actual: user.infinityBestStreak || 0 },
-    { label: 'Nivel', value: Math.min(level / 10, 10), actual: level },
-    { label: 'XP Total', value: Math.min((user.xp || 0) / 500, 10), actual: user.xp || 0 },
-    { label: 'Monedas', value: Math.min((user.coins || 0) / 200, 10), actual: user.coins || 0 }
+    { 
+      label: 'Álgebra', 
+      value: Math.min((user.xp / 1000) * 10, 10), 
+      actual: 'Avanzada',
+      desc: 'Dominio de ecuaciones'
+    },
+    { 
+      label: 'Geometría', 
+      value: Math.min((user.level || level) / 10, 10), 
+      actual: 'Analítica',
+      desc: 'Análisis espacial'
+    },
+    { 
+      label: 'Duelos', 
+      value: Math.min((user.duelsWon || 0) / 5, 10), 
+      actual: user.duelsWon || 0,
+      desc: 'Victorias online'
+    },
+    { 
+      label: 'Rapidez', 
+      value: Math.min((user.infinityBestStreak || 0) / 10, 10), 
+      actual: user.infinityBestStreak || 0,
+      desc: 'Racha máxima'
+    },
+    { 
+      label: 'Precisión', 
+      value: Math.min(((user.xp / (user.coins || 1)) / 10), 10), 
+      actual: (user.xp > 0 ? 'Alta' : 'Baja'),
+      desc: 'Efectividad'
+    }
   ];
 
-  let html = `<div style="margin-bottom: 30px;">`;
-  html += `<div style="text-align:center; background: rgba(76,144,255,0.08); padding: 20px; border-radius: 12px; border: 1px solid rgba(76,144,255,0.2); margin-bottom: 20px;">`;
-  html += `<div style="font-size: 14px; color: #aaa; margin-bottom: 6px;">Puntos de Habilidad Disponibles</div>`;
-  html += `<div style="font-size: 28px; font-family: 'Orbitron', monospace; color: var(--gold); font-weight: 700;">${user.skillPoints || 0}</div>`;
-  html += `</div>`;
+  // Limpiar completamente el contenedor para evitar que se vea el diseño antiguo
+  container.innerHTML = '';
 
-  // Canvas para el gráfico radial
-  html += `<canvas id="radarChart" width="400" height="400" style="max-width:100%; margin: 0 auto; display:block; background: rgba(8,12,26,0.5); border-radius: 12px; border: 1px solid rgba(76,144,255,0.2);"></canvas>`;
-  html += `</div>`;
-
-  // Tabla de estadísticas
-  html += `<div style="background: rgba(8,12,26,0.75); border: 1px solid rgba(76,144,255,0.2); border-radius: 12px; padding: 20px;">`;
-  html += `<h3 style="color: var(--accent); margin-bottom: 16px; font-family: 'Orbitron', monospace;">📊 Estadísticas Detalladas</h3>`;
-  html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">`;
+  let html = `<div class="skills-main-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">`;
   
+  // Cabecera de puntos
+  html += `<div style="width: 100%; text-align:center; background: rgba(76,144,255,0.1); padding: 15px; border-radius: 12px; border: 1px solid #4c90ff;">`;
+  html += `<div style="font-size: 14px; color: #4c90ff; text-transform: uppercase; letter-spacing: 1px;">Estado del Jugador</div>`;
+  html += `<div style="font-size: 24px; font-family: 'Orbitron', sans-serif; color: #fff; margin-top: 5px;">Nv. ${level} - Maestro Numérico</div>`;
+  html += `</div>`;
+
+  // Contenedor del Canvas
+  html += `<div style="position: relative; width: 100%; max-width: 450px; aspect-ratio: 1/1; background: rgba(8,12,26,0.8); border-radius: 20px; border: 1px solid rgba(76,144,255,0.3); padding: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">`;
+  html += `<canvas id="radarChart" width="450" height="450" style="width: 100%; height: 100%;"></canvas>`;
+  html += `</div>`;
+
+  // Grid de detalles
+  html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; width: 100%;">`;
   for (let stat of stats) {
-    html += `<div style="background: rgba(76,144,255,0.08); border: 1px solid rgba(76,144,255,0.2); border-radius: 8px; padding: 12px;">`;
-    html += `<div style="font-size: 12px; color: #aaa; margin-bottom: 4px;">${stat.label}</div>`;
-    html += `<div style="font-size: 20px; font-family: 'Orbitron', monospace; color: var(--accent); font-weight: 700;">${stat.actual}</div>`;
-    html += `<div style="height: 4px; background: rgba(76,144,255,0.1); border-radius: 2px; margin-top: 8px; overflow: hidden;">`;
-    html += `<div style="height: 100%; width: ${Math.min(stat.value * 10, 100)}%; background: linear-gradient(90deg, #4c90ff, #9b59ff);"></div>`;
-    html += `</div>`;
+    html += `<div style="background: rgba(76,144,255,0.05); border: 1px solid rgba(76,144,255,0.2); border-radius: 10px; padding: 12px; text-align: center;">`;
+    html += `<div style="font-size: 11px; color: #4c90ff; font-weight: bold; text-transform: uppercase;">${stat.label}</div>`;
+    html += `<div style="font-size: 18px; color: #fff; font-family: 'Orbitron', sans-serif; margin: 4px 0;">${stat.actual}</div>`;
+    html += `<div style="font-size: 10px; color: #888;">${stat.desc}</div>`;
     html += `</div>`;
   }
-  
-  html += `</div></div>`;
+  html += `</div>`;
+
+  html += `</div>`;
 
   container.innerHTML = html;
 
-  // Dibujar el gráfico radial
+  // Forzar el dibujo del pentágono
   setTimeout(() => {
-    console.log("Dibujando pentágono de habilidades...");
     drawRadarChart('radarChart', stats);
-  }, 200);
+  }, 300);
 }
 
 function drawRadarChart(canvasId, stats) {
@@ -59,28 +86,33 @@ function drawRadarChart(canvasId, stats) {
   if (!canvas) return;
   
   const ctx = canvas.getContext('2d');
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const radius = 120;
-  const sides = stats.length;
+  const W = canvas.width;
+  const H = canvas.height;
+  const centerX = W / 2;
+  const centerY = H / 2;
+  const radius = W * 0.35;
+  const sides = 5;
   const angle = (Math.PI * 2) / sides;
 
-  // Limpiar canvas
-  ctx.fillStyle = 'rgba(8,12,26,0.5)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, W, H);
 
-  // Dibujar grid de fondo (círculos concéntricos)
-  ctx.strokeStyle = 'rgba(76,144,255,0.1)';
+  // 1. Dibujar el fondo del pentágono (telaraña)
+  ctx.strokeStyle = 'rgba(76,144,255,0.2)';
   ctx.lineWidth = 1;
   for (let i = 1; i <= 5; i++) {
     const r = (radius / 5) * i;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+    for (let j = 0; j < sides; j++) {
+      const x = centerX + r * Math.cos(j * angle - Math.PI / 2);
+      const y = centerY + r * Math.sin(j * angle - Math.PI / 2);
+      if (j === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
     ctx.stroke();
   }
 
-  // Dibujar líneas radiales
-  ctx.strokeStyle = 'rgba(76,144,255,0.15)';
+  // 2. Dibujar líneas radiales
   for (let i = 0; i < sides; i++) {
     const x = centerX + radius * Math.cos(i * angle - Math.PI / 2);
     const y = centerY + radius * Math.sin(i * angle - Math.PI / 2);
@@ -90,18 +122,17 @@ function drawRadarChart(canvasId, stats) {
     ctx.stroke();
   }
 
-  // Dibujar polígono de datos
-  ctx.fillStyle = 'rgba(76,144,255,0.2)';
+  // 3. Dibujar el área de estadísticas (Pentágono relleno)
+  ctx.fillStyle = 'rgba(76,144,255,0.4)';
   ctx.strokeStyle = '#4c90ff';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
   ctx.beginPath();
   
   for (let i = 0; i < sides; i++) {
-    const value = Math.min(stats[i].value, 10);
-    const r = (radius / 10) * value;
+    const val = Math.max(0.5, stats[i].value); // Mínimo 0.5 para que no desaparezca
+    const r = (radius / 10) * val;
     const x = centerX + r * Math.cos(i * angle - Math.PI / 2);
     const y = centerY + r * Math.sin(i * angle - Math.PI / 2);
-    
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
@@ -109,49 +140,42 @@ function drawRadarChart(canvasId, stats) {
   ctx.fill();
   ctx.stroke();
 
-  // Dibujar puntos en los vértices
+  // 4. Dibujar los puntos en los vértices
   ctx.fillStyle = '#ff9500';
   for (let i = 0; i < sides; i++) {
-    const value = Math.min(stats[i].value, 10);
-    const r = (radius / 10) * value;
+    const val = Math.max(0.5, stats[i].value);
+    const r = (radius / 10) * val;
     const x = centerX + r * Math.cos(i * angle - Math.PI / 2);
     const y = centerY + r * Math.sin(i * angle - Math.PI / 2);
-    
     ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 
-  // Dibujar etiquetas
-  ctx.fillStyle = '#e8eaff';
-  ctx.font = 'bold 12px Orbitron, monospace';
+  // 5. Dibujar etiquetas de texto
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px Orbitron, sans-serif';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
   
   for (let i = 0; i < sides; i++) {
-    const labelRadius = radius + 40;
-    const x = centerX + labelRadius * Math.cos(i * angle - Math.PI / 2);
-    const y = centerY + labelRadius * Math.sin(i * angle - Math.PI / 2);
+    const labelR = radius + 35;
+    const x = centerX + labelR * Math.cos(i * angle - Math.PI / 2);
+    const y = centerY + labelR * Math.sin(i * angle - Math.PI / 2);
     
-    // Dibujar etiqueta con fondo
-    const text = stats[i].label;
-    const metrics = ctx.measureText(text);
-    const textWidth = metrics.width;
+    // Sombra para el texto
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#4c90ff';
+    ctx.fillText(stats[i].label, x, y);
+    ctx.shadowBlur = 0;
     
-    ctx.fillStyle = 'rgba(76,144,255,0.15)';
-    ctx.fillRect(x - textWidth / 2 - 6, y - 10, textWidth + 12, 20);
-    
+    // Valor numérico pequeño
     ctx.fillStyle = '#4c90ff';
-    ctx.fillText(text, x, y);
-  }
-
-  // Dibujar leyenda de valores
-  ctx.fillStyle = '#a78bfa';
-  ctx.font = '11px Rajdhani, sans-serif';
-  ctx.textAlign = 'left';
-  
-  for (let i = 0; i < sides; i++) {
-    const value = Math.min(stats[i].value, 10).toFixed(2);
-    ctx.fillText(`${value}/10`, 20, 30 + i * 20);
+    ctx.font = '12px Rajdhani, sans-serif';
+    ctx.fillText(stats[i].value.toFixed(2), x, y + 18);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px Orbitron, sans-serif';
   }
 }
