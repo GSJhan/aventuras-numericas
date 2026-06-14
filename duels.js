@@ -1,242 +1,206 @@
-import { collection, query, getDocs, setDoc, doc, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, getDocs, setDoc, doc, getDoc, onSnapshot, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export async function renderDuelsInterface(db, user, currentUser, userRef, saveUser) {
   const container = document.getElementById('duelsContainer');
   
-  try {
-    // Obtener lista de todos los usuarios para amigos (solo lectura de datos públicos)
-    const usersCollection = collection(db, 'users');
-    const usersSnap = await getDocs(usersCollection);
-    const allUsers = [];
-    
-    usersSnap.forEach(doc => {
-      if (doc.id !== currentUser) {
-        allUsers.push({ 
-          id: doc.id, 
-          xp: doc.data().xp || 0,
-          level: calcLevelFrom(doc.data().xp || 0)
-        });
-      }
-    });
-
-    let html = '<div class="duel-section">';
-    html += '<h3>👥 Lista de Amigos</h3>';
-    html += '<div class="friend-list" id="friendsList">';
-    
-    if (allUsers.length === 0) {
-      html += '<p style="text-align:center; color:#888; padding:20px;">No hay otros jugadores disponibles</p>';
-    } else {
-      for (let friend of allUsers) {
-        html += `<div class="friend-item">`;
-        html += `<div>`;
-        html += `<div class="friend-name">${friend.id}</div>`;
-        html += `<div class="friend-status">Nv. ${friend.level} • ⭐${friend.xp}</div>`;
-        html += `</div>`;
-        html += `<button class="challenge-btn" data-friend="${friend.id}">⚔️ Desafiar</button>`;
-        html += `</div>`;
-      }
-    }
-    
-    html += '</div>';
-    html += '</div>';
-
-    // Sección de duelo activo
-    html += '<div class="duel-section">';
-    html += '<h3>🎮 Duelo Activo</h3>';
-    html += '<div id="activeDuelContainer" style="text-align:center; color:#888; padding:20px;">Selecciona un amigo para desafiar</div>';
-    html += '</div>';
-
-    container.innerHTML = html;
-
-    // Event listeners para desafiar
-    const challengeButtons = container.querySelectorAll('.challenge-btn');
-    for (let btn of challengeButtons) {
-      btn.addEventListener('click', function() {
-        const friendId = this.dataset.friend;
-        startDuel(db, user, currentUser, friendId, userRef, saveUser);
-      });
-    }
-  } catch (error) {
-    console.error('Error al cargar amigos:', error);
-    container.innerHTML = '<div style="color:#ff4d6d; text-align:center; padding:20px;">❌ Error al cargar la lista de amigos</div>';
-  }
-}
-
-function calcLevelFrom(xp) {
-  let lvl = 1, needed = 100, total = xp || 0;
-  while (total >= needed && lvl < 100) { total -= needed; lvl++; needed += 100; }
-  return lvl;
-}
-
-function generateDuelProblem() {
-  const types = [
-    () => { const x = Math.floor(Math.random()*50)+1, y = Math.floor(Math.random()*50)+1; return { q: `${x} + ${y}`, a: x+y }; },
-    () => { const x = Math.floor(Math.random()*80)+10, y = Math.floor(Math.random()*x)+1; return { q: `${x} - ${y}`, a: x-y }; },
-    () => { const x = Math.floor(Math.random()*15)+2, y = Math.floor(Math.random()*12)+2; return { q: `${x} × ${y}`, a: x*y }; },
-    () => { const x = Math.floor(Math.random()*6)+2; return { q: `${x}²`, a: x*x }; },
-    () => { const x = Math.floor(Math.random()*6)+2, y = Math.floor(Math.random()*3)+2; return { q: `${x}^${y}`, a: Math.pow(x,y) }; },
-    () => { const x = (Math.floor(Math.random()*9)+1)*10, y = (Math.floor(Math.random()*9)+1)*10; return { q: `(${x} + ${y}) ÷ 2`, a: (x+y)/2 }; }
-  ];
+  // 1. Escuchar invitaciones entrantes (Alguien me reta)
+  const invitationsQuery = query(collection(db, 'duels'), where('player2', '==', currentUser), where('status', '==', 'pending'));
   
-  const type = types[Math.floor(Math.random()*types.length)];
-  return type();
-}
-
-async function startDuel(db, user, currentUser, friendId, userRef, saveUser) {
-  const duelId = `${currentUser}_vs_${friendId}_${Date.now()}`;
-  const duelRef = doc(db, 'duels', duelId);
-  
-  const duelData = {
-    player1: currentUser,
-    player2: friendId,
-    player1Score: 0,
-    player2Score: 0,
-    player1Correct: 0,
-    player2Correct: 0,
-    status: 'active',
-    startTime: Date.now(),
-    duration: 60000,
-    currentProblem: generateDuelProblem(),
-    problemCount: 0,
-    maxProblems: 5
-  };
-
-  try {
-    await setDoc(duelRef, duelData);
-    renderActiveDuel(db, duelId, currentUser, user, userRef, saveUser);
-  } catch (error) {
-    console.error('Error al crear duelo:', error);
-    alert('❌ Error al crear el duelo. Verifica tus permisos de Firestore.');
-  }
-}
-
-function renderActiveDuel(db, duelId, currentUser, user, userRef, saveUser) {
-  const duelRef = doc(db, 'duels', duelId);
-  
-  const unsubscribe = onSnapshot(duelRef, async (snapshot) => {
-    if (!snapshot.exists()) return;
-    
-    const duel = snapshot.data();
-    const isPlayer1 = currentUser === duel.player1;
-    const opponent = isPlayer1 ? duel.player2 : duel.player1;
-    const myScore = isPlayer1 ? duel.player1Score : duel.player2Score;
-    const oppScore = isPlayer1 ? duel.player2Score : duel.player1Score;
-    const myCorrect = isPlayer1 ? duel.player1Correct : duel.player2Correct;
-    const oppCorrect = isPlayer1 ? duel.player2Correct : duel.player1Correct;
-    
-    const timeRemaining = Math.max(0, Math.ceil((duel.duration - (Date.now() - duel.startTime)) / 1000));
-    
-    if (duel.status === 'finished') {
-      showDuelResult(db, duel, currentUser, user, userRef, saveUser, unsubscribe);
-      return;
-    }
-
-    let html = '<div class="duel-active">';
-    html += '<div class="duel-header">';
-    html += '<div class="duel-player"><div class="duel-player-name">Tú</div><div class="duel-player-score">' + myScore + '</div></div>';
-    html += '<div class="duel-vs">VS</div>';
-    html += '<div class="duel-player"><div class="duel-player-name">' + opponent + '</div><div class="duel-player-score">' + oppScore + '</div></div>';
-    html += '</div>';
-    html += '<div class="duel-timer">⏱️ ' + timeRemaining + 's</div>';
-    html += '<div class="duel-problem">';
-    html += '<div class="duel-problem-text">' + duel.currentProblem.q + ' = ?</div>';
-    html += '</div>';
-    html += '<div class="duel-input-row">';
-    html += '<input id="duelAnswer" type="number" placeholder="Tu respuesta..." />';
-    html += '<button class="duel-submit" id="duelSubmitBtn">✔ Enviar</button>';
-    html += '</div>';
-    html += '<div id="duelResultMsg" style="text-align:center; font-size:12px; color:#aaa;">Problema ' + (duel.problemCount + 1) + ' de ' + duel.maxProblems + '</div>';
-    html += '</div>';
-
-    const container = document.getElementById('activeDuelContainer');
-    container.innerHTML = html;
-
-    document.getElementById('duelSubmitBtn').addEventListener('click', async () => {
-      const answer = parseInt(document.getElementById('duelAnswer').value);
-      if (isNaN(answer)) return;
-
-      const isCorrect = answer === duel.currentProblem.a;
-      const updateData = {};
-      
-      if (isPlayer1) {
-        updateData.player1Score = duel.player1Score + (isCorrect ? 10 : 0);
-        updateData.player1Correct = duel.player1Correct + (isCorrect ? 1 : 0);
-      } else {
-        updateData.player2Score = duel.player2Score + (isCorrect ? 10 : 0);
-        updateData.player2Correct = duel.player2Correct + (isCorrect ? 1 : 0);
-      }
-
-      updateData.problemCount = duel.problemCount + 1;
-      
-      if (updateData.problemCount >= duel.maxProblems || timeRemaining <= 0) {
-        updateData.status = 'finished';
-        updateData.endTime = Date.now();
-      } else {
-        updateData.currentProblem = generateDuelProblem();
-      }
-
-      try {
-        await updateDoc(doc(db, 'duels', duelId), updateData);
-        
-        if (isCorrect) {
-          user.coins = (user.coins || 0) + 5;
-          user.xp = (user.xp || 0) + 10;
-          user.duelsWon = (user.duelsWon || 0) + (updateData.status === 'finished' && updateData.player1Score > updateData.player2Score ? 1 : 0);
-          await saveUser();
-          document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
-          document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
-        }
-      } catch (error) {
-        console.error('Error al actualizar duelo:', error);
-      }
-    });
-
-    if (timeRemaining <= 0 && duel.status === 'active') {
-      try {
-        await updateDoc(duelRef, { status: 'finished', endTime: Date.now() });
-      } catch (error) {
-        console.error('Error al finalizar duelo:', error);
-      }
-    }
-  }, (error) => {
-    console.error('Error en snapshot del duelo:', error);
+  onSnapshot(invitationsQuery, (snapshot) => {
+    const invitations = [];
+    snapshot.forEach(doc => invitations.push({ id: doc.id, ...doc.data() }));
+    renderMain(db, user, currentUser, userRef, saveUser, invitations);
   });
 }
 
-async function showDuelResult(db, duel, currentUser, user, userRef, saveUser, unsubscribe) {
-  const isPlayer1 = currentUser === duel.player1;
-  const winner = duel.player1Score > duel.player2Score ? duel.player1 : (duel.player2Score > duel.player1Score ? duel.player2 : 'Empate');
-  const isWinner = winner === currentUser;
-
-  let html = '<div class="duel-end-modal">';
-  html += '<h2>' + (isWinner ? '🎉 ¡GANASTE!' : (winner === 'Empate' ? '🤝 EMPATE' : '😢 Perdiste')) + '</h2>';
-  html += '<div class="winner">' + (winner === 'Empate' ? 'Ambos jugadores empataron' : 'Ganador: ' + winner) + '</div>';
-  html += '<div class="stats">';
-  html += '<div class="stat-item"><div class="stat-label">Tu Puntuación</div><div class="stat-value">' + (isPlayer1 ? duel.player1Score : duel.player2Score) + '</div></div>';
-  html += '<div class="stat-item"><div class="stat-label">Respuestas Correctas</div><div class="stat-value">' + (isPlayer1 ? duel.player1Correct : duel.player2Correct) + '/' + duel.maxProblems + '</div></div>';
-  html += '<div class="stat-item"><div class="stat-label">Puntuación Rival</div><div class="stat-value">' + (isPlayer1 ? duel.player2Score : duel.player1Score) + '</div></div>';
-  html += '<div class="stat-item"><div class="stat-label">Respuestas Correctas Rival</div><div class="stat-value">' + (isPlayer1 ? duel.player2Correct : duel.player1Correct) + '/' + duel.maxProblems + '</div></div>';
-  html += '</div>';
+async function renderMain(db, user, currentUser, userRef, saveUser, invitations) {
+  const container = document.getElementById('duelsContainer');
   
-  if (isWinner) {
-    user.coins = (user.coins || 0) + 50;
-    user.xp = (user.xp || 0) + 50;
-    user.duelsWon = (user.duelsWon || 0) + 1;
-  } else if (winner !== 'Empate') {
-    user.coins = (user.coins || 0) + 10;
-    user.xp = (user.xp || 0) + 20;
-  } else {
-    user.coins = (user.coins || 0) + 25;
-    user.xp = (user.xp || 0) + 25;
+  // Obtener lista de usuarios
+  const usersSnap = await getDocs(collection(db, 'users'));
+  const allUsers = [];
+  usersSnap.forEach(doc => { if (doc.id !== currentUser) allUsers.push({ id: doc.id, ...doc.data() }); });
+
+  let html = `<div class="duel-clash-ui">`;
+  
+  // Invitaciones Pendientes (Estilo Notificación)
+  if (invitations.length > 0) {
+    html += `<div class="duel-invites-alert">`;
+    for (let inv of invitations) {
+      html += `<div class="invite-card animated pulse">
+        <span>⚔️ <b>${inv.player1}</b> te desafía!</span>
+        <div class="invite-btns">
+          <button class="accept-btn" onclick="window.acceptDuel('${inv.id}')">ACEPTAR</button>
+          <button class="decline-btn" onclick="window.declineDuel('${inv.id}')">RECHAZAR</button>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Lista de Jugadores para Retar
+  html += `<div class="clash-friend-list">
+    <h3>👑 Arena de Desafíos</h3>
+    <div class="clash-grid">`;
+  
+  for (let friend of allUsers) {
+    html += `<div class="clash-item">
+      <div class="clash-avatar">👤</div>
+      <div class="clash-info">
+        <div class="clash-name">${friend.id}</div>
+        <div class="clash-xp">⭐ ${friend.xp || 0}</div>
+      </div>
+      <button class="clash-challenge-btn" onclick="window.sendChallenge('${friend.id}')">RETAR</button>
+    </div>`;
   }
   
-  await saveUser();
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+  html += `</div></div></div>`;
+  html += `<div id="duelPlayArea"></div>`;
 
-  html += '<button class="btn-primary" onclick="location.reload()">Volver al Menú</button>';
-  html += '</div>';
+  container.innerHTML = html;
 
-  document.getElementById('activeDuelContainer').innerHTML = html;
+  // Funciones Globales para los botones
+  window.sendChallenge = async (friendId) => {
+    const duelId = `duel_${currentUser}_${friendId}_${Date.now()}`;
+    await setDoc(doc(db, 'duels', duelId), {
+      player1: currentUser,
+      player2: friendId,
+      status: 'pending',
+      timestamp: Date.now(),
+      player1Score: 0,
+      player2Score: 0
+    });
+    alert('Desafío enviado! Esperando a que acepte...');
+    listenToDuelStatus(db, duelId, currentUser, user, userRef, saveUser);
+  };
+
+  window.acceptDuel = async (duelId) => {
+    await updateDoc(doc(db, 'duels', duelId), { 
+      status: 'active', 
+      startTime: Date.now(),
+      duration: 60, // 60 segundos
+      currentProblem: generateDuelProblem()
+    });
+    startDuelGame(db, duelId, currentUser, user, userRef, saveUser);
+  };
+
+  window.declineDuel = async (duelId) => {
+    await deleteDoc(doc(db, 'duels', duelId));
+  };
+}
+
+function listenToDuelStatus(db, duelId, currentUser, user, userRef, saveUser) {
+  onSnapshot(doc(db, 'duels', duelId), (snapshot) => {
+    if (!snapshot.exists()) return;
+    const data = snapshot.data();
+    if (data.status === 'active') {
+      startDuelGame(db, duelId, currentUser, user, userRef, saveUser);
+    }
+  });
+}
+
+function generateDuelProblem() {
+  const a = Math.floor(Math.random() * 20) + 1;
+  const b = Math.floor(Math.random() * 20) + 1;
+  const ops = ['+', '-', '*'];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let q = `${a} ${op} ${b}`, ans = 0;
+  if (op === '+') ans = a + b;
+  if (op === '-') ans = a - b;
+  if (op === '*') ans = a * b;
+  return { q, a: ans };
+}
+
+function startDuelGame(db, duelId, currentUser, user, userRef, saveUser) {
+  const container = document.getElementById('duelPlayArea');
+  const duelRef = doc(db, 'duels', duelId);
+  
+  let timerInterval;
+  
+  const unsubscribe = onSnapshot(duelRef, (snapshot) => {
+    if (!snapshot.exists()) return;
+    const duel = snapshot.data();
+    const isP1 = currentUser === duel.player1;
+    const myScore = isP1 ? duel.player1Score : duel.player2Score;
+    const oppScore = isP1 ? duel.player2Score : duel.player1Score;
+    const opponent = isP1 ? duel.player2 : duel.player1;
+
+    if (duel.status === 'finished') {
+      clearInterval(timerInterval);
+      showResults(duel, currentUser, user, saveUser, unsubscribe);
+      return;
+    }
+
+    const elapsed = Math.floor((Date.now() - duel.startTime) / 1000);
+    const timeLeft = Math.max(0, 60 - elapsed);
+
+    container.innerHTML = `
+      <div class="duel-arena animated fadeIn">
+        <div class="clash-header">
+          <div class="p-info"><b>TÚ</b><br>🏆 ${myScore}</div>
+          <div class="clash-timer-circle">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="circle" stroke-dasharray="${(timeLeft/60)*100}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <text x="18" y="20.35" class="percentage">${timeLeft}</text>
+            </svg>
+          </div>
+          <div class="p-info"><b>${opponent}</b><br>🏆 ${oppScore}</div>
+        </div>
+        <div class="clash-problem-card">
+          <div class="q-text">${duel.currentProblem.q} = ?</div>
+          <input type="number" id="duelAnsInput" autofocus placeholder="Respuesta...">
+          <button id="duelSubmit" class="clash-btn-confirm">ENVIAR</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('duelSubmit').onclick = async () => {
+      const input = document.getElementById('duelAnsInput');
+      const val = parseInt(input.value);
+      if (val === duel.currentProblem.a) {
+        const update = isP1 ? { player1Score: duel.player1Score + 1 } : { player2Score: duel.player2Score + 1 };
+        update.currentProblem = generateDuelProblem();
+        await updateDoc(duelRef, update);
+      } else {
+        input.value = '';
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 500);
+      }
+    };
+
+    if (timeLeft <= 0 && duel.status === 'active') {
+      updateDoc(duelRef, { status: 'finished' });
+    }
+  });
+
+  timerInterval = setInterval(() => {
+    // Forzar re-render para el timer cada segundo
+    duelRef.get(); 
+  }, 1000);
+}
+
+function showResults(duel, currentUser, user, saveUser, unsubscribe) {
   unsubscribe();
+  const isP1 = currentUser === duel.player1;
+  const myScore = isP1 ? duel.player1Score : duel.player2Score;
+  const oppScore = isP1 ? duel.player2Score : duel.player1Score;
+  const win = myScore > oppScore;
+  const draw = myScore === oppScore;
+
+  if (win) { user.duelsWon = (user.duelsWon || 0) + 1; user.coins += 50; user.xp += 100; }
+  else if (draw) { user.coins += 20; user.xp += 50; }
+  saveUser();
+
+  const container = document.getElementById('duelPlayArea');
+  container.innerHTML = `
+    <div class="clash-result-modal animated bounceIn">
+      <h2>${win ? '🔥 ¡VICTORIA!' : (draw ? '🤝 EMPATE' : '💀 DERROTA')}</h2>
+      <div class="res-scores">
+        <div>Tú: ${myScore}</div>
+        <div>Rival: ${oppScore}</div>
+      </div>
+      <button class="clash-btn-confirm" onclick="location.reload()">VOLVER</button>
+    </div>
+  `;
 }
