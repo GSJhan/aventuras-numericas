@@ -48,7 +48,10 @@ export function renderSkillsTree(user, userRef, saveUser) {
   container.innerHTML = html;
 
   // Dibujar el gráfico radial
-  setTimeout(() => drawRadarChart('radarChart', stats), 100);
+  setTimeout(() => {
+    console.log("Dibujando pentágono de habilidades...");
+    drawRadarChart('radarChart', stats);
+  }, 200);
 }
 
 function drawRadarChart(canvasId, stats) {
