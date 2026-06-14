@@ -42,6 +42,7 @@ async function loadUser() {
   if (!user.skins) user.skins = ['spiderman'];
   if (!user.skin) user.skin = 'spiderman';
   if (!user.misionesCompletas) user.misionesCompletas = 0;
+  if (user.infinityStreak === undefined) user.infinityStreak = 0;
   initMenu();
 }
 
@@ -343,7 +344,6 @@ function initMenu() {
   var infinityLevel = 0;
   var currentInfinityProblem = null;
   var infinityCount = 0;
-  var infinityStreak = 0;
 
   function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -368,11 +368,11 @@ function initMenu() {
       '<div class="prob-level">Problema #' + currentInfinityProblem.level + '</div>' +
       '<div class="prob-question">' + currentInfinityProblem.q + ' = ?</div>';
     
-    // Actualizar visualización de racha
+    // Actualizar visualización de racha (Persistente desde Firebase)
     var streakBox = document.getElementById('infinityStreakBox');
-    if (infinityStreak > 0) {
+    if (user.infinityStreak > 0) {
       streakBox.style.display = 'block';
-      document.getElementById('infinityStreakCount').textContent = infinityStreak;
+      document.getElementById('infinityStreakCount').textContent = user.infinityStreak;
     } else {
       streakBox.style.display = 'none';
     }
@@ -386,7 +386,7 @@ function initMenu() {
     if (!currentInfinityProblem) return;
     if (Number(input) === currentInfinityProblem.a) {
       infinityCount++;
-      infinityStreak++;
+      user.infinityStreak = (user.infinityStreak || 0) + 1;
       user.coins += 2;
       user.xp += 5;
       user.misionesCompletas = (user.misionesCompletas || 0) + 1;
@@ -397,9 +397,9 @@ function initMenu() {
       if (user.misionesCompletas >= 50) user.logros.mision50 = true;
       
       // Lógica de logros de rachas (Modo Infinito)
-      if (infinityStreak >= 5)  user.logros.rach5  = true;
-      if (infinityStreak >= 10) user.logros.rach10 = true;
-      if (infinityStreak >= 20) user.logros.rach20 = true;
+      if (user.infinityStreak >= 5)  user.logros.rach5  = true;
+      if (user.infinityStreak >= 10) user.logros.rach10 = true;
+      if (user.infinityStreak >= 20) user.logros.rach20 = true;
 
       user.totalMonedas = (user.totalMonedas || 0) + 2;
       if (user.totalMonedas >= 500)  user.logros.millonario  = true;
@@ -411,7 +411,8 @@ function initMenu() {
       document.getElementById('infinityResult').innerHTML = '<span class="correct">✅ ¡Correcto! +2💰 +5⭐</span>';
       setTimeout(nextProblem, 1000);
     } else {
-      infinityStreak = 0;
+      user.infinityStreak = 0;
+      saveUser(); // Guardar reinicio de racha en Firebase
       document.getElementById('infinityResult').innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + currentInfinityProblem.a + '</strong></span>';
       
       // Ocultar racha al fallar
