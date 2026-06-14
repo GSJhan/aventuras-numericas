@@ -1,54 +1,64 @@
-import { collection, query, where, getDocs, setDoc, doc, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, getDocs, setDoc, doc, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export async function renderDuelsInterface(db, user, currentUser, userRef, saveUser) {
   const container = document.getElementById('duelsContainer');
   
-  // Obtener lista de todos los usuarios para amigos
-  const usersSnap = await getDocs(collection(db, 'users'));
-  const allUsers = [];
-  usersSnap.forEach(doc => {
-    if (doc.id !== currentUser) {
-      allUsers.push({ id: doc.id, data: doc.data() });
-    }
-  });
-
-  let html = '<div class="duel-section">';
-  html += '<h3>👥 Lista de Amigos</h3>';
-  html += '<div class="friend-list" id="friendsList">';
-  
-  if (allUsers.length === 0) {
-    html += '<p style="text-align:center; color:#888; padding:20px;">No hay otros jugadores disponibles</p>';
-  } else {
-    for (let friend of allUsers) {
-      const friendLevel = calcLevelFrom(friend.data.xp || 0);
-      html += `<div class="friend-item">`;
-      html += `<div>`;
-      html += `<div class="friend-name">${friend.id}</div>`;
-      html += `<div class="friend-status">Nv. ${friendLevel} • ⭐${friend.data.xp || 0}</div>`;
-      html += `</div>`;
-      html += `<button class="challenge-btn" data-friend="${friend.id}">⚔️ Desafiar</button>`;
-      html += `</div>`;
-    }
-  }
-  
-  html += '</div>';
-  html += '</div>';
-
-  // Sección de duelo activo
-  html += '<div class="duel-section">';
-  html += '<h3>🎮 Duelo Activo</h3>';
-  html += '<div id="activeDuelContainer" style="text-align:center; color:#888; padding:20px;">Selecciona un amigo para desafiar</div>';
-  html += '</div>';
-
-  container.innerHTML = html;
-
-  // Event listeners para desafiar
-  const challengeButtons = container.querySelectorAll('.challenge-btn');
-  for (let btn of challengeButtons) {
-    btn.addEventListener('click', function() {
-      const friendId = this.dataset.friend;
-      startDuel(db, user, currentUser, friendId, userRef, saveUser);
+  try {
+    // Obtener lista de todos los usuarios para amigos (solo lectura de datos públicos)
+    const usersCollection = collection(db, 'users');
+    const usersSnap = await getDocs(usersCollection);
+    const allUsers = [];
+    
+    usersSnap.forEach(doc => {
+      if (doc.id !== currentUser) {
+        allUsers.push({ 
+          id: doc.id, 
+          xp: doc.data().xp || 0,
+          level: calcLevelFrom(doc.data().xp || 0)
+        });
+      }
     });
+
+    let html = '<div class="duel-section">';
+    html += '<h3>👥 Lista de Amigos</h3>';
+    html += '<div class="friend-list" id="friendsList">';
+    
+    if (allUsers.length === 0) {
+      html += '<p style="text-align:center; color:#888; padding:20px;">No hay otros jugadores disponibles</p>';
+    } else {
+      for (let friend of allUsers) {
+        html += `<div class="friend-item">`;
+        html += `<div>`;
+        html += `<div class="friend-name">${friend.id}</div>`;
+        html += `<div class="friend-status">Nv. ${friend.level} • ⭐${friend.xp}</div>`;
+        html += `</div>`;
+        html += `<button class="challenge-btn" data-friend="${friend.id}">⚔️ Desafiar</button>`;
+        html += `</div>`;
+      }
+    }
+    
+    html += '</div>';
+    html += '</div>';
+
+    // Sección de duelo activo
+    html += '<div class="duel-section">';
+    html += '<h3>🎮 Duelo Activo</h3>';
+    html += '<div id="activeDuelContainer" style="text-align:center; color:#888; padding:20px;">Selecciona un amigo para desafiar</div>';
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    // Event listeners para desafiar
+    const challengeButtons = container.querySelectorAll('.challenge-btn');
+    for (let btn of challengeButtons) {
+      btn.addEventListener('click', function() {
+        const friendId = this.dataset.friend;
+        startDuel(db, user, currentUser, friendId, userRef, saveUser);
+      });
+    }
+  } catch (error) {
+    console.error('Error al cargar amigos:', error);
+    container.innerHTML = '<div style="color:#ff4d6d; text-align:center; padding:20px;">❌ Error al cargar la lista de amigos</div>';
   }
 }
 
@@ -85,20 +95,25 @@ async function startDuel(db, user, currentUser, friendId, userRef, saveUser) {
     player2Correct: 0,
     status: 'active',
     startTime: Date.now(),
-    duration: 60000, // 60 segundos
+    duration: 60000,
     currentProblem: generateDuelProblem(),
     problemCount: 0,
     maxProblems: 5
   };
 
-  await setDoc(duelRef, duelData);
-  renderActiveDuel(db, duelId, currentUser, user, userRef, saveUser);
+  try {
+    await setDoc(duelRef, duelData);
+    renderActiveDuel(db, duelId, currentUser, user, userRef, saveUser);
+  } catch (error) {
+    console.error('Error al crear duelo:', error);
+    alert('❌ Error al crear el duelo. Verifica tus permisos de Firestore.');
+  }
 }
 
 function renderActiveDuel(db, duelId, currentUser, user, userRef, saveUser) {
   const duelRef = doc(db, 'duels', duelId);
   
-  const unsubscribe = onSnapshot(duelRef, (snapshot) => {
+  const unsubscribe = onSnapshot(duelRef, async (snapshot) => {
     if (!snapshot.exists()) return;
     
     const duel = snapshot.data();
@@ -160,21 +175,31 @@ function renderActiveDuel(db, duelId, currentUser, user, userRef, saveUser) {
         updateData.currentProblem = generateDuelProblem();
       }
 
-      await updateDoc(duelRef, updateData);
-      
-      if (isCorrect) {
-        user.coins = (user.coins || 0) + 5;
-        user.xp = (user.xp || 0) + 10;
-        await saveUser();
-        document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
-        document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+      try {
+        await updateDoc(doc(db, 'duels', duelId), updateData);
+        
+        if (isCorrect) {
+          user.coins = (user.coins || 0) + 5;
+          user.xp = (user.xp || 0) + 10;
+          user.duelsWon = (user.duelsWon || 0) + (updateData.status === 'finished' && updateData.player1Score > updateData.player2Score ? 1 : 0);
+          await saveUser();
+          document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
+          document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+        }
+      } catch (error) {
+        console.error('Error al actualizar duelo:', error);
       }
     });
 
-    // Temporizador para finalizar duelo
     if (timeRemaining <= 0 && duel.status === 'active') {
-      updateDoc(duelRef, { status: 'finished', endTime: Date.now() });
+      try {
+        await updateDoc(duelRef, { status: 'finished', endTime: Date.now() });
+      } catch (error) {
+        console.error('Error al finalizar duelo:', error);
+      }
     }
+  }, (error) => {
+    console.error('Error en snapshot del duelo:', error);
   });
 }
 
@@ -196,6 +221,7 @@ async function showDuelResult(db, duel, currentUser, user, userRef, saveUser, un
   if (isWinner) {
     user.coins = (user.coins || 0) + 50;
     user.xp = (user.xp || 0) + 50;
+    user.duelsWon = (user.duelsWon || 0) + 1;
   } else if (winner !== 'Empate') {
     user.coins = (user.coins || 0) + 10;
     user.xp = (user.xp || 0) + 20;

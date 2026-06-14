@@ -553,7 +553,7 @@ function showQuestion() {
         streak=0;
         for (var m=0;m<allBtns.length;m++) { if (Number(allBtns[m].dataset.val)===correct) { allBtns[m].style.background='#1a5c2a'; allBtns[m].style.borderColor='#4cff90'; } }
         document.getElementById('quizStats').innerHTML='<span class="wrong">❌ Incorrecto. Era: <strong>'+correct+'</strong></span><br>Racha perdida | Puntos: '+quizPoints;
-        setTimeout(showQuestion,1800);
+        setTimeout(showQuestion,1500);
       }
     });
   }
