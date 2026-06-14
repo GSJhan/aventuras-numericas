@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { renderSkillsTree } from './skills.js';
 import { renderDuelsInterface } from './duels.js';
+import { ACHIEVEMENTS, getAllAchievements, getAchievementStats } from './achievements.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -52,6 +53,10 @@ async function loadUser() {
   if (!user.coins) user.coins = 0;
   if (!user.powers) user.powers = { double: 0, fifty: 0, light: 0 };
   if (!user.logros) user.logros = {};
+  if (!user.infinityStreak) user.infinityStreak = 0;
+  if (!user.infinityBestStreak) user.infinityBestStreak = 0;
+  
+  infinityStreak = user.infinityStreak || 0;
 
   updateUI();
   applyTheme(localStorage.getItem('background') || 'ciudad');
@@ -186,21 +191,60 @@ function showAvatarEditor() {
 }
 
 function showLogros() {
-  const logros = [
-    { id:'mision3', icon:'🏆', title:'Novato', desc:'3 problemas resueltos' },
-    { id:'rach5', icon:'🔥', title:'Racha x5', desc:'5 aciertos seguidos' },
-    { id:'nivel10', icon:'⭐', title:'Nivel 10', desc:'Llega al nivel 10' },
-    { id:'duels5', icon:'⚔️', title:'Guerrero', desc:'Gana 5 duelos' }
-  ];
-  let html = '<div class="logros-list">';
-  logros.forEach(l => {
-    const done = user.logros[l.id];
-    html += `<div class="logro-item ${done?'achieved':''} animated fadeIn">
-      <div class="icon">${l.icon}</div>
-      <div class="info"><h3>${l.title}</h3><p>${l.desc}</p>${done?'<small>✅ Completado</small>':'<small>🔒 Bloqueado</small>'}</div>
-    </div>`;
+  const allAchievements = getAllAchievements();
+  const stats = getAchievementStats(user.logros || {});
+  
+  // Inicializar logros en el usuario si no existen
+  if (!user.logros) user.logros = {};
+  allAchievements.forEach(a => {
+    if (!(a.id in user.logros)) user.logros[a.id] = false;
   });
-  html += '</div>';
+  
+  let html = `
+    <div class="logros-stats">
+      <div class="logros-stat-item">
+        <div class="logros-stat-value">${stats.unlocked}</div>
+        <div class="logros-stat-label">Desbloqueados</div>
+      </div>
+      <div class="logros-stat-item">
+        <div class="logros-stat-value">${stats.total}</div>
+        <div class="logros-stat-label">Total</div>
+      </div>
+      <div class="logros-stat-item">
+        <div class="logros-stat-value">${stats.percentage}%</div>
+        <div class="logros-stat-label">Progreso</div>
+      </div>
+    </div>
+    <div class="logros-progress-bar">
+      <div class="logros-progress-fill" style="width: ${stats.percentage}%"></div>
+    </div>
+  `;
+  
+  // Agrupar logros por categoría
+  const categories = {};
+  allAchievements.forEach(a => {
+    if (!categories[a.category]) categories[a.category] = [];
+    categories[a.category].push(a);
+  });
+  
+  // Renderizar por categoría
+  for (const category in categories) {
+    html += `<div class="logros-category-title">${category}</div>`;
+    html += '<div class="logros-container">';
+    categories[category].forEach(a => {
+      const achieved = user.logros[a.id];
+      html += `
+        <div class="logro-card ${achieved ? 'achieved' : 'locked'} animated fadeIn" title="${a.desc}">
+          <span class="logro-icon">${a.icon}</span>
+          <div class="logro-title">${a.title}</div>
+          <div class="logro-desc">${a.desc}</div>
+          <div class="logro-status">${achieved ? '✅ Desbloqueado' : '🔒 Bloqueado'}</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+  
   document.getElementById('logrosList').innerHTML = html;
 }
 
@@ -224,6 +268,8 @@ function showRanking() {
 }
 
 var currentInfinityProblem = null;
+var infinityStreak = 0;
+
 function nextProblem() {
   const a = window.rnd(1, 50), b = window.rnd(1, 50);
   currentInfinityProblem = { q: `${a} + ${b}`, a: a + b };
@@ -232,15 +278,39 @@ function nextProblem() {
       <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">DESAFÍO INFINITO</div>
       <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">${currentInfinityProblem.q} = ?</div>
     </div>`;
+  updateStreakDisplay();
 }
+
+function updateStreakDisplay() {
+  const streakBox = document.getElementById('infinityStreakBox');
+  const streakCount = document.getElementById('infinityStreakCount');
+  if (infinityStreak > 0) {
+    streakBox.style.display = 'block';
+    streakCount.textContent = infinityStreak;
+  } else {
+    streakBox.style.display = 'none';
+  }
+}
+
 async function checkInfinity() {
   const val = parseInt(document.getElementById('infinityEquation').value);
   if (val === currentInfinityProblem.a) {
-    user.xp += 5; user.coins += 2;
-    document.getElementById('infinityResult').innerHTML = '<span class="correct animated bounceIn">✅ +5 XP +2 💰</span>';
-    await saveUser(); updateUI(); document.getElementById('infinityEquation').value = ''; nextProblem();
+    infinityStreak++;
+    user.xp += 5; 
+    user.coins += 2;
+    user.infinityStreak = infinityStreak;
+    user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityStreak);
+    document.getElementById('infinityResult').innerHTML = '<span class="correct animated bounceIn">✅ +5 XP +2 💰 🔥 Racha: ' + infinityStreak + '</span>';
+    await saveUser(); 
+    updateUI(); 
+    document.getElementById('infinityEquation').value = ''; 
+    nextProblem();
   } else {
-    document.getElementById('infinityResult').innerHTML = '<span class="wrong animated shake">❌ Inténtalo de nuevo</span>';
+    infinityStreak = 0;
+    user.infinityStreak = 0;
+    document.getElementById('infinityResult').innerHTML = '<span class="wrong animated shake">❌ Racha perdida</span>';
+    await saveUser();
+    updateStreakDisplay();
   }
 }
 

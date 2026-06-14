@@ -204,6 +204,348 @@ color: transparent;
 .clash-result-modal { background: #1a1a1a; padding: 40px; border-radius: 20px; border: 4px solid #ffd700; text-align: center; }
 .res-scores { display: flex; gap: 40px; margin: 20px 0; font-size: 24px; font-weight: bold; }
 
+/* --- ESTILOS LOGROS --- */
+.logros-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.logro-card {
+  background: linear-gradient(135deg, rgba(76,144,255,0.15), rgba(155,89,255,0.15));
+  border: 2px solid rgba(76,144,255,0.3);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logro-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(76,255,144,0.1), rgba(76,144,255,0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.logro-card:hover {
+  transform: translateY(-8px) scale(1.05);
+  border-color: var(--accent);
+  box-shadow: 0 15px 40px rgba(76,144,255,0.4);
+}
+
+.logro-card:hover::before {
+  opacity: 1;
+}
+
+.logro-card.achieved {
+  background: linear-gradient(135deg, rgba(76,255,144,0.2), rgba(155,89,255,0.2));
+  border-color: rgba(76,255,144,0.5);
+  box-shadow: 0 0 20px rgba(76,255,144,0.3);
+}
+
+.logro-card.locked {
+  opacity: 0.6;
+  filter: grayscale(50%);
+}
+
+.logro-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+  display: block;
+  filter: drop-shadow(0 0 8px rgba(76,144,255,0.4));
+  transition: transform 0.3s ease;
+}
+
+.logro-card:hover .logro-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.logro-card.achieved .logro-icon {
+  filter: drop-shadow(0 0 12px rgba(76,255,144,0.6));
+}
+
+.logro-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.logro-desc {
+  font-size: 11px;
+  color: rgba(232,234,255,0.7);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.logro-status {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(76,144,255,0.2);
+  color: var(--accent);
+}
+
+.logro-card.achieved .logro-status {
+  background: rgba(76,255,144,0.2);
+  color: var(--green);
+}
+
+.logros-stats {
+  background: rgba(76,144,255,0.1);
+  border: 1px solid rgba(76,144,255,0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.logros-stat-item {
+  text-align: center;
+}
+
+.logros-stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.logros-stat-label {
+  font-size: 12px;
+  color: rgba(232,234,255,0.7);
+  margin-top: 4px;
+}
+
+.logros-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(76,144,255,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.logros-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.5s ease;
+  border-radius: 10px;
+}
+
+.logros-category-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  color: var(--accent);
+  margin-top: 25px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(76,144,255,0.2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ESTILOS JUGAR */
+.game-btn {
+  padding: 80px 30px !important;
+  font-size: 24px !important;
+  background: linear-gradient(135deg, rgba(76,144,255,0.2), rgba(155,89,255,0.2)) !important;
+  border: 3px solid var(--accent) !important;
+  border-radius: 25px !important;
+  box-shadow: 0 15px 40px rgba(76,144,255,0.3) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.game-btn:hover {
+  transform: translateY(-10px) scale(1.03) !important;
+  border-color: var(--green) !important;
+  box-shadow: 0 25px 60px rgba(76,255,144,0.4) !important;
+}
+
+.game-btn .icon {
+  font-size: 80px !important;
+  display: block !important;
+  margin-bottom: 20px !important;
+  filter: drop-shadow(0 0 15px rgba(76,144,255,0.5)) !important;
+  transition: transform 0.3s ease !important;
+}
+
+.game-btn:hover .icon {
+  transform: scale(1.15) rotate(-5deg) !important;
+}
+
+.game-btn small {
+  font-size: 16px !important;
+  opacity: 0.85 !important;
+  display: block !important;
+  margin-top: 15px !important;
+  font-weight: normal !important;
+}
+
+#eqInput, #quizDifficulty {
+  font-size: 16px !important;
+  padding: 15px 20px !important;
+  border-radius: 12px !important;
+  border: 2px solid rgba(76,144,255,0.3) !important;
+  background: rgba(8,12,26,0.8) !important;
+  color: #fff !important;
+  margin-bottom: 15px !important;
+}
+
+#eqInput:focus, #quizDifficulty:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 20px rgba(76,144,255,0.3) !important;
+  outline: none !important;
+}
+
+#solveBtn, #startQuizBtn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  padding: 15px 40px !important;
+  font-size: 16px !important;
+  border: none !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 8px 25px rgba(76,144,255,0.3) !important;
+  width: 100% !important;
+}
+
+#solveBtn:hover, #startQuizBtn:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 35px rgba(76,144,255,0.5) !important;
+}
+
+.problem-box {
+  background: rgba(8,12,26,0.9) !important;
+  border: 3px solid var(--accent) !important;
+  border-radius: 20px !important;
+  padding: 50px !important;
+  box-shadow: 0 0 40px rgba(76,144,255,0.3) !important;
+  text-align: center !important;
+  margin-bottom: 25px !important;
+}
+
+.question-box {
+  background: rgba(8,12,26,0.9) !important;
+  border: 3px solid var(--accent) !important;
+  border-radius: 20px !important;
+  padding: 40px !important;
+  box-shadow: 0 0 40px rgba(76,144,255,0.3) !important;
+  margin-bottom: 25px !important;
+}
+
+.question-text {
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 42px !important;
+  color: #fff !important;
+  margin-bottom: 30px !important;
+  text-shadow: 0 0 20px rgba(76,144,255,0.5) !important;
+}
+
+.options {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+  gap: 15px !important;
+}
+
+.op {
+  background: linear-gradient(135deg, rgba(76,144,255,0.15), rgba(155,89,255,0.15)) !important;
+  border: 2px solid rgba(76,144,255,0.3) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Orbitron', sans-serif !important;
+}
+
+.op:hover {
+  transform: translateY(-5px) scale(1.05) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 10px 30px rgba(76,144,255,0.3) !important;
+}
+
+.result-box {
+  background: rgba(8,12,26,0.8) !important;
+  border: 2px solid rgba(76,144,255,0.2) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  text-align: center !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  margin-top: 20px !important;
+  min-height: 40px !important;
+}
+
+.correct {
+  color: var(--green) !important;
+  text-shadow: 0 0 10px rgba(76,255,144,0.5) !important;
+}
+
+.wrong {
+  color: var(--red) !important;
+  text-shadow: 0 0 10px rgba(255,77,109,0.5) !important;
+}
+
+#quizSetup {
+  background: rgba(76,144,255,0.1) !important;
+  border: 2px solid rgba(76,144,255,0.3) !important;
+  border-radius: 15px !important;
+  padding: 30px !important;
+  margin-bottom: 25px !important;
+}
+
+.back-btn {
+  background: linear-gradient(135deg, rgba(76,144,255,0.2), rgba(155,89,255,0.2)) !important;
+  border: 2px solid var(--accent) !important;
+  padding: 10px 20px !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Orbitron', sans-serif !important;
+}
+
+.back-btn:hover {
+  transform: translateY(-2px) !important;
+  border-color: var(--green) !important;
+  box-shadow: 0 8px 20px rgba(76,144,255,0.3) !important;
+}
+
 /* Animaciones */
 .animated { animation-duration: 0.5s; animation-fill-mode: both; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }

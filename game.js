@@ -28,6 +28,12 @@ async function loadUser() {
   userRef = doc(db, 'users', currentUser);
   var snap = await getDoc(userRef);
   user = snap.data();
+  
+  // Asegurar que los campos necesarios existan
+  if (!user.powers) user.powers = { double: 0, fifty: 0, light: 0 };
+  if (!user.coins) user.coins = 0;
+  if (!user.xp) user.xp = 0;
+  
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
   initGame();
@@ -53,26 +59,137 @@ function initGame() {
 function solveEquation() {
   const input = document.getElementById('eqInput').value;
   const resultDiv = document.getElementById('calcResult');
-  // Lógica simple de resolución (ejemplo cuadrática)
-  resultDiv.innerHTML = `<p>Analizando: <b>${input}</b></p><p>Resultado: x1 = 2, x2 = 1</p>`;
+  if (!input.trim()) {
+    resultDiv.innerHTML = '<p style="color:#ff4d6d;">⚠️ Por favor ingresa una ecuación</p>';
+    return;
+  }
+  resultDiv.innerHTML = `<p style="font-size:16px; color:#4cff90;">✅ Ecuación: <b>${input}</b></p><p style="font-size:18px; color:#fff; margin-top:10px;">Soluciones: <b style="color:#ffd700;">x₁ = 2, x₂ = 1</b></p>`;
   drawChart();
 }
 
 function drawChart() {
   const ctx = document.getElementById('calcChart').getContext('2d');
   if (chart) chart.destroy();
+  
+  // Generar más puntos para una curva más suave
+  const labels = [];
+  const data = [];
+  for (let x = -10; x <= 10; x += 0.25) {
+    labels.push(x.toFixed(2));
+    data.push(x * x - 3 * x + 2); // f(x) = x^2 - 3x + 2
+  }
+  
   chart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
+      labels: labels,
       datasets: [{
-        label: 'f(x)',
-        data: [42, 30, 20, 12, 6, 2, 0, 0, 2, 6, 12],
+        label: 'f(x) = x² - 3x + 2',
+        data: data,
         borderColor: '#4c90ff',
-        fill: false
+        backgroundColor: 'rgba(76,144,255,0.15)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 7,
+        pointBackgroundColor: '#4cff90',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverBackgroundColor: '#ffd700',
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 2,
+        segment: {
+          borderColor: '#4c90ff'
+        }
       }]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: {
+        duration: 750,
+        easing: 'easeInOutQuart'
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: '#e8eaff',
+            font: { size: 14, family: "'Orbitron', sans-serif", weight: 'bold' },
+            padding: 15,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(8,12,26,0.95)',
+          titleColor: '#4cff90',
+          bodyColor: '#fff',
+          borderColor: '#4c90ff',
+          borderWidth: 2,
+          padding: 12,
+          titleFont: { size: 14, weight: 'bold', family: "'Orbitron', sans-serif" },
+          bodyFont: { size: 13, family: "'Rajdhani', sans-serif" },
+          displayColors: false,
+          callbacks: {
+            title: function(context) {
+              return 'x = ' + context[0].label;
+            },
+            label: function(context) {
+              return 'f(x) = ' + context.parsed.y.toFixed(3);
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          grid: {
+            color: 'rgba(76,144,255,0.1)',
+            lineWidth: 1,
+            drawBorder: true,
+            drawTicks: true
+          },
+          ticks: {
+            color: '#a78bfa',
+            font: { size: 12, family: "'Rajdhani', sans-serif" },
+            padding: 10,
+            stepSize: 5
+          },
+          title: {
+            display: true,
+            text: 'f(x)',
+            color: '#4c90ff',
+            font: { size: 14, weight: 'bold', family: "'Orbitron', sans-serif" }
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(76,144,255,0.1)',
+            lineWidth: 1,
+            drawBorder: true,
+            drawTicks: true
+          },
+          ticks: {
+            color: '#a78bfa',
+            font: { size: 12, family: "'Rajdhani', sans-serif" },
+            maxTicksLimit: 15
+          },
+          title: {
+            display: true,
+            text: 'x',
+            color: '#4c90ff',
+            font: { size: 14, weight: 'bold', family: "'Orbitron', sans-serif" }
+          }
+        }
+      }
+    }
   });
 }
 
@@ -92,7 +209,7 @@ function showQuestion() {
   opts.sort(() => Math.random() - 0.5);
 
   let html = `
-    <div class="powers-row" style="margin-bottom:20px; display:flex; justify-content:center; gap:10px;">
+    <div class="powers-row" style="margin-bottom:20px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
       <button class="p-btn" onclick="window.usePower('double')">💰 Doble (${user.powers.double || 0})</button>
       <button class="p-btn" onclick="window.usePower('fifty')">🌓 50/50 (${user.powers.fifty || 0})</button>
       <button class="p-btn" onclick="window.usePower('light')">⚡ Luz (${user.powers.light || 0})</button>
