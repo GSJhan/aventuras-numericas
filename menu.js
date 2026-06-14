@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { renderSkillsTree, awardSkillPoints } from './skills.js';
+import { renderDuelsInterface } from './duels.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -43,6 +45,8 @@ async function loadUser() {
   if (!user.skin) user.skin = 'spiderman';
   if (!user.misionesCompletas) user.misionesCompletas = 0;
   if (user.infinityBestStreak === undefined) user.infinityBestStreak = 0;
+  if (!user.skills) user.skills = {};
+  if (!user.skillPoints) user.skillPoints = 0;
   initMenu();
 }
 
@@ -139,6 +143,12 @@ function initMenu() {
       } else if (page === 'avatar') {
         document.getElementById('avatarSection').classList.remove('hidden');
         showAvatarEditor();
+      } else if (page === 'skills') {
+        document.getElementById('skillsSection').classList.remove('hidden');
+        renderSkillsTree(user, userRef, saveUser);
+      } else if (page === 'duels') {
+        document.getElementById('duelsSection').classList.remove('hidden');
+        renderDuelsInterface(db, user, currentUser, userRef, saveUser);
       } else if (page === 'config') {
         document.getElementById('configSection').classList.remove('hidden');
       } else if (page === 'logros') {

@@ -1,0 +1,68 @@
+{
+  "name": "Aventuras Numéricas",
+  "short_name": "Aventuras",
+  "description": "Un juego de matemáticas divertido para resolver ecuaciones, hacer desafios, y demostrar que jugando podemos aprender.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080c1a",
+  "theme_color": "#4c90ff",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23080c1a' width='192' height='192'/><circle cx='96' cy='96' r='88' stroke='%234c90ff' stroke-width='4' fill='rgba(76,144,255,0.1)'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%234c90ff' font-family='Orbitron' font-weight='900'>∑</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23080c1a' width='512' height='512'/><circle cx='256' cy='256' r='240' stroke='%234c90ff' stroke-width='8' fill='rgba(76,144,255,0.1)'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='280' fill='%234c90ff' font-family='Orbitron' font-weight='900'>∑</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "games"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23080c1a' width='540' height='720'/><text x='270' y='360' text-anchor='middle' dominant-baseline='middle' font-size='80' fill='%234c90ff' font-family='Orbitron'>Aventuras Numéricas</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect fill='%23080c1a' width='1280' height='720'/><text x='640' y='360' text-anchor='middle' dominant-baseline='middle' font-size='100' fill='%234c90ff' font-family='Orbitron'>Aventuras Numéricas</text></svg>",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Jugar",
+      "short_name": "Jugar",
+      "description": "Inicia un nuevo juego",
+      "url": "/game.html",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23080c1a' width='96' height='96'/><text x='48' y='48' text-anchor='middle' dominant-baseline='middle' font-size='60'>🎮</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Duelos",
+      "short_name": "Duelos",
+      "description": "Desafía a tus amigos",
+      "url": "/menu.html?page=duels",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23080c1a' width='96' height='96'/><text x='48' y='48' text-anchor='middle' dominant-baseline='middle' font-size='60'>⚔️</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

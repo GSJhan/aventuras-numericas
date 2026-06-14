@@ -244,3 +244,53 @@ color: transparent;
 #rankingList::-webkit-scrollbar { width: 5px; }
 #rankingList::-webkit-scrollbar-track { background: rgba(76,144,255,0.05); border-radius: 3px; }
 #rankingList::-webkit-scrollbar-thumb { background: rgba(76,144,255,0.3); border-radius: 3px; }
+
+/* ── ÁRBOL DE HABILIDADES ── */
+.skills-tree-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:600px) { .skills-tree-container { grid-template-columns: 1fr; } }
+.skill-branch { background: rgba(8,12,26,0.75); border: 1px solid rgba(76,144,255,0.2); border-radius: 16px; padding: 20px; }
+.skill-branch h3 { color: var(--accent); margin-bottom: 16px; font-family: 'Orbitron', monospace; font-size: 16px; }
+.skill-node { background: rgba(76,144,255,0.08); border: 1px solid rgba(76,144,255,0.3); border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+.skill-node:hover { border-color: var(--accent); background: rgba(76,144,255,0.14); transform: translateX(4px); }
+.skill-node.unlocked { border-color: var(--green); background: rgba(76,255,144,0.08); }
+.skill-node-title { font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.skill-node-points { font-size: 12px; color: var(--gold); margin-bottom: 8px; }
+.skill-node-desc { font-size: 13px; opacity: 0.7; margin-bottom: 8px; }
+.skill-node-unlock { font-size: 12px; color: var(--accent); }
+.skill-node.unlocked .skill-node-unlock { color: var(--green); }
+
+/* ── DUELOS ONLINE ── */
+.duels-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:600px) { .duels-container { grid-template-columns: 1fr; } }
+.duel-section { background: rgba(8,12,26,0.75); border: 1px solid rgba(76,144,255,0.2); border-radius: 16px; padding: 20px; }
+.duel-section h3 { color: var(--accent); margin-bottom: 16px; font-family: 'Orbitron', monospace; font-size: 16px; }
+.friend-list { max-height: 300px; overflow-y: auto; }
+.friend-item { background: rgba(76,144,255,0.08); border: 1px solid rgba(76,144,255,0.2); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.friend-name { font-weight: 600; color: var(--text); }
+.friend-status { font-size: 12px; color: #a78bfa; }
+.challenge-btn { background: linear-gradient(135deg, #4cff90, #00d084); border: none; color: #080c1a; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+.challenge-btn:hover { filter: brightness(1.1); }
+.duel-active { background: rgba(76,255,144,0.12); border: 1px solid rgba(76,255,144,0.4); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+.duel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.duel-player { text-align: center; flex: 1; }
+.duel-player-name { font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.duel-player-score { font-size: 24px; font-family: 'Orbitron', monospace; color: var(--gold); }
+.duel-vs { text-align: center; font-size: 20px; color: var(--accent); margin: 0 10px; }
+.duel-timer { font-size: 32px; font-family: 'Orbitron', monospace; color: var(--red); text-align: center; margin: 16px 0; font-weight: 700; }
+.duel-problem { background: rgba(8,12,26,0.75); border: 1px solid rgba(76,144,255,0.3); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; }
+.duel-problem-text { font-family: 'Orbitron', monospace; font-size: 28px; margin-bottom: 12px; }
+.duel-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.duel-input-row input { flex: 1; margin: 0; }
+.duel-submit { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: var(--text); font-weight: 700; padding: 12px 20px; border-radius: 8px; cursor: pointer; }
+.duel-submit:hover { filter: brightness(1.1); }
+.duel-result { padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 12px; }
+.duel-result.correct { background: rgba(76,255,144,0.2); color: var(--green); border: 1px solid rgba(76,255,144,0.4); }
+.duel-result.wrong { background: rgba(255,77,109,0.2); color: var(--red); border: 1px solid rgba(255,77,109,0.4); }
+.duel-end-modal { background: rgba(8,12,26,0.95); border: 2px solid var(--accent); border-radius: 16px; padding: 32px; text-align: center; max-width: 400px; margin: auto; }
+.duel-end-modal h2 { color: var(--accent); margin-bottom: 16px; font-family: 'Orbitron', monospace; font-size: 24px; }
+.duel-end-modal .winner { color: var(--gold); font-size: 20px; margin-bottom: 12px; }
+.duel-end-modal .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.duel-end-modal .stat-item { background: rgba(76,144,255,0.08); border: 1px solid rgba(76,144,255,0.2); border-radius: 8px; padding: 12px; }
+.duel-end-modal .stat-label { font-size: 12px; color: #aaa; margin-bottom: 4px; }
+.duel-end-modal .stat-value { font-size: 18px; font-family: 'Orbitron', monospace; color: var(--accent); font-weight: 700; }
+.duel-end-modal .btn-primary { margin-top: 16px; }

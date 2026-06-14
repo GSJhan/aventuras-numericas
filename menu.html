@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4c90ff">
+  <meta name="description" content="Menú principal de Aventuras Numéricas">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23080c1a' width='192' height='192'/><circle cx='96' cy='96' r='88' stroke='%234c90ff' stroke-width='4' fill='rgba(76,144,255,0.1)'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%234c90ff' font-family='Orbitron' font-weight='900'>∑</text></svg>">
   <title>Aventuras Numéricas - Menú</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -23,15 +27,27 @@
     <div id="avatarDisplay" class="avatar-anime">🦸</div>
     <div class="menu-grid">
       <button class="menu-btn" data-page="avatar"><span class="icon">👤</span>Avatar</button>
-      <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
+      <button class="menu-btn" data-page="skills"><span class="icon">🌳</span>Habilidades</button>
       <button class="menu-btn" data-page="game"><span class="icon">🎮</span>Jugar</button>
+      <button class="menu-btn" data-page="duels"><span class="icon">⚔️</span>Duelos</button>
       <button class="menu-btn" data-page="infinito"><span class="icon">∞</span>Infinito</button>
       <button class="menu-btn" data-page="logros"><span class="icon">🏆</span>Logros</button>
       <button class="menu-btn" data-page="ranking"><span class="icon">🥇</span>Ranking</button>
+      <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
     </div>
     <div id="avatarSection" class="section hidden">
       <h2>👤 Avatar</h2>
       <div id="avatarEditor" class="avatar-editor"></div>
+    </div>
+    <div id="skillsSection" class="section hidden">
+      <h2>🌳 Árbol de Habilidades</h2>
+      <p class="inf-desc">Desbloquea habilidades matemáticas y mejora tus puntuaciones</p>
+      <div class="skills-tree-container" id="skillsTree"></div>
+    </div>
+    <div id="duelsSection" class="section hidden">
+      <h2>⚔️ Duelos Online</h2>
+      <p class="inf-desc">Desafía a tus amigos a resolver problemas en tiempo real</p>
+      <div class="duels-container" id="duelsContainer"></div>
     </div>
     <div id="configSection" class="section hidden">
       <h2>⚙️ Configuraciones</h2>
@@ -69,5 +85,15 @@
     </div>
   </div>
   <script type="module" src="menu.js"></script>
+  <script>
+    // Registrar Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+        console.log('Service Worker registrado en menú');
+      }).catch(function(error) {
+        console.log('Error al registrar Service Worker:', error);
+      });
+    }
+  </script>
 </body>
 </html>
