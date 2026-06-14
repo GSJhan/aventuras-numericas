@@ -125,16 +125,17 @@ function initMenu() {
       } else if (page === 'infinito') {
         document.getElementById('infinitoSection').classList.remove('hidden');
         
-        // Mostrar racha actual inmediatamente al entrar
-        var streakBox = document.getElementById('infinityStreakBox');
-        if (user.infinityBestStreak > 0) {
-          streakBox.style.display = 'block';
-          document.getElementById('infinityStreakCount').textContent = user.infinityBestStreak;
-        } else {
-          streakBox.style.display = 'none';
-        }
-
-        if (!currentInfinityProblem) nextProblem();
+        // Recargar datos del usuario para asegurar que tenemos la racha actualizada de Firestore
+        loadUser().then(() => {
+          var streakBox = document.getElementById('infinityStreakBox');
+          if (user.infinityBestStreak > 0) {
+            streakBox.style.display = 'block';
+            document.getElementById('infinityStreakCount').textContent = user.infinityBestStreak;
+          } else {
+            streakBox.style.display = 'none';
+          }
+          if (!currentInfinityProblem) nextProblem();
+        });
       } else if (page === 'avatar') {
         document.getElementById('avatarSection').classList.remove('hidden');
         showAvatarEditor();
@@ -427,6 +428,9 @@ function initMenu() {
       
       // Ocultar racha al fallar
       document.getElementById('infinityStreakBox').style.display = 'none';
+      
+      // Pasar al siguiente problema incluso si falla
+      setTimeout(nextProblem, 1500);
     }
   };
 }
