@@ -35,24 +35,52 @@
       <button class="menu-btn" data-page="shop"><span class="icon">🛒</span>Tienda</button>
       <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
     </div>
-    <div id="shopSection" class="section hidden">
-      <h2>🛒 Tienda de Poderes</h2>
-      <div class="shop-grid" id="shopGrid"></div>
-    </div>
+
+    <!-- Secciones -->
     <div id="avatarSection" class="section hidden">
       <h2>👤 Avatar</h2>
       <div id="avatarEditor" class="avatar-editor"></div>
     </div>
+
     <div id="skillsSection" class="section hidden">
       <h2>🌳 Árbol de Habilidades</h2>
       <p class="inf-desc">Desbloquea habilidades matemáticas y mejora tus puntuaciones</p>
       <div class="skills-tree-container" id="skillsTree"></div>
     </div>
+
     <div id="duelsSection" class="section hidden">
       <h2>⚔️ Duelos Online</h2>
       <p class="inf-desc">Desafía a tus amigos a resolver problemas en tiempo real</p>
       <div class="duels-container" id="duelsContainer"></div>
     </div>
+
+    <div id="infinitoSection" class="section hidden">
+      <h2>∞ Modo Infinito</h2>
+      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
+      <div id="infinityProblemBox" class="problem-box"></div>
+      <div id="infinityStreakBox" style="text-align:center; margin-bottom:10px; font-family:'Orbitron', sans-serif; color:#ffd700; font-size:18px; display:none;">🔥 Racha: <span id="infinityStreakCount">0</span></div>
+      <div class="infinity-input-row">
+        <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
+        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
+      </div>
+      <div id="infinityResult" class="result-box"></div>
+    </div>
+
+    <div id="logrosSection" class="section hidden">
+      <h2>🏆 Logros</h2>
+      <div id="logrosList" class="logros-list"></div>
+    </div>
+
+    <div id="rankingSection" class="section hidden">
+      <h2>🥇 Tabla de Clasificación Global</h2>
+      <div id="rankingList"></div>
+    </div>
+
+    <div id="shopSection" class="section hidden">
+      <h2>🛒 Tienda de Poderes</h2>
+      <div class="shop-grid" id="shopGrid"></div>
+    </div>
+
     <div id="configSection" class="section hidden">
       <h2>⚙️ Configuraciones</h2>
       <label class="config-label">Fondo</label>
@@ -68,29 +96,9 @@
         🎵 Música de fondo
       </label>
     </div>
-    <div id="logrosSection" class="section hidden">
-      <h2>🏆 Logros</h2>
-      <div id="logrosList" class="logros-list"></div>
-    </div>
-    <div id="rankingSection" class="section hidden">
-      <h2>🥇 Tabla de Clasificación Global</h2>
-      <div id="rankingList"></div>
-    </div>
-    <div id="infinitoSection" class="section hidden">
-      <h2>∞ Modo Infinito</h2>
-      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
-      <div id="infinityProblemBox" class="problem-box"></div>
-      <div id="infinityStreakBox" style="text-align:center; margin-bottom:10px; font-family:'Orbitron', sans-serif; color:#ffd700; font-size:18px; display:none;">🔥 Racha: <span id="infinityStreakCount">0</span></div>
-      <div class="infinity-input-row">
-        <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
-        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
-      </div>
-      <div id="infinityResult" class="result-box"></div>
-    </div>
   </div>
   <script type="module" src="menu.js"></script>
   <script>
-    // Registrar Service Worker para PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').then(function(registration) {
         console.log('Service Worker registrado en menú');
