@@ -190,15 +190,22 @@ function showAvatarEditor() {
   };
 }
 
-function showLogros() {
+async function showLogros() {
   const allAchievements = getAllAchievements();
-  const stats = getAchievementStats(user.logros || {});
   
   // Inicializar logros en el usuario si no existen
   if (!user.logros) user.logros = {};
+  let changed = false;
   allAchievements.forEach(a => {
-    if (!(a.id in user.logros)) user.logros[a.id] = false;
+    if (!(a.id in user.logros)) {
+      user.logros[a.id] = false;
+      changed = true;
+    }
   });
+  
+  if (changed) await saveUser();
+  
+  const stats = getAchievementStats(user.logros);
   
   let html = `
     <div class="logros-stats">
@@ -302,10 +309,13 @@ async function checkInfinity() {
     user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityStreak);
     
     // Verificar y desbloquear logros de racha automáticamente
-    checkStreakAchievements();
+    const newAchievement = checkStreakAchievements();
     
     document.getElementById('infinityResult').innerHTML = '<span class="correct animated bounceIn">✅ +5 XP +2 💰 🔥 Racha: ' + infinityStreak + '</span>';
+    
+    // Guardar cambios en Firebase
     await saveUser(); 
+    
     updateUI(); 
     document.getElementById('infinityEquation').value = ''; 
     nextProblem();
@@ -320,6 +330,7 @@ async function checkInfinity() {
 
 function checkStreakAchievements() {
   if (!user.logros) user.logros = {};
+  let unlockedAny = false;
   
   const streakAchievements = [
     { id: 'streak_3', value: 3 },
@@ -333,11 +344,14 @@ function checkStreakAchievements() {
   ];
   
   streakAchievements.forEach(achievement => {
-    if (infinityStreak >= achievement.value && !user.logros[achievement.id]) {
+    if (infinityStreak >= achievement.value && user.logros[achievement.id] === false) {
       user.logros[achievement.id] = true;
       showAchievementNotification(achievement.id);
+      unlockedAny = true;
     }
   });
+  
+  return unlockedAny;
 }
 
 function showAchievementNotification(achievementId) {
