@@ -227,7 +227,11 @@ var currentInfinityProblem = null;
 function nextProblem() {
   const a = window.rnd(1, 50), b = window.rnd(1, 50);
   currentInfinityProblem = { q: `${a} + ${b}`, a: a + b };
-  document.getElementById('infinityProblemBox').innerHTML = `<div class="prob-question animated zoomIn">${currentInfinityProblem.q} = ?</div>`;
+  document.getElementById('infinityProblemBox').innerHTML = `
+    <div class="problem-box animated zoomIn" style="background: rgba(8,12,26,0.8); border: 2px solid #4c90ff; border-radius: 20px; padding: 40px; box-shadow: 0 0 30px rgba(76,144,255,0.2);">
+      <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">DESAFÍO INFINITO</div>
+      <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">${currentInfinityProblem.q} = ?</div>
+    </div>`;
 }
 async function checkInfinity() {
   const val = parseInt(document.getElementById('infinityEquation').value);

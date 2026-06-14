@@ -23,14 +23,16 @@
     
     <div id="gameChoice">
       <h2 style="text-align:center;margin:20px 0;font-family:'Orbitron',monospace;color:#4c90ff;">🎮 ¿Cómo quieres jugar?</h2>
-      <div class="game-options" style="display: flex; flex-direction: column; gap: 20px;">
-        <button class="game-btn" id="calcBtn" style="padding: 50px 20px; font-size: 24px; width: 100%;">
-          <span class="icon" style="font-size: 50px;">🧮</span>
-          Resolver Ecuaciones<br><small style="font-size: 14px;">Práctica con gráficos</small>
+      <div class="game-options" style="display: grid; grid-template-columns: 1fr; gap: 25px; max-width: 600px; margin: 40px auto;">
+        <button class="game-btn animated bounceIn" id="calcBtn" style="padding: 60px 20px; font-size: 28px; background: linear-gradient(135deg, rgba(76,144,255,0.2), rgba(155,89,255,0.2)); border: 2px solid #4c90ff; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+          <span class="icon" style="font-size: 70px; display: block; margin-bottom: 15px;">🧮</span>
+          <b style="font-family: 'Orbitron';">RESOLVER ECUACIONES</b>
+          <br><small style="font-size: 16px; opacity: 0.8;">Práctica con gráficos interactivos</small>
         </button>
-        <button class="game-btn" id="quizBtn" style="padding: 50px 20px; font-size: 24px; width: 100%;">
-          <span class="icon" style="font-size: 50px;">🎯</span>
-          Modo Quiz<br><small style="font-size: 14px;">Gana XP y monedas</small>
+        <button class="game-btn animated bounceIn" id="quizBtn" style="padding: 60px 20px; font-size: 28px; background: linear-gradient(135deg, rgba(76,255,144,0.15), rgba(76,144,255,0.15)); border: 2px solid #4cff90; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+          <span class="icon" style="font-size: 70px; display: block; margin-bottom: 15px;">🎯</span>
+          <b style="font-family: 'Orbitron';">MODO QUIZ</b>
+          <br><small style="font-size: 16px; opacity: 0.8;">Gana XP, Monedas y usa Poderes</small>
         </button>
       </div>
     </div>
