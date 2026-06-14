@@ -1,4 +1,4 @@
-// Módulo para resolver ecuaciones con procedimiento detallado
+// Módulo para resolver ecuaciones con procedimiento detallado - Método de Aspa Simple
 
 export function solveEquation(equation) {
   // Limpiar espacios
@@ -8,6 +8,12 @@ export function solveEquation(equation) {
   const quadraticMatch = equation.match(/([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)x([+-]\d*\.?\d*)=0/i);
   if (quadraticMatch) {
     return solveQuadratic(quadraticMatch);
+  }
+  
+  // Intentar parsear como ecuación cuadrática sin término x (ax^2 + c = 0)
+  const quadraticNoXMatch = equation.match(/([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)=0/i);
+  if (quadraticNoXMatch) {
+    return solveQuadraticNoX(quadraticNoXMatch);
   }
   
   // Intentar parsear como ecuación lineal (ax + b = 0)
@@ -37,7 +43,29 @@ function solveQuadratic(match) {
   steps.push(`<strong>Ecuación Cuadrática: ${a}x² + ${b}x + ${c} = 0</strong>`);
   steps.push(`<strong>Coeficientes:</strong> a = ${a}, b = ${b}, c = ${c}`);
   
-  steps.push(`<br><strong>Método 1: Fórmula General</strong>`);
+  // Método de Aspa Simple
+  steps.push(`<br><strong style="color: #4cff90;">MÉTODO: ASPA SIMPLE (Factorización)</strong>`);
+  
+  const aspaSolution = tryAspaSolution(a, b, c);
+  if (aspaSolution) {
+    steps.push(aspaSolution.diagram);
+    steps.push(`<strong style="color: #4cff90;">Verificación: ${aspaSolution.p1}x + ${aspaSolution.p2}x = ${aspaSolution.p1 + aspaSolution.p2}x ✓</strong>`);
+    steps.push(`<br><strong>Factorización:</strong> (${aspaSolution.factor1})(${aspaSolution.factor2}) = 0`);
+    steps.push(`<br><strong>Soluciones:</strong>`);
+    steps.push(`${aspaSolution.factor1} = 0 → x₁ = ${aspaSolution.x1.toFixed(4)}`);
+    steps.push(`${aspaSolution.factor2} = 0 → x₂ = ${aspaSolution.x2.toFixed(4)}`);
+    
+    return {
+      error: false,
+      steps: steps,
+      solutions: [aspaSolution.x1, aspaSolution.x2],
+      type: 'quadratic'
+    };
+  }
+  
+  // Si no se puede factorizar, usar Fórmula General
+  steps.push(`<strong style="color: #ffd700;">No se puede factorizar fácilmente. Usando Fórmula General...</strong>`);
+  steps.push(`<br><strong style="color: #4cff90;">MÉTODO: FÓRMULA GENERAL</strong>`);
   steps.push(`x = (-b ± √(b² - 4ac)) / 2a`);
   steps.push(`x = (-${b} ± √(${b}² - 4(${a})(${c}))) / 2(${a})`);
   steps.push(`x = (-${b} ± √(${b * b} - ${4 * a * c})) / ${2 * a}`);
@@ -62,26 +90,128 @@ function solveQuadratic(match) {
   steps.push(`<strong style="color: #4cff90;">x₁ = ${x1.toFixed(4)}</strong>`);
   steps.push(`<strong style="color: #4cff90;">x₂ = ${x2.toFixed(4)}</strong>`);
   
-  steps.push(`<br><strong>Método 2: Igualación (Factorización)</strong>`);
-  steps.push(`${a}x² + ${b}x + ${c} = 0`);
-  
-  // Intentar factorizar
-  const factorization = tryFactorize(a, b, c);
-  if (factorization) {
-    steps.push(`${factorization.expression}`);
-    steps.push(`<strong style="color: #4cff90;">x₁ = ${factorization.x1.toFixed(4)}</strong>`);
-    steps.push(`<strong style="color: #4cff90;">x₂ = ${factorization.x2.toFixed(4)}</strong>`);
-  } else {
-    steps.push(`La ecuación no se puede factorizar fácilmente.`);
-    steps.push(`Usa la fórmula general (ver arriba).`);
-  }
-  
   return {
     error: false,
     steps: steps,
     solutions: [x1, x2],
     type: 'quadratic'
   };
+}
+
+function solveQuadraticNoX(match) {
+  let a = parseFloat(match[1]) || 1;
+  let c = parseFloat(match[2]);
+  let b = 0;
+  
+  // Normalizar coeficientes
+  if (match[1] === '+' || match[1] === '') a = 1;
+  if (match[1] === '-') a = -1;
+  
+  let steps = [];
+  steps.push(`<strong>Ecuación Cuadrática Incompleta: ${a}x² + ${c} = 0</strong>`);
+  steps.push(`<strong>Coeficientes:</strong> a = ${a}, b = 0, c = ${c}`);
+  
+  // Método de Aspa Simple
+  steps.push(`<br><strong style="color: #4cff90;">MÉTODO: ASPA SIMPLE (Factorización)</strong>`);
+  
+  const aspaSolution = tryAspaSolution(a, b, c);
+  if (aspaSolution) {
+    steps.push(aspaSolution.diagram);
+    steps.push(`<strong style="color: #4cff90;">Verificación: ${aspaSolution.p1}x + ${aspaSolution.p2}x = ${aspaSolution.p1 + aspaSolution.p2}x ✓</strong>`);
+    steps.push(`<br><strong>Factorización:</strong> (${aspaSolution.factor1})(${aspaSolution.factor2}) = 0`);
+    steps.push(`<br><strong>Soluciones:</strong>`);
+    steps.push(`${aspaSolution.factor1} = 0 → x₁ = ${aspaSolution.x1.toFixed(4)}`);
+    steps.push(`${aspaSolution.factor2} = 0 → x₂ = ${aspaSolution.x2.toFixed(4)}`);
+    
+    return {
+      error: false,
+      steps: steps,
+      solutions: [aspaSolution.x1, aspaSolution.x2],
+      type: 'quadratic'
+    };
+  }
+  
+  return {
+    error: false,
+    steps: steps,
+    solutions: null,
+    type: 'quadratic'
+  };
+}
+
+function tryAspaSolution(a, b, c) {
+  // Buscar dos números que multiplicados den a*c y sumados den b
+  const ac = a * c;
+  
+  // Generar divisores de ac
+  const divisors = [];
+  for (let i = 1; i <= Math.abs(ac); i++) {
+    if (ac % i === 0) {
+      divisors.push(i);
+      divisors.push(-i);
+    }
+  }
+  
+  // Buscar pares que cumplan la condición
+  for (let p1 of divisors) {
+    const p2 = ac / p1;
+    if (p1 + p2 === b) {
+      // Encontramos los números
+      const factor1Num = a;
+      const factor1Const = p1;
+      const factor2Num = 1;
+      const factor2Const = p2 / a;
+      
+      // Verificar que factor2Const sea entero
+      if (Number.isInteger(factor2Const)) {
+        const x1 = -factor1Const / factor1Num;
+        const x2 = -factor2Const / factor2Num;
+        
+        // Crear diagrama visual del Aspa Simple
+        const diagram = createAspaDiagram(a, b, c, p1, p2, factor1Const, factor2Const);
+        
+        const factor1 = factor1Num === 1 ? `x + ${factor1Const}` : `${factor1Num}x + ${factor1Const}`;
+        const factor2 = factor2Num === 1 ? `x + ${factor2Const}` : `${factor2Num}x + ${factor2Const}`;
+        
+        return {
+          diagram,
+          p1,
+          p2,
+          factor1,
+          factor2,
+          x1,
+          x2
+        };
+      }
+    }
+  }
+  
+  return null;
+}
+
+function createAspaDiagram(a, b, c, p1, p2, f1c, f2c) {
+  // Crear un diagrama visual del aspa simple
+  const diagram = `
+    <div style="background: rgba(76,144,255,0.1); border: 2px solid rgba(76,144,255,0.3); border-radius: 8px; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px; color: #e8eaff;">
+      <div style="text-align: center; margin-bottom: 10px;"><strong>ASPA SIMPLE</strong></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center;">
+        <div>
+          <div style="color: #4cff90; font-weight: bold; margin-bottom: 5px;">${a}x²</div>
+          <div style="color: #ffd700; font-weight: bold;">${c}</div>
+        </div>
+        <div>
+          <div style="color: #4cff90; font-weight: bold; margin-bottom: 5px;">${f1c}</div>
+          <div style="color: #4cff90; font-weight: bold;">${f2c}</div>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 10px; color: #a78bfa;">
+        <div>↙ ↖</div>
+        <div style="margin-top: 5px;"><strong style="color: #4cff90;">${p1}x</strong> + <strong style="color: #4cff90;">${p2}x</strong> = <strong style="color: #ffd700;">${p1 + p2}x</strong> ✓</div>
+      </div>
+    </div>
+  `;
+  
+  return diagram;
 }
 
 function solveLinear(match) {
@@ -113,33 +243,6 @@ function solveLinear(match) {
   };
 }
 
-function tryFactorize(a, b, c) {
-  // Buscar dos números que multiplicados den a*c y sumados den b
-  const ac = a * c;
-  
-  for (let i = 1; i <= Math.sqrt(Math.abs(ac)); i++) {
-    if (ac % i === 0) {
-      const j = ac / i;
-      if (i + j === b || i - j === b || -i + j === b || -i - j === b) {
-        // Encontramos los números
-        let p, q;
-        if (i + j === b) { p = i; q = j; }
-        else if (i - j === b) { p = i; q = -j; }
-        else if (-i + j === b) { p = -i; q = j; }
-        else { p = -i; q = -j; }
-        
-        const x1 = -q / a;
-        const x2 = -p / a;
-        
-        const expression = `(${a}x + ${p})(x + ${q / a}) = 0`;
-        return { expression, x1, x2 };
-      }
-    }
-  }
-  
-  return null;
-}
-
 export function formatSolution(result) {
   if (result.error) {
     return `<div style="color: #ff4d6d; font-size: 14px; line-height: 1.6;">${result.message}</div>`;
@@ -153,9 +256,9 @@ export function formatSolution(result) {
   
   if (result.solutions) {
     html += `<div style="margin-top: 15px; padding: 15px; background: rgba(76,255,144,0.1); border-left: 4px solid #4cff90; border-radius: 4px;">`;
-    html += `<strong style="color: #4cff90;">SOLUCIONES:</strong><br>`;
+    html += `<strong style="color: #4cff90;">✓ SOLUCIONES FINALES:</strong><br>`;
     result.solutions.forEach((sol, idx) => {
-      html += `x${result.solutions.length > 1 ? (idx + 1) : ''} = <strong>${sol.toFixed(4)}</strong><br>`;
+      html += `x${result.solutions.length > 1 ? (idx + 1) : ''} = <strong style="color: #ffd700;">${sol.toFixed(4)}</strong><br>`;
     });
     html += `</div>`;
   }
