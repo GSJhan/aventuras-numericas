@@ -205,8 +205,73 @@ function drawChart() {
 }
 
 function generateQuestion() {
-  const a = Math.floor(Math.random() * 20) + 1, b = Math.floor(Math.random() * 20) + 1;
-  return { q: `${a} + ${b}`, a: a + b };
+  const difficulty = document.getElementById('quizDifficulty')?.value || 'facil';
+  let a, b, question, answer;
+  
+  switch(difficulty) {
+    case 'facil':
+      // Suma y Resta
+      const op1 = Math.random() > 0.5 ? '+' : '-';
+      a = Math.floor(Math.random() * 20) + 1;
+      b = Math.floor(Math.random() * 20) + 1;
+      if (op1 === '+') {
+        question = `${a} + ${b}`;
+        answer = a + b;
+      } else {
+        question = `${a + b} - ${b}`;
+        answer = a;
+      }
+      break;
+      
+    case 'normal':
+      // Multiplicación y División
+      const op2 = Math.random() > 0.5 ? '×' : '÷';
+      a = Math.floor(Math.random() * 15) + 2;
+      b = Math.floor(Math.random() * 15) + 2;
+      if (op2 === '×') {
+        question = `${a} × ${b}`;
+        answer = a * b;
+      } else {
+        question = `${a * b} ÷ ${b}`;
+        answer = a;
+      }
+      break;
+      
+    case 'dificil':
+      // Potencia y Raíz
+      const op3 = Math.random() > 0.5 ? '^' : '√';
+      if (op3 === '^') {
+        a = Math.floor(Math.random() * 8) + 2;
+        b = Math.floor(Math.random() * 3) + 2;
+        question = `${a}^${b}`;
+        answer = Math.pow(a, b);
+      } else {
+        // Raíz cuadrada perfecta
+        a = Math.floor(Math.random() * 10) + 2;
+        question = `√${a * a}`;
+        answer = a;
+      }
+      break;
+      
+    case 'extremo':
+      // Ecuaciones Cuadráticas simples
+      // Generar ecuación de forma (x-p)(x-q) = 0
+      const p = Math.floor(Math.random() * 10) + 1;
+      const q = Math.floor(Math.random() * 10) + 1;
+      const b_coef = -(p + q);
+      const c_coef = p * q;
+      question = `x² + ${b_coef}x + ${c_coef} = 0 (suma de raíces)`;
+      answer = p + q;
+      break;
+      
+    default:
+      a = Math.floor(Math.random() * 20) + 1;
+      b = Math.floor(Math.random() * 20) + 1;
+      question = `${a} + ${b}`;
+      answer = a + b;
+  }
+  
+  return { q: question, a: answer };
 }
 
 function showQuestion() {
@@ -236,15 +301,27 @@ function showQuestion() {
   document.getElementById('quizGame').innerHTML = html;
 
   document.querySelectorAll('.op').forEach(btn => {
-    btn.onclick = function() {
+    btn.onclick = async function() {
       const val = parseInt(this.dataset.val);
       const feedback = document.getElementById('quizFeedback');
       if (val === correct) {
         let xpG = 10 * powerMultiplier, coinG = 2 * powerMultiplier;
         if (activePower === 'double') { xpG *= 2; coinG *= 2; activePower = null; }
         user.xp += xpG; user.coins += coinG;
+        
+        // Registrar que se completó un quiz
+        if (!user.quizCompleted) user.quizCompleted = 0;
+        user.quizCompleted++;
+        
+        // Desbloquear logro de Primer Quiz
+        if (!user.logros) user.logros = {};
+        if (user.quizCompleted === 1 && user.logros['first_quiz'] !== true) {
+          user.logros['first_quiz'] = true;
+          showQuizAchievementNotification('first_quiz');
+        }
+        
         feedback.innerHTML = `<span class="correct animated bounceIn">✅ +${xpG}⭐ +${coinG}💰</span>`;
-        saveUser();
+        await saveUser();
         document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
         document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
         setTimeout(showQuestion, 1200);
@@ -254,6 +331,35 @@ function showQuestion() {
       }
     };
   });
+
+  function showQuizAchievementNotification(achievementId) {
+    const achievementNames = {
+      'first_quiz': '🎯 Primer Quiz'
+    };
+    
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ffd700, #ff9500);
+      color: #000;
+      padding: 20px 30px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+      box-shadow: 0 10px 30px rgba(255,215,0,0.5);
+      z-index: 9999;
+      animation: slideIn 0.5s ease;
+    `;
+    notification.innerHTML = `🏆 ¡LOGRO DESBLOQUEADO!<br>${achievementNames[achievementId] || achievementId}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.5s ease';
+      setTimeout(() => notification.remove(), 500);
+    }, 3000);
+  }
 
   window.usePower = (type) => {
     if (user.powers[type] <= 0) return;

@@ -1,8 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { renderSkillsTree } from './skills.js';
-import { renderDuelsInterface } from './duels.js';
-import { ACHIEVEMENTS, getAllAchievements, getAchievementStats } from './achievements.js';
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAllAchievements, getAchievementStats } from './achievements.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -21,179 +19,87 @@ if (!currentUser) window.location.href = 'index.html';
 
 var user = null;
 var userRef = null;
-var rankingUnsub = null;
-var bgAudio = null;
 
-// Función global rnd para evitar errores
-window.rnd = function(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; };
-
-function getLevelData(xp) {
-  let lvl = 1, needed = 100, total = xp || 0;
-  while (total >= needed && lvl < 10000000) {
-    total -= needed;
-    lvl++;
-    needed += 100;
-  }
-  return { lvl, currentXP: total, nextLevelXP: needed };
-}
-
-async function saveUser() {
-  if (userRef && user) await setDoc(userRef, user);
-}
+async function saveUser() { await setDoc(userRef, user); }
 
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
   var snap = await getDoc(userRef);
-  if (!snap.exists()) { window.location.href = 'index.html'; return; }
   user = snap.data();
   
-  if (!user.skins) user.skins = ['spiderman'];
-  if (!user.skin) user.skin = 'spiderman';
-  if (!user.xp) user.xp = 0;
-  if (!user.coins) user.coins = 0;
-  if (!user.powers) user.powers = { double: 0, fifty: 0, light: 0 };
   if (!user.logros) user.logros = {};
+  if (!user.powers) user.powers = { double: 0, fifty: 0, light: 0 };
+  if (!user.coins) user.coins = 0;
+  if (!user.xp) user.xp = 0;
   if (!user.infinityStreak) user.infinityStreak = 0;
   if (!user.infinityBestStreak) user.infinityBestStreak = 0;
   
-  infinityStreak = user.infinityStreak || 0;
-
-  updateUI();
-  applyTheme(localStorage.getItem('background') || 'ciudad');
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
   initMenu();
 }
 
-function updateUI() {
-  const data = getLevelData(user.xp);
-  document.getElementById('displayUsername').textContent = currentUser;
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
-  
-  const progress = (data.currentXP / data.nextLevelXP) * 100;
-  const levelBadge = document.getElementById('levelInfo') || document.createElement('span');
-  if (!document.getElementById('levelInfo')) {
-    levelBadge.id = 'levelInfo';
-    levelBadge.className = 'xp-badge';
-    levelBadge.style.color = '#4cff90';
-    document.querySelector('.user-info').appendChild(levelBadge);
-  }
-  levelBadge.innerHTML = `📈 Nv.${data.lvl} (${Math.floor(progress)}%) - Falta: ${data.nextLevelXP - data.currentXP} XP`;
-
-  const avatarImg = getAvatarSrc(user.skin);
-  document.getElementById('avatarDisplay').innerHTML = `<img src="${avatarImg}" class="avatar-img-main"/>`;
-}
-
-function getAvatarSrc(skin) {
-  const avatars = {
-    'spiderman': 'spiderman.png', 'batman': 'batman.jpg', 'goku': 'goku.png',
-    'ironman': 'ironman.png', 'sasuke': 'sasuke.png', 'kakashi': 'kakashi.jpg',
-    'vegeta': 'vegeta.png', 'itachi': 'itachi.png', 'zoro': 'zoro.png', 'luffy': 'luffy.png'
-  };
-  return avatars[skin] || 'spiderman.png';
-}
-
-function applyTheme(theme) {
-  document.body.className = theme;
-  localStorage.setItem('background', theme);
-  if (bgAudio) { bgAudio.pause(); bgAudio = null; }
-  if (localStorage.getItem('music') !== 'off') {
-    bgAudio = new Audio(theme + '.mp3');
-    bgAudio.loop = true;
-    bgAudio.play().catch(() => console.log("Música silenciada"));
-  }
-}
-
 function initMenu() {
-  document.querySelectorAll('.menu-btn').forEach(btn => {
-    btn.onclick = function() {
-      const page = this.dataset.page;
-      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-      
-      if (page === 'game') window.location.href = 'game.html';
-      else if (page === 'infinito') { document.getElementById('infinitoSection').classList.remove('hidden'); nextProblem(); }
-      else if (page === 'avatar') { document.getElementById('avatarSection').classList.remove('hidden'); showAvatarEditor(); }
-      else if (page === 'skills') { document.getElementById('skillsSection').classList.remove('hidden'); renderSkillsTree(user, userRef, saveUser); }
-      else if (page === 'duels') { document.getElementById('duelsSection').classList.remove('hidden'); renderDuelsInterface(db, user, currentUser, userRef, saveUser); }
-      else if (page === 'shop') { document.getElementById('shopSection').classList.remove('hidden'); renderShop(); }
-      else if (page === 'logros') { document.getElementById('logrosSection').classList.remove('hidden'); showLogros(); }
-      else if (page === 'ranking') { document.getElementById('rankingSection').classList.remove('hidden'); showRanking(); }
-      else if (page === 'config') document.getElementById('configSection').classList.remove('hidden');
-    };
-  });
-
-  document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('currentUser'); window.location.href = 'index.html'; };
-  document.getElementById('backgroundSelect').onchange = (e) => applyTheme(e.target.value);
-  document.getElementById('musicToggle').onchange = (e) => {
-    localStorage.setItem('music', e.target.checked ? 'on' : 'off');
-    if (!e.target.checked && bgAudio) bgAudio.pause();
-    else if (e.target.checked) applyTheme(localStorage.getItem('background') || 'ciudad');
+  document.getElementById('jugarBtn').onclick = showJugar;
+  document.getElementById('logroBtn').onclick = showLogros;
+  document.getElementById('habilidadesBtn').onclick = () => {
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('skillsSection').classList.remove('hidden');
+    import('./skills.js').then(m => m.showSkills());
   };
-
-  document.getElementById('infinitySolveBtn').onclick = checkInfinity;
+  document.getElementById('backBtn').onclick = () => {
+    document.getElementById('gameSection').classList.add('hidden');
+    document.getElementById('menu').classList.remove('hidden');
+  };
+  document.getElementById('backBtn2').onclick = () => {
+    document.getElementById('skillsSection').classList.add('hidden');
+    document.getElementById('menu').classList.remove('hidden');
+  };
+  document.getElementById('backBtn3').onclick = () => {
+    document.getElementById('logrosList').innerHTML = '';
+    document.getElementById('logrosSection').classList.add('hidden');
+    document.getElementById('menu').classList.remove('hidden');
+  };
+  nextProblem();
 }
 
-// --- TIENDA ---
-function renderShop() {
-  const shopGrid = document.getElementById('shopGrid');
-  const powers = [
-    { id: 'double', name: 'Doble o Nada', price: 150, icon: '💰', desc: 'Doble XP y Monedas' },
-    { id: 'fifty', name: '50/50', price: 100, icon: '🌓', desc: 'Quita 2 opciones' },
-    { id: 'light', name: 'Al Sonido de la Luz', price: 100, icon: '⚡', desc: 'x1.5 XP durante 10s' }
-  ];
-
-  let html = '<div class="clash-grid">';
-  powers.forEach(p => {
-    html += `<div class="clash-item">
-      <div class="clash-avatar">${p.icon}</div>
-      <div class="clash-info"><div class="clash-name">${p.name}</div><div class="clash-xp">${p.desc}</div><div class="price">💰 ${p.price}</div></div>
-      <button class="clash-challenge-btn" onclick="window.buyPower('${p.id}', ${p.price})">COMPRAR (${user.powers[p.id] || 0})</button>
-    </div>`;
-  });
-  html += '</div>';
-  shopGrid.innerHTML = html;
-
-  window.buyPower = async (id, price) => {
-    if (user.coins >= price) {
-      user.coins -= price;
-      user.powers[id] = (user.powers[id] || 0) + 1;
-      await saveUser(); updateUI(); renderShop();
-    } else alert('❌ Monedas insuficientes');
-  };
+function showJugar() {
+  document.getElementById('menu').classList.add('hidden');
+  document.getElementById('gameSection').classList.remove('hidden');
 }
 
-function showAvatarEditor() {
-  const editor = document.getElementById('avatarEditor');
-  const skins = [
-    { id: 'spiderman', name: 'Spider-Man', price: 0 }, { id: 'batman', name: 'Batman', price: 500 },
-    { id: 'goku', name: 'Goku', price: 1200 }, { id: 'ironman', name: 'Iron Man', price: 800 },
-    { id: 'sasuke', name: 'Sasuke', price: 700 }, { id: 'kakashi', name: 'Kakashi', price: 650 },
-    { id: 'vegeta', name: 'Vegeta', price: 1100 }, { id: 'itachi', name: 'Itachi', price: 1500 },
-    { id: 'zoro', name: 'Zoro', price: 600 }, { id: 'luffy', name: 'Luffy', price: 900 }
-  ];
-
-  let html = '<div class="skins-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">';
-  skins.forEach(s => {
-    const owned = user.skins.includes(s.id);
-    html += `<div class="skin-item ${owned ? 'active' : ''}" style="text-align:center; padding:10px; border:1px solid rgba(76,144,255,0.2); border-radius:10px;">
-      <img src="${getAvatarSrc(s.id)}" class="skin-img" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
-      <div class="skin-name" style="font-weight:bold; margin:5px 0;">${s.name}</div>
-      <button class="clash-challenge-btn" style="width:100%; font-size:12px;" onclick="window.buySkin('${s.id}', ${s.price})">${owned ? 'EQUIPAR' : '💰 ' + s.price}</button>
-    </div>`;
-  });
-  html += '</div>';
-  editor.innerHTML = html;
-
-  window.buySkin = async (id, price) => {
-    if (user.skins.includes(id)) { user.skin = id; await saveUser(); updateUI(); showAvatarEditor(); }
-    else if (user.coins >= price) { user.coins -= price; user.skins.push(id); user.skin = id; await saveUser(); updateUI(); showAvatarEditor(); }
-    else alert('❌ Monedas insuficientes');
-  };
+function showLogros() {
+  document.getElementById('menu').classList.add('hidden');
+  document.getElementById('logrosSection').classList.remove('hidden');
+  showLogros();
 }
+
+function showPowers() {
+  let html = `
+    <div class="powers-section">
+      <h3>Poderes Disponibles</h3>
+      <button class="power-btn" onclick="buyPower('double', 50)">💰 Doble XP - 50 monedas (${user.powers.double || 0})</button>
+      <button class="power-btn" onclick="buyPower('fifty', 40)">🌓 50/50 - 40 monedas (${user.powers.fifty || 0})</button>
+      <button class="power-btn" onclick="buyPower('light', 60)">⚡ Luz - 60 monedas (${user.powers.light || 0})</button>
+    </div>
+  `;
+  document.getElementById('powersList').innerHTML = html;
+}
+
+window.buyPower = async (type, cost) => {
+  if (user.coins >= cost) {
+    user.coins -= cost;
+    user.powers[type]++;
+    await saveUser();
+    document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+    showPowers();
+    alert('✅ Poder comprado');
+  } else alert('❌ Monedas insuficientes');
+};
 
 async function showLogros() {
   const allAchievements = getAllAchievements();
   
-  // Inicializar logros en el usuario si no existen
   if (!user.logros) user.logros = {};
   let changed = false;
   allAchievements.forEach(a => {
@@ -227,14 +133,12 @@ async function showLogros() {
     </div>
   `;
   
-  // Agrupar logros por categoría
   const categories = {};
   allAchievements.forEach(a => {
     if (!categories[a.category]) categories[a.category] = [];
     categories[a.category].push(a);
   });
   
-  // Renderizar por categoría
   for (const category in categories) {
     html += `<div class="logros-category-title">${category}</div>`;
     html += '<div class="logros-container">';
@@ -255,126 +159,65 @@ async function showLogros() {
   document.getElementById('logrosList').innerHTML = html;
 }
 
-function showRanking() {
-  const list = document.getElementById('rankingList');
-  const q = query(collection(db, 'users'), orderBy('xp', 'desc'), limit(10));
-  onSnapshot(q, (snap) => {
-    let players = [];
-    snap.forEach(d => players.push({ name: d.id, ...d.data() }));
-    let html = '<div class="podium-container">';
-    if(players[1]) html += `<div class="podium-item silver">🥈<br>${players[1].name}</div>`;
-    if(players[0]) html += `<div class="podium-item gold">🥇<br>${players[0].name}</div>`;
-    if(players[2]) html += `<div class="podium-item bronze">🥉<br>${players[2].name}</div>`;
-    html += '</div><div class="ranking-list-full">';
-    players.forEach((p, i) => {
-      html += `<div class="rank-row ${p.name===currentUser?'me':''}"><span>#${i+1} ${p.name}</span><span>⭐ ${p.xp}</span></div>`;
-    });
-    html += '</div>';
-    list.innerHTML = html;
-  });
-}
-
 var currentInfinityProblem = null;
 var infinityStreak = 0;
 var infinityDifficulty = 'facil';
 
 function generateProblem(difficulty) {
-  const operation = window.rnd(1, 4);
   let a, b, result, question;
   
   switch(difficulty) {
     case 'facil':
+      // Suma y Resta
+      const op1 = Math.random() > 0.5 ? '+' : '-';
       a = window.rnd(1, 20);
       b = window.rnd(1, 20);
-      if (operation === 1) {
+      if (op1 === '+') {
         question = `${a} + ${b}`;
         result = a + b;
-      } else if (operation === 2) {
-        question = `${a + b} - ${b}`;
-        result = a;
-      } else if (operation === 3) {
-        a = window.rnd(1, 10);
-        b = window.rnd(1, 10);
-        question = `${a} × ${b}`;
-        result = a * b;
       } else {
-        a = window.rnd(2, 12);
-        b = window.rnd(2, 12);
-        question = `${a * b} ÷ ${b}`;
+        question = `${a + b} - ${b}`;
         result = a;
       }
       break;
       
     case 'normal':
-      a = window.rnd(10, 50);
-      b = window.rnd(10, 50);
-      if (operation === 1) {
-        question = `${a} + ${b}`;
-        result = a + b;
-      } else if (operation === 2) {
-        question = `${a + b} - ${a}`;
-        result = b;
-      } else if (operation === 3) {
-        a = window.rnd(5, 20);
-        b = window.rnd(5, 20);
+      // Multiplicación y División
+      const op2 = Math.random() > 0.5 ? 'x' : 'd';
+      a = window.rnd(5, 20);
+      b = window.rnd(5, 20);
+      if (op2 === 'x') {
         question = `${a} × ${b}`;
         result = a * b;
       } else {
-        a = window.rnd(5, 20);
-        b = window.rnd(2, 10);
         question = `${a * b} ÷ ${b}`;
         result = a;
       }
       break;
       
     case 'dificil':
-      a = window.rnd(50, 200);
-      b = window.rnd(50, 200);
-      if (operation === 1) {
-        question = `${a} + ${b}`;
-        result = a + b;
-      } else if (operation === 2) {
-        question = `${a + b} - ${a}`;
-        result = b;
-      } else if (operation === 3) {
-        a = window.rnd(15, 50);
-        b = window.rnd(15, 50);
-        question = `${a} × ${b}`;
-        result = a * b;
+      // Potencia y Raíz
+      const op3 = Math.random() > 0.5 ? 'p' : 'r';
+      if (op3 === 'p') {
+        a = window.rnd(2, 10);
+        b = window.rnd(2, 4);
+        question = `${a}^${b}`;
+        result = Math.pow(a, b);
       } else {
-        a = window.rnd(10, 50);
-        b = window.rnd(2, 20);
-        question = `${a * b} ÷ ${b}`;
+        a = window.rnd(2, 10);
+        question = `√${a * a}`;
         result = a;
       }
       break;
       
-    case 'experto':
-      const opType = window.rnd(1, 3);
-      if (opType === 1) {
-        a = window.rnd(10, 30);
-        b = window.rnd(5, 15);
-        const c = window.rnd(2, 10);
-        question = `(${a} + ${b}) × ${c}`;
-        result = (a + b) * c;
-      } else if (opType === 2) {
-        a = window.rnd(2, 10);
-        const exp = window.rnd(2, 4);
-        question = `${a}^${exp}`;
-        result = Math.pow(a, exp);
-      } else {
-        const base = window.rnd(4, 100);
-        const root = Math.sqrt(base);
-        if (Number.isInteger(root)) {
-          question = `√${base}`;
-          result = root;
-        } else {
-          a = window.rnd(100, 500);
-          b = window.rnd(50, 200);
-          question = `${a} + ${b}`;
-          result = a + b;
-        }
-      }
+    case 'extremo':
+      // Ecuaciones Cuadráticas
+      const p = window.rnd(1, 10);
+      const q = window.rnd(1, 10);
+      const b_coef = -(p + q);
+      const c_coef = p * q;
+      question = `x² + ${b_coef}x + ${c_coef} = 0 (suma de raíces)`;
+      result = p + q;
       break;
   }
   
@@ -382,7 +225,8 @@ function generateProblem(difficulty) {
 }
 
 function nextProblem() {
-  const difficulties = ['facil', 'normal', 'dificil', 'experto'];
+  // Seleccionar dificultad ALEATORIA
+  const difficulties = ['facil', 'normal', 'dificil', 'extremo'];
   infinityDifficulty = difficulties[window.rnd(0, 3)];
   
   currentInfinityProblem = generateProblem(infinityDifficulty);
@@ -391,14 +235,14 @@ function nextProblem() {
     'facil': '😊',
     'normal': '😐',
     'dificil': '😤',
-    'experto': '🔥'
+    'extremo': '🔥'
   };
   
   const difficultyLabel = {
     'facil': 'FÁCIL',
     'normal': 'NORMAL',
     'dificil': 'DIFÍCIL',
-    'experto': 'EXPERTO'
+    'extremo': 'EXPERTO'
   };
   
   document.getElementById('infinityProblemBox').innerHTML = `
@@ -414,7 +258,7 @@ function updateStreakDisplay() {
   const streakCount = document.getElementById('infinityStreakCount');
   if (infinityStreak > 0) {
     streakBox.style.display = 'block';
-    streakCount.textContent = infinityStreak;
+    streakCount.textContent = '🔥 ' + infinityStreak;
   } else {
     streakBox.style.display = 'none';
   }
@@ -437,7 +281,8 @@ async function checkInfinity() {
     // Guardar cambios en Firebase
     await saveUser(); 
     
-    updateUI(); 
+    document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+    document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
     document.getElementById('infinityEquation').value = ''; 
     nextProblem();
   } else {
