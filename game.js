@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { solveEquation, formatSolution } from './equation-solver.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -53,17 +54,27 @@ function initGame() {
     document.getElementById('quizGame').classList.remove('hidden');
     showQuestion();
   };
-  document.getElementById('solveBtn').onclick = solveEquation;
+  document.getElementById('solveBtn').onclick = solveEquationHandler;
 }
 
-function solveEquation() {
+function solveEquationHandler() {
   const input = document.getElementById('eqInput').value;
   const resultDiv = document.getElementById('calcResult');
   if (!input.trim()) {
     resultDiv.innerHTML = '<p style="color:#ff4d6d;">⚠️ Por favor ingresa una ecuación</p>';
     return;
   }
-  resultDiv.innerHTML = `<p style="font-size:16px; color:#4cff90;">✅ Ecuación: <b>${input}</b></p><p style="font-size:18px; color:#fff; margin-top:10px;">Soluciones: <b style="color:#ffd700;">x₁ = 2, x₂ = 1</b></p>`;
+  
+  const result = solveEquation(input);
+  const formattedResult = formatSolution(result);
+  
+  resultDiv.innerHTML = `
+    <div style="margin-bottom: 20px;">
+      <p style="font-size:16px; color:#4cff90; margin: 0 0 15px 0;">✅ Ecuación ingresada: <b>${input}</b></p>
+      ${formattedResult}
+    </div>
+  `;
+  
   drawChart();
 }
 

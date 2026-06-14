@@ -300,6 +300,10 @@ async function checkInfinity() {
     user.coins += 2;
     user.infinityStreak = infinityStreak;
     user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityStreak);
+    
+    // Verificar y desbloquear logros de racha automáticamente
+    checkStreakAchievements();
+    
     document.getElementById('infinityResult').innerHTML = '<span class="correct animated bounceIn">✅ +5 XP +2 💰 🔥 Racha: ' + infinityStreak + '</span>';
     await saveUser(); 
     updateUI(); 
@@ -312,6 +316,64 @@ async function checkInfinity() {
     await saveUser();
     updateStreakDisplay();
   }
+}
+
+function checkStreakAchievements() {
+  if (!user.logros) user.logros = {};
+  
+  const streakAchievements = [
+    { id: 'streak_3', value: 3 },
+    { id: 'streak_5', value: 5 },
+    { id: 'streak_10', value: 10 },
+    { id: 'streak_25', value: 25 },
+    { id: 'streak_50', value: 50 },
+    { id: 'streak_100', value: 100 },
+    { id: 'streak_250', value: 250 },
+    { id: 'streak_500', value: 500 }
+  ];
+  
+  streakAchievements.forEach(achievement => {
+    if (infinityStreak >= achievement.value && !user.logros[achievement.id]) {
+      user.logros[achievement.id] = true;
+      showAchievementNotification(achievement.id);
+    }
+  });
+}
+
+function showAchievementNotification(achievementId) {
+  const achievementNames = {
+    'streak_3': '🔥 Racha x3',
+    'streak_5': '🔥🔥 Racha x5',
+    'streak_10': '🔥🔥🔥 Racha x10',
+    'streak_25': '🌪️ Racha x25',
+    'streak_50': '⚡ Racha x50',
+    'streak_100': '💥 Racha x100',
+    'streak_250': '🌟 Racha x250',
+    'streak_500': '👑 Racha x500'
+  };
+  
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ffd700, #ff9500);
+    color: #000;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif;
+    box-shadow: 0 10px 30px rgba(255,215,0,0.5);
+    z-index: 9999;
+    animation: slideIn 0.5s ease;
+  `;
+  notification.innerHTML = `🏆 ¡LOGRO DESBLOQUEADO!<br>${achievementNames[achievementId] || achievementId}`;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.5s ease';
+    setTimeout(() => notification.remove(), 500);
+  }, 3000);
 }
 
 loadUser();
