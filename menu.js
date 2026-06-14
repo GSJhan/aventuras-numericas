@@ -276,13 +276,134 @@ function showRanking() {
 
 var currentInfinityProblem = null;
 var infinityStreak = 0;
+var infinityDifficulty = 'facil';
+
+function generateProblem(difficulty) {
+  const operation = window.rnd(1, 4);
+  let a, b, result, question;
+  
+  switch(difficulty) {
+    case 'facil':
+      a = window.rnd(1, 20);
+      b = window.rnd(1, 20);
+      if (operation === 1) {
+        question = `${a} + ${b}`;
+        result = a + b;
+      } else if (operation === 2) {
+        question = `${a + b} - ${b}`;
+        result = a;
+      } else if (operation === 3) {
+        a = window.rnd(1, 10);
+        b = window.rnd(1, 10);
+        question = `${a} × ${b}`;
+        result = a * b;
+      } else {
+        a = window.rnd(2, 12);
+        b = window.rnd(2, 12);
+        question = `${a * b} ÷ ${b}`;
+        result = a;
+      }
+      break;
+      
+    case 'normal':
+      a = window.rnd(10, 50);
+      b = window.rnd(10, 50);
+      if (operation === 1) {
+        question = `${a} + ${b}`;
+        result = a + b;
+      } else if (operation === 2) {
+        question = `${a + b} - ${a}`;
+        result = b;
+      } else if (operation === 3) {
+        a = window.rnd(5, 20);
+        b = window.rnd(5, 20);
+        question = `${a} × ${b}`;
+        result = a * b;
+      } else {
+        a = window.rnd(5, 20);
+        b = window.rnd(2, 10);
+        question = `${a * b} ÷ ${b}`;
+        result = a;
+      }
+      break;
+      
+    case 'dificil':
+      a = window.rnd(50, 200);
+      b = window.rnd(50, 200);
+      if (operation === 1) {
+        question = `${a} + ${b}`;
+        result = a + b;
+      } else if (operation === 2) {
+        question = `${a + b} - ${a}`;
+        result = b;
+      } else if (operation === 3) {
+        a = window.rnd(15, 50);
+        b = window.rnd(15, 50);
+        question = `${a} × ${b}`;
+        result = a * b;
+      } else {
+        a = window.rnd(10, 50);
+        b = window.rnd(2, 20);
+        question = `${a * b} ÷ ${b}`;
+        result = a;
+      }
+      break;
+      
+    case 'experto':
+      const opType = window.rnd(1, 3);
+      if (opType === 1) {
+        a = window.rnd(10, 30);
+        b = window.rnd(5, 15);
+        const c = window.rnd(2, 10);
+        question = `(${a} + ${b}) × ${c}`;
+        result = (a + b) * c;
+      } else if (opType === 2) {
+        a = window.rnd(2, 10);
+        const exp = window.rnd(2, 4);
+        question = `${a}^${exp}`;
+        result = Math.pow(a, exp);
+      } else {
+        const base = window.rnd(4, 100);
+        const root = Math.sqrt(base);
+        if (Number.isInteger(root)) {
+          question = `√${base}`;
+          result = root;
+        } else {
+          a = window.rnd(100, 500);
+          b = window.rnd(50, 200);
+          question = `${a} + ${b}`;
+          result = a + b;
+        }
+      }
+      break;
+  }
+  
+  return { q: question, a: result };
+}
 
 function nextProblem() {
-  const a = window.rnd(1, 50), b = window.rnd(1, 50);
-  currentInfinityProblem = { q: `${a} + ${b}`, a: a + b };
+  const difficulties = ['facil', 'normal', 'dificil', 'experto'];
+  infinityDifficulty = difficulties[window.rnd(0, 3)];
+  
+  currentInfinityProblem = generateProblem(infinityDifficulty);
+  
+  const difficultyEmoji = {
+    'facil': '😊',
+    'normal': '😐',
+    'dificil': '😤',
+    'experto': '🔥'
+  };
+  
+  const difficultyLabel = {
+    'facil': 'FÁCIL',
+    'normal': 'NORMAL',
+    'dificil': 'DIFÍCIL',
+    'experto': 'EXPERTO'
+  };
+  
   document.getElementById('infinityProblemBox').innerHTML = `
     <div class="problem-box animated zoomIn" style="background: rgba(8,12,26,0.8); border: 2px solid #4c90ff; border-radius: 20px; padding: 40px; box-shadow: 0 0 30px rgba(76,144,255,0.2);">
-      <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">DESAFÍO INFINITO</div>
+      <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">${difficultyEmoji[infinityDifficulty]} ${difficultyLabel[infinityDifficulty]}</div>
       <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">${currentInfinityProblem.q} = ?</div>
     </div>`;
   updateStreakDisplay();

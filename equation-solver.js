@@ -190,7 +190,6 @@ function tryAspaSolution(a, b, c) {
 }
 
 function createAspaDiagram(a, b, c, p1, p2, f1c, f2c) {
-  // Crear un diagrama visual del aspa simple
   const diagram = `
     <div style="background: rgba(76,144,255,0.1); border: 2px solid rgba(76,144,255,0.3); border-radius: 8px; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px; color: #e8eaff;">
       <div style="text-align: center; margin-bottom: 10px;"><strong>ASPA SIMPLE</strong></div>
@@ -208,9 +207,15 @@ function createAspaDiagram(a, b, c, p1, p2, f1c, f2c) {
         <div>↙ ↖</div>
         <div style="margin-top: 5px;"><strong style="color: #4cff90;">${p1}x</strong> + <strong style="color: #4cff90;">${p2}x</strong> = <strong style="color: #ffd700;">${p1 + p2}x</strong> ✓</div>
       </div>
+      <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(76,144,255,0.3);">
+        <strong style="color: #4cff90;">IGUALACIÓN A CERO:</strong>
+        <div style="margin-top: 8px;">
+          <div style="color: #fff;">x + (${f1c}) = 0 → <strong style="color: #4cff90;">x<sub style="font-size: 10px;">1</sub> = ${-f1c}</strong></div>
+          <div style="color: #fff; margin-top: 5px;">x + (${f2c}) = 0 → <strong style="color: #4cff90;">x<sub style="font-size: 10px;">2</sub> = ${-f2c}</strong></div>
+        </div>
+      </div>
     </div>
   `;
-  
   return diagram;
 }
 
@@ -258,7 +263,7 @@ export function formatSolution(result) {
     html += `<div style="margin-top: 15px; padding: 15px; background: rgba(76,255,144,0.1); border-left: 4px solid #4cff90; border-radius: 4px;">`;
     html += `<strong style="color: #4cff90;">✓ SOLUCIONES FINALES:</strong><br>`;
     result.solutions.forEach((sol, idx) => {
-      html += `x${result.solutions.length > 1 ? (idx + 1) : ''} = <strong style="color: #ffd700;">${sol.toFixed(4)}</strong><br>`;
+      html += `x<sub style="font-size: 10px;">${idx + 1}</sub> = <strong style="color: #ffd700;">${sol.toFixed(4)}</strong><br>`;
     });
     html += `</div>`;
   }
