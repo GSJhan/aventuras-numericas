@@ -187,7 +187,9 @@ function tryAspaSolution(a, b, c) {
           factor1,
           factor2,
           x1,
-          x2
+          x2,
+          factor1Const,
+          factor2Const
         };
       }
     }
