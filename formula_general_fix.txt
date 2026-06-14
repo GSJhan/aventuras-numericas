@@ -1,0 +1,14 @@
+  // Si no se puede factorizar, usar Fórmula General
+  steps.push(`<strong style="color: #ffd700;">No se puede factorizar fácilmente. Usando Fórmula General...</strong>`);
+  steps.push(`<br><strong style="color: #4cff90;">MÉTODO: FÓRMULA GENERAL</strong>`);
+  steps.push(`<strong>Fórmula:</strong> x = (-b ± √(b² - 4ac)) / 2a`);
+  steps.push(`<br><strong>Paso 1 - Identificar coeficientes:</strong>`);
+  steps.push(`a = ${a}, b = ${b}, c = ${c}`);
+  steps.push(`<br><strong>Paso 2 - Calcular el discriminante (Δ = b² - 4ac):</strong>`);
+  steps.push(`Δ = (${b})² - 4(${a})(${c})`);
+  steps.push(`Δ = ${b * b} - ${4 * a * c}`);
+  steps.push(`Δ = ${discriminant}`);
+  steps.push(`<br><strong>Paso 3 - Calcular √Δ:</strong>`);
+  steps.push(`√${discriminant} = ${Math.sqrt(discriminant).toFixed(4)}`);
+  steps.push(`<br><strong>Paso 4 - Aplicar la fórmula:</strong>`);
+  steps.push(`x = (-${b} ± ${Math.sqrt(discriminant).toFixed(4)}) / ${2 * a}`);

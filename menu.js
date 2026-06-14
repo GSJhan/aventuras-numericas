@@ -73,12 +73,6 @@ function showJugar() {
   document.getElementById('gameSection').classList.remove('hidden');
 }
 
-function showLogros() {
-  document.getElementById('menu').classList.add('hidden');
-  document.getElementById('logrosSection').classList.remove('hidden');
-  showLogros();
-}
-
 function showPowers() {
   let html = `
     <div class="powers-section">
