@@ -42,7 +42,7 @@ async function loadUser() {
   if (!user.skins) user.skins = ['spiderman'];
   if (!user.skin) user.skin = 'spiderman';
   if (!user.misionesCompletas) user.misionesCompletas = 0;
-  if (user.infinityStreak === undefined) user.infinityStreak = 0;
+  if (user.infinityBestStreak === undefined) user.infinityBestStreak = 0;
   initMenu();
 }
 
@@ -124,6 +124,16 @@ function initMenu() {
         window.location.href = 'game.html';
       } else if (page === 'infinito') {
         document.getElementById('infinitoSection').classList.remove('hidden');
+        
+        // Mostrar racha actual inmediatamente al entrar
+        var streakBox = document.getElementById('infinityStreakBox');
+        if (user.infinityBestStreak > 0) {
+          streakBox.style.display = 'block';
+          document.getElementById('infinityStreakCount').textContent = user.infinityBestStreak;
+        } else {
+          streakBox.style.display = 'none';
+        }
+
         if (!currentInfinityProblem) nextProblem();
       } else if (page === 'avatar') {
         document.getElementById('avatarSection').classList.remove('hidden');
@@ -370,9 +380,9 @@ function initMenu() {
     
     // Actualizar visualización de racha (Persistente desde Firebase)
     var streakBox = document.getElementById('infinityStreakBox');
-    if (user.infinityStreak > 0) {
+    if (user.infinityBestStreak > 0) {
       streakBox.style.display = 'block';
-      document.getElementById('infinityStreakCount').textContent = user.infinityStreak;
+      document.getElementById('infinityStreakCount').textContent = user.infinityBestStreak;
     } else {
       streakBox.style.display = 'none';
     }
@@ -386,7 +396,7 @@ function initMenu() {
     if (!currentInfinityProblem) return;
     if (Number(input) === currentInfinityProblem.a) {
       infinityCount++;
-      user.infinityStreak = (user.infinityStreak || 0) + 1;
+      user.infinityBestStreak = (user.infinityBestStreak || 0) + 1;
       user.coins += 2;
       user.xp += 5;
       user.misionesCompletas = (user.misionesCompletas || 0) + 1;
@@ -397,9 +407,9 @@ function initMenu() {
       if (user.misionesCompletas >= 50) user.logros.mision50 = true;
       
       // Lógica de logros de rachas (Modo Infinito)
-      if (user.infinityStreak >= 5)  user.logros.rach5  = true;
-      if (user.infinityStreak >= 10) user.logros.rach10 = true;
-      if (user.infinityStreak >= 20) user.logros.rach20 = true;
+      if (user.infinityBestStreak >= 5)  user.logros.rach5  = true;
+      if (user.infinityBestStreak >= 10) user.logros.rach10 = true;
+      if (user.infinityBestStreak >= 20) user.logros.rach20 = true;
 
       user.totalMonedas = (user.totalMonedas || 0) + 2;
       if (user.totalMonedas >= 500)  user.logros.millonario  = true;
@@ -411,7 +421,7 @@ function initMenu() {
       document.getElementById('infinityResult').innerHTML = '<span class="correct">✅ ¡Correcto! +2💰 +5⭐</span>';
       setTimeout(nextProblem, 1000);
     } else {
-      user.infinityStreak = 0;
+      user.infinityBestStreak = 0;
       saveUser(); // Guardar reinicio de racha en Firebase
       document.getElementById('infinityResult').innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + currentInfinityProblem.a + '</strong></span>';
       
