@@ -150,6 +150,18 @@ color: transparent;
 }
 .menu-btn:hover { border-color: var(--accent); background: rgba(76,144,255,0.14); transform: translateY(-4px); }
 .menu-btn .icon { font-size: 28px; }
+.avatar-img-main { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid #4c90ff; box-shadow: 0 0 22px rgba(76,144,255,0.55); }
+.skin-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; }
+.podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 15px; margin-bottom: 30px; }
+.podium-item { width: 80px; text-align: center; padding: 10px; border-radius: 10px 10px 0 0; font-weight: bold; font-family: 'Orbitron', sans-serif; }
+.gold { height: 120px; background: linear-gradient(to top, #ffd700, transparent); border: 2px solid #ffd700; }
+.silver { height: 90px; background: linear-gradient(to top, #c0c0c0, transparent); border: 2px solid #c0c0c0; }
+.bronze { height: 70px; background: linear-gradient(to top, #cd7f32, transparent); border: 2px solid #cd7f32; }
+.rank-row { display: flex; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 8px; }
+.rank-row.me { border: 1px solid #4cff90; background: rgba(76,255,144,0.1); }
+.powers-row .p-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid #4c90ff; background: rgba(76,144,255,0.1); color: #fff; cursor: pointer; }
+.powers-row .p-btn.active { background: #4c90ff; box-shadow: 0 0 10px #4c90ff; }
+
 
 .section {
   background: var(--card); backdrop-filter: blur(14px);
