@@ -33,7 +33,18 @@ async function loadUser() {
   var snap = await getDoc(userRef);
   if (!snap.exists()) { window.location.href = 'index.html'; return; }
   user = snap.data();
-  if (!user.logros) user.logros = { mision3:false, rach5:false, nivel10:false, experto1:false, comprador:false };
+  if (!user.logros) user.logros = {};
+  const defaultLogros = { 
+    mision3:false, mision10:false, mision50:false,
+    rach5:false, rach10:false, rach20:false, 
+    nivel5:false, nivel10:false, nivel20:false, nivel50:false,
+    experto1:false, experto10:false,
+    comprador:false, coleccionista:false,
+    millonario:false, monedas1000:false
+  };
+  for (let key in defaultLogros) {
+    if (user.logros[key] === undefined) user.logros[key] = defaultLogros[key];
+  }
   if (!user.xp) user.xp = 0;
   if (!user.coins) user.coins = 0;
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
@@ -528,6 +539,8 @@ function showQuestion() {
         var coinR={facil:2,normal:5,dificil:10,experto:20};
         user.xp+=xpR[difficulty]; user.coins+=coinR[difficulty];
         if (streak>=5) user.logros.rach5=true;
+        if (streak>=10) user.logros.rach10=true;
+        if (streak>=20) user.logros.rach20=true;
         if (calcLevel()>=10) user.logros.nivel10=true;
         if (difficulty==='experto') user.logros.experto1=true;
         saveUser();

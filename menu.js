@@ -24,7 +24,19 @@ async function loadUser() {
   var snap = await getDoc(userRef);
   if (!snap.exists()) { window.location.href = 'index.html'; return; }
   user = snap.data();
-  if (!user.logros) user.logros = { mision3:false, rach5:false, nivel10:false, experto1:false, comprador:false };
+  if (!user.logros) user.logros = {};
+  // Asegurar que existan las claves de los logros principales si no están
+  const defaultLogros = { 
+    mision3:false, mision10:false, mision50:false,
+    rach5:false, rach10:false, rach20:false, 
+    nivel5:false, nivel10:false, nivel20:false, nivel50:false,
+    experto1:false, experto10:false,
+    comprador:false, coleccionista:false,
+    millonario:false, monedas1000:false
+  };
+  for (let key in defaultLogros) {
+    if (user.logros[key] === undefined) user.logros[key] = defaultLogros[key];
+  }
   if (!user.xp) user.xp = 0;
   if (!user.coins) user.coins = 0;
   if (!user.skins) user.skins = ['spiderman'];
@@ -331,6 +343,7 @@ function initMenu() {
   var infinityLevel = 0;
   var currentInfinityProblem = null;
   var infinityCount = 0;
+  var infinityStreak = 0;
 
   function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -354,6 +367,16 @@ function initMenu() {
     document.getElementById('infinityProblemBox').innerHTML =
       '<div class="prob-level">Problema #' + currentInfinityProblem.level + '</div>' +
       '<div class="prob-question">' + currentInfinityProblem.q + ' = ?</div>';
+    
+    // Actualizar visualización de racha
+    var streakBox = document.getElementById('infinityStreakBox');
+    if (infinityStreak > 0) {
+      streakBox.style.display = 'block';
+      document.getElementById('infinityStreakCount').textContent = infinityStreak;
+    } else {
+      streakBox.style.display = 'none';
+    }
+
     document.getElementById('infinityEquation').value = '';
     document.getElementById('infinityResult').innerHTML = '';
   }
@@ -363,22 +386,36 @@ function initMenu() {
     if (!currentInfinityProblem) return;
     if (Number(input) === currentInfinityProblem.a) {
       infinityCount++;
+      infinityStreak++;
       user.coins += 2;
       user.xp += 5;
       user.misionesCompletas = (user.misionesCompletas || 0) + 1;
+      
+      // Lógica de logros de misiones
       if (user.misionesCompletas >= 3)  user.logros.mision3  = true;
       if (user.misionesCompletas >= 10) user.logros.mision10 = true;
       if (user.misionesCompletas >= 50) user.logros.mision50 = true;
+      
+      // Lógica de logros de rachas (Modo Infinito)
+      if (infinityStreak >= 5)  user.logros.rach5  = true;
+      if (infinityStreak >= 10) user.logros.rach10 = true;
+      if (infinityStreak >= 20) user.logros.rach20 = true;
+
       user.totalMonedas = (user.totalMonedas || 0) + 2;
       if (user.totalMonedas >= 500)  user.logros.millonario  = true;
       if (user.totalMonedas >= 1000) user.logros.monedas1000 = true;
+      
       saveUser();
       document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
       document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
       document.getElementById('infinityResult').innerHTML = '<span class="correct">✅ ¡Correcto! +2💰 +5⭐</span>';
       setTimeout(nextProblem, 1000);
     } else {
+      infinityStreak = 0;
       document.getElementById('infinityResult').innerHTML = '<span class="wrong">❌ Incorrecto. Era: <strong>' + currentInfinityProblem.a + '</strong></span>';
+      
+      // Ocultar racha al fallar
+      document.getElementById('infinityStreakBox').style.display = 'none';
     }
   };
 }
