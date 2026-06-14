@@ -167,18 +167,18 @@ async function showLogros() {
   });
   
   for (const category in categories) {
-    html += \`<div class="logros-category-title">\${category}</div>\`;
+    html += `<div class="logros-category-title">${category}</div>`;
     html += '<div class="logros-container">';
     categories[category].forEach(a => {
       const achieved = user.logros[a.id];
-      html += \`
-        <div class="logro-card \${achieved ? 'achieved' : 'locked'} animated fadeIn" title="\${a.desc}">
-          <span class="logro-icon">\${a.icon}</span>
-          <div class="logro-title">\${a.title}</div>
-          <div class="logro-desc">\${a.desc}</div>
-          <div class="logro-status">\${achieved ? '✅ Desbloqueado' : '🔒 Bloqueado'}</div>
+      html += `
+        <div class="logro-card ${achieved ? 'achieved' : 'locked'} animated fadeIn" title="${a.desc}">
+          <span class="logro-icon">${a.icon}</span>
+          <div class="logro-title">${a.title}</div>
+          <div class="logro-desc">${a.desc}</div>
+          <div class="logro-status">${achieved ? '✅ Desbloqueado' : '🔒 Bloqueado'}</div>
         </div>
-      \`;
+      `;
     });
     html += '</div>';
   }
@@ -202,10 +202,10 @@ function generateProblem(difficulty) {
       a = window.rnd(1, 20);
       b = window.rnd(1, 20);
       if (op1 === '+') {
-        question = \`\${a} + \${b}\`;
+        question = `${a} + ${b}`;
         result = a + b;
       } else {
-        question = \`\${a + b} - \${b}\`;
+        question = `${a + b} - ${b}`;
         result = a;
       }
       break;
@@ -214,10 +214,10 @@ function generateProblem(difficulty) {
       a = window.rnd(5, 20);
       b = window.rnd(5, 20);
       if (op2 === 'x') {
-        question = \`\${a} × \${b}\`;
+        question = `${a} × ${b}`;
         result = a * b;
       } else {
-        question = \`\${a * b} ÷ \${b}\`;
+        question = `${a * b} ÷ ${b}`;
         result = a;
       }
       break;
@@ -226,11 +226,11 @@ function generateProblem(difficulty) {
       if (op3 === 'p') {
         a = window.rnd(2, 10);
         b = window.rnd(2, 4);
-        question = \`\${a}^\${b}\`;
+        question = `${a}^${b}`;
         result = Math.pow(a, b);
       } else {
         a = window.rnd(2, 10);
-        question = \`√\${a * a}\`;
+        question = `√${a * a}`;
         result = a;
       }
       break;
@@ -239,7 +239,7 @@ function generateProblem(difficulty) {
       const q = window.rnd(1, 10);
       const b_coef = -(p + q);
       const c_coef = p * q;
-      question = \`x² + \${b_coef}x + \${c_coef} = 0 (suma de raíces)\`;
+      question = `x² + ${b_coef}x + ${c_coef} = 0 (suma de raíces)`;
       result = p + q;
       break;
   }
@@ -256,11 +256,11 @@ function nextProblem() {
   
   const probBox = document.getElementById('infinityProblemBox');
   if (probBox) {
-    probBox.innerHTML = \`
+    probBox.innerHTML = `
       <div class="problem-box animated zoomIn" style="background: rgba(8,12,26,0.8); border: 2px solid #4c90ff; border-radius: 20px; padding: 40px; box-shadow: 0 0 30px rgba(76,144,255,0.2);">
-        <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">\${difficultyEmoji[infinityDifficulty]} \${difficultyLabel[infinityDifficulty]}</div>
-        <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">\${currentInfinityProblem.q} = ?</div>
-      </div>\`;
+        <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">${difficultyEmoji[infinityDifficulty]} ${difficultyLabel[infinityDifficulty]}</div>
+        <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">${currentInfinityProblem.q} = ?</div>
+      </div>`;
   }
   updateStreakDisplay();
 }
