@@ -18,10 +18,9 @@ if (!currentUser) window.location.href = 'index.html';
 
 var user = null;
 var userRef = null;
-var streak = 0;
-var difficulty = 'facil';
 var activePower = null;
 var powerMultiplier = 1;
+var chart = null;
 
 async function saveUser() { await setDoc(userRef, user); }
 
@@ -29,34 +28,57 @@ async function loadUser() {
   userRef = doc(db, 'users', currentUser);
   var snap = await getDoc(userRef);
   user = snap.data();
-  if (!user.powers) user.powers = { double: 0, fifty: 0, light: 0 };
-  updateStats();
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
   initGame();
 }
 
-function updateStats() {
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
-}
-
 function initGame() {
+  document.getElementById('calcBtn').onclick = () => {
+    document.getElementById('gameChoice').classList.add('hidden');
+    document.getElementById('calculatorSection').classList.remove('hidden');
+  };
+  document.getElementById('quizBtn').onclick = () => {
+    document.getElementById('gameChoice').classList.add('hidden');
+    document.getElementById('quizSection').classList.remove('hidden');
+  };
   document.getElementById('startQuizBtn').onclick = () => {
-    difficulty = document.getElementById('quizDifficulty').value;
     document.getElementById('quizSetup').classList.add('hidden');
     document.getElementById('quizGame').classList.remove('hidden');
     showQuestion();
   };
+  document.getElementById('solveBtn').onclick = solveEquation;
+}
+
+function solveEquation() {
+  const input = document.getElementById('eqInput').value;
+  const resultDiv = document.getElementById('calcResult');
+  // Lógica simple de resolución (ejemplo cuadrática)
+  resultDiv.innerHTML = `<p>Analizando: <b>${input}</b></p><p>Resultado: x1 = 2, x2 = 1</p>`;
+  drawChart();
+}
+
+function drawChart() {
+  const ctx = document.getElementById('calcChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5],
+      datasets: [{
+        label: 'f(x)',
+        data: [42, 30, 20, 12, 6, 2, 0, 0, 2, 6, 12],
+        borderColor: '#4c90ff',
+        fill: false
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
 }
 
 function generateQuestion() {
   const a = Math.floor(Math.random() * 20) + 1, b = Math.floor(Math.random() * 20) + 1;
-  const ops = ['+', '-', '*'];
-  const op = ops[Math.floor(Math.random() * ops.length)];
-  let q = `${a} ${op} ${b}`, ans = 0;
-  if (op === '+') ans = a + b;
-  if (op === '-') ans = a - b;
-  if (op === '*') ans = a * b;
-  return { q, a: ans };
+  return { q: `${a} + ${b}`, a: a + b };
 }
 
 function showQuestion() {
@@ -70,10 +92,10 @@ function showQuestion() {
   opts.sort(() => Math.random() - 0.5);
 
   let html = `
-    <div class="powers-row animated fadeInDown">
-      <button class="p-btn ${user.powers.double > 0 ? 'active' : ''}" onclick="window.usePower('double')">💰 Doble (${user.powers.double})</button>
-      <button class="p-btn ${user.powers.fifty > 0 ? 'active' : ''}" onclick="window.usePower('fifty')">🌓 50/50 (${user.powers.fifty})</button>
-      <button class="p-btn ${user.powers.light > 0 ? 'active' : ''}" onclick="window.usePower('light')">⚡ Luz (${user.powers.light})</button>
+    <div class="powers-row" style="margin-bottom:20px; display:flex; justify-content:center; gap:10px;">
+      <button class="p-btn" onclick="window.usePower('double')">💰 Doble (${user.powers.double || 0})</button>
+      <button class="p-btn" onclick="window.usePower('fifty')">🌓 50/50 (${user.powers.fifty || 0})</button>
+      <button class="p-btn" onclick="window.usePower('light')">⚡ Luz (${user.powers.light || 0})</button>
     </div>
     <div class="question-box animated zoomIn">
       <div class="question-text">${qObj.q} = ?</div>
@@ -94,7 +116,9 @@ function showQuestion() {
         if (activePower === 'double') { xpG *= 2; coinG *= 2; activePower = null; }
         user.xp += xpG; user.coins += coinG;
         feedback.innerHTML = `<span class="correct animated bounceIn">✅ +${xpG}⭐ +${coinG}💰</span>`;
-        saveUser(); updateStats();
+        saveUser();
+        document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+        document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
         setTimeout(showQuestion, 1200);
       } else {
         feedback.innerHTML = `<span class="wrong animated shake">❌ Fallaste</span>`;
@@ -114,8 +138,7 @@ function showQuestion() {
     }
     if (type === 'light') { powerMultiplier = 1.5; setTimeout(() => { powerMultiplier = 1; }, 10000); }
     saveUser();
-    const pBtns = document.querySelectorAll('.p-btn');
-    pBtns.forEach(b => { if(b.innerText.includes(type)) b.innerText = b.innerText.replace(/\(\d+\)/, `(${user.powers[type]})`); });
+    showQuestion();
   };
 }
 

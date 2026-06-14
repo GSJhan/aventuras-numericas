@@ -23,7 +23,9 @@ var userRef = null;
 var rankingUnsub = null;
 var bgAudio = null;
 
-// --- SISTEMA DE NIVELES (Hasta 10,000,000) ---
+// Función global rnd para evitar errores
+window.rnd = function(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; };
+
 function getLevelData(xp) {
   let lvl = 1, needed = 100, total = xp || 0;
   while (total >= needed && lvl < 10000000) {
@@ -44,7 +46,6 @@ async function loadUser() {
   if (!snap.exists()) { window.location.href = 'index.html'; return; }
   user = snap.data();
   
-  // Inicializar datos si no existen
   if (!user.skins) user.skins = ['spiderman'];
   if (!user.skin) user.skin = 'spiderman';
   if (!user.xp) user.xp = 0;
@@ -63,18 +64,15 @@ function updateUI() {
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
   
-  // Barra de XP y Nivel
   const progress = (data.currentXP / data.nextLevelXP) * 100;
-  const levelInfo = document.getElementById('levelInfo');
-  if (!levelInfo) {
-    const userInfo = document.querySelector('.user-info');
-    const badge = document.createElement('span');
-    badge.id = 'levelInfo';
-    badge.className = 'xp-badge';
-    badge.style.color = '#4cff90';
-    userInfo.appendChild(badge);
+  const levelBadge = document.getElementById('levelInfo') || document.createElement('span');
+  if (!document.getElementById('levelInfo')) {
+    levelBadge.id = 'levelInfo';
+    levelBadge.className = 'xp-badge';
+    levelBadge.style.color = '#4cff90';
+    document.querySelector('.user-info').appendChild(levelBadge);
   }
-  document.getElementById('levelInfo').innerHTML = `📈 Nv.${data.lvl} (${Math.floor(progress)}%) - Falta: ${data.nextLevelXP - data.currentXP} XP`;
+  levelBadge.innerHTML = `📈 Nv.${data.lvl} (${Math.floor(progress)}%) - Falta: ${data.nextLevelXP - data.currentXP} XP`;
 
   const avatarImg = getAvatarSrc(user.skin);
   document.getElementById('avatarDisplay').innerHTML = `<img src="${avatarImg}" class="avatar-img-main"/>`;
@@ -96,7 +94,7 @@ function applyTheme(theme) {
   if (localStorage.getItem('music') !== 'off') {
     bgAudio = new Audio(theme + '.mp3');
     bgAudio.loop = true;
-    bgAudio.play().catch(() => console.log("Música silenciada por el navegador"));
+    bgAudio.play().catch(() => console.log("Música silenciada"));
   }
 }
 
@@ -107,7 +105,7 @@ function initMenu() {
       document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
       
       if (page === 'game') window.location.href = 'game.html';
-      else if (page === 'infinito') { document.getElementById('infinitoSection').classList.remove('hidden'); if(!currentInfinityProblem) nextProblem(); }
+      else if (page === 'infinito') { document.getElementById('infinitoSection').classList.remove('hidden'); nextProblem(); }
       else if (page === 'avatar') { document.getElementById('avatarSection').classList.remove('hidden'); showAvatarEditor(); }
       else if (page === 'skills') { document.getElementById('skillsSection').classList.remove('hidden'); renderSkillsTree(user, userRef, saveUser); }
       else if (page === 'duels') { document.getElementById('duelsSection').classList.remove('hidden'); renderDuelsInterface(db, user, currentUser, userRef, saveUser); }
@@ -119,9 +117,7 @@ function initMenu() {
   });
 
   document.getElementById('logoutBtn').onclick = () => { localStorage.removeItem('currentUser'); window.location.href = 'index.html'; };
-  document.getElementById('backgroundSelect').value = localStorage.getItem('background') || 'ciudad';
   document.getElementById('backgroundSelect').onchange = (e) => applyTheme(e.target.value);
-  document.getElementById('musicToggle').checked = localStorage.getItem('music') !== 'off';
   document.getElementById('musicToggle').onchange = (e) => {
     localStorage.setItem('music', e.target.checked ? 'on' : 'off');
     if (!e.target.checked && bgAudio) bgAudio.pause();
@@ -142,7 +138,7 @@ function renderShop() {
 
   let html = '<div class="clash-grid">';
   powers.forEach(p => {
-    html += `<div class="clash-item animated fadeIn">
+    html += `<div class="clash-item">
       <div class="clash-avatar">${p.icon}</div>
       <div class="clash-info"><div class="clash-name">${p.name}</div><div class="clash-xp">${p.desc}</div><div class="price">💰 ${p.price}</div></div>
       <button class="clash-challenge-btn" onclick="window.buyPower('${p.id}', ${p.price})">COMPRAR (${user.powers[p.id] || 0})</button>
@@ -155,10 +151,8 @@ function renderShop() {
     if (user.coins >= price) {
       user.coins -= price;
       user.powers[id] = (user.powers[id] || 0) + 1;
-      await saveUser();
-      updateUI();
-      renderShop();
-    } else alert('❌ No tienes suficientes monedas');
+      await saveUser(); updateUI(); renderShop();
+    } else alert('❌ Monedas insuficientes');
   };
 }
 
@@ -172,13 +166,13 @@ function showAvatarEditor() {
     { id: 'zoro', name: 'Zoro', price: 600 }, { id: 'luffy', name: 'Luffy', price: 900 }
   ];
 
-  let html = '<div class="skins-grid">';
+  let html = '<div class="skins-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">';
   skins.forEach(s => {
     const owned = user.skins.includes(s.id);
-    html += `<div class="skin-item ${owned ? 'active' : ''} animated zoomIn" onclick="window.buySkin('${s.id}', ${s.price})">
-      <img src="${getAvatarSrc(s.id)}" class="skin-img">
-      <div class="skin-name">${s.name}</div>
-      <div class="${owned ? 'owned' : 'price'}">${owned ? 'EQUIPAR' : '💰 ' + s.price}</div>
+    html += `<div class="skin-item ${owned ? 'active' : ''}" style="text-align:center; padding:10px; border:1px solid rgba(76,144,255,0.2); border-radius:10px;">
+      <img src="${getAvatarSrc(s.id)}" class="skin-img" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
+      <div class="skin-name" style="font-weight:bold; margin:5px 0;">${s.name}</div>
+      <button class="clash-challenge-btn" style="width:100%; font-size:12px;" onclick="window.buySkin('${s.id}', ${s.price})">${owned ? 'EQUIPAR' : '💰 ' + s.price}</button>
     </div>`;
   });
   html += '</div>';
@@ -191,7 +185,6 @@ function showAvatarEditor() {
   };
 }
 
-// --- LOGROS ---
 function showLogros() {
   const logros = [
     { id:'mision3', icon:'🏆', title:'Novato', desc:'3 problemas resueltos' },
@@ -204,41 +197,35 @@ function showLogros() {
     const done = user.logros[l.id];
     html += `<div class="logro-item ${done?'achieved':''} animated fadeIn">
       <div class="icon">${l.icon}</div>
-      <div class="info"><h3>${l.title}</h3><p>${l.desc}</p></div>
+      <div class="info"><h3>${l.title}</h3><p>${l.desc}</p>${done?'<small>✅ Completado</small>':'<small>🔒 Bloqueado</small>'}</div>
     </div>`;
   });
   html += '</div>';
   document.getElementById('logrosList').innerHTML = html;
 }
 
-// --- RANKING ---
 function showRanking() {
   const list = document.getElementById('rankingList');
   const q = query(collection(db, 'users'), orderBy('xp', 'desc'), limit(10));
   onSnapshot(q, (snap) => {
     let players = [];
     snap.forEach(d => players.push({ name: d.id, ...d.data() }));
-    let html = '<div class="podium-container animated fadeIn">';
-    // Top 3 Visual
+    let html = '<div class="podium-container">';
     if(players[1]) html += `<div class="podium-item silver">🥈<br>${players[1].name}</div>`;
     if(players[0]) html += `<div class="podium-item gold">🥇<br>${players[0].name}</div>`;
     if(players[2]) html += `<div class="podium-item bronze">🥉<br>${players[2].name}</div>`;
     html += '</div><div class="ranking-list-full">';
     players.forEach((p, i) => {
-      html += `<div class="rank-row ${p.name===currentUser?'me':''}">
-        <span>#${i+1} ${p.name}</span>
-        <span>⭐ ${p.xp}</span>
-      </div>`;
+      html += `<div class="rank-row ${p.name===currentUser?'me':''}"><span>#${i+1} ${p.name}</span><span>⭐ ${p.xp}</span></div>`;
     });
     html += '</div>';
     list.innerHTML = html;
   });
 }
 
-// --- MODO INFINITO ---
 var currentInfinityProblem = null;
 function nextProblem() {
-  const a = rnd(1, 50), b = rnd(1, 50);
+  const a = window.rnd(1, 50), b = window.rnd(1, 50);
   currentInfinityProblem = { q: `${a} + ${b}`, a: a + b };
   document.getElementById('infinityProblemBox').innerHTML = `<div class="prob-question animated zoomIn">${currentInfinityProblem.q} = ?</div>`;
 }

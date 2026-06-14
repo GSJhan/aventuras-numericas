@@ -9,6 +9,7 @@
   <title>Aventuras Numéricas - Juego</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
@@ -19,47 +20,44 @@
         <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
       </div>
     </div>
-    <h2 style="text-align:center;margin:20px 0;font-family:'Orbitron',monospace;color:#4c90ff;">🎮 ¿Cómo quieres jugar?</h2>
-    <div class="game-options">
-      <button class="game-btn" id="calcBtn">
-        <span class="icon">🧮</span>
-        Calcular<br><small>Ecuaciones</small>
-      </button>
-      <button class="game-btn" id="quizBtn">
-        <span class="icon">❓</span>
-        Preguntas<br><small>Elige dificultad</small>
-      </button>
+    
+    <div id="gameChoice">
+      <h2 style="text-align:center;margin:20px 0;font-family:'Orbitron',monospace;color:#4c90ff;">🎮 ¿Cómo quieres jugar?</h2>
+      <div class="game-options" style="display: flex; flex-direction: column; gap: 20px;">
+        <button class="game-btn" id="calcBtn" style="padding: 50px 20px; font-size: 24px; width: 100%;">
+          <span class="icon" style="font-size: 50px;">🧮</span>
+          Resolver Ecuaciones<br><small style="font-size: 14px;">Práctica con gráficos</small>
+        </button>
+        <button class="game-btn" id="quizBtn" style="padding: 50px 20px; font-size: 24px; width: 100%;">
+          <span class="icon" style="font-size: 50px;">🎯</span>
+          Modo Quiz<br><small style="font-size: 14px;">Gana XP y monedas</small>
+        </button>
+      </div>
     </div>
+
     <div id="calculatorSection" class="section hidden">
-      <h2>🧮 Calcular Ecuaciones</h2>
-      <p style="opacity:0.7;margin-bottom:12px">Ejemplo: x^2-3x+2=0</p>
-      <input id="eqInput" placeholder="x^2-3x+2=0" />
+      <h2>🧮 Resolver Ecuaciones</h2>
+      <input id="eqInput" placeholder="Ej: x^2 - 3x + 2 = 0" />
       <button id="solveBtn" class="btn-primary">Resolver</button>
       <div id="calcResult" class="result-box"></div>
+      <canvas id="calcChart" style="margin-top:20px; background: rgba(255,255,255,0.05); border-radius: 10px;"></canvas>
     </div>
+
     <div id="quizSection" class="section hidden">
-      <h2>❓ Responder Preguntas</h2>
-      <select id="quizDifficulty">
-        <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
-        <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
-        <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
-        <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
-      </select>
-      <button id="startQuizBtn" class="btn-primary">Comenzar</button>
-      <div id="quizGame"></div>
-      <div id="quizStats" class="result-box" style="display:none"></div>
+      <div id="quizSetup">
+        <h2>❓ Responder Preguntas</h2>
+        <select id="quizDifficulty">
+          <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
+          <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
+          <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
+          <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
+        </select>
+        <button id="startQuizBtn" class="btn-primary">Comenzar</button>
+      </div>
+      <div id="quizGame" class="hidden"></div>
     </div>
   </div>
+
   <script type="module" src="game.js"></script>
-  <script>
-    // Registrar Service Worker para PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-        console.log('Service Worker registrado en juego');
-      }).catch(function(error) {
-        console.log('Error al registrar Service Worker:', error);
-      });
-    }
-  </script>
 </body>
 </html>
