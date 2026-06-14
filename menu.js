@@ -23,7 +23,6 @@ var userRef = null;
 
 async function saveUser() {
   await setDoc(userRef, user);
-  // Verificar logros automáticamente después de guardar
   await checkAllAchievements(user, userRef);
 }
 
@@ -39,38 +38,65 @@ async function loadUser() {
   if (!user.infinityStreak) user.infinityStreak = 0;
   if (!user.infinityBestStreak) user.infinityBestStreak = 0;
   
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+  const displayCoins = document.getElementById('displayCoins');
+  const displayXP = document.getElementById('displayXP');
+  
+  if (displayCoins) displayCoins.textContent = '💰 ' + user.coins;
+  if (displayXP) displayXP.textContent = '⭐ ' + user.xp + ' XP';
+  
   initMenu();
 }
 
-function initMenu() {
-  document.getElementById('jugarBtn').onclick = showJugar;
-  document.getElementById('logroBtn').onclick = showLogros;
-  document.getElementById('habilidadesBtn').onclick = () => {
-    document.getElementById('menu').classList.add('hidden');
-    document.getElementById('skillsSection').classList.remove('hidden');
-    import('./skills.js').then(m => m.showSkills());
-  };
-  document.getElementById('backBtn').onclick = () => {
-    document.getElementById('gameSection').classList.add('hidden');
-    document.getElementById('menu').classList.remove('hidden');
-  };
-  document.getElementById('backBtn2').onclick = () => {
-    document.getElementById('skillsSection').classList.add('hidden');
-    document.getElementById('menu').classList.remove('hidden');
-  };
-  document.getElementById('backBtn3').onclick = () => {
-    document.getElementById('logrosList').innerHTML = '';
-    document.getElementById('logrosSection').classList.add('hidden');
-    document.getElementById('menu').classList.remove('hidden');
-  };
-  nextProblem();
+function showSection(sectionId) {
+  const sections = ['menu', 'gameSection', 'skillsSection', 'logrosSection', 'shopSection', 'avatarSection', 'duelsSection', 'configSection', 'rankingSection', 'infinitoSection'];
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  const target = document.getElementById(sectionId);
+  if (target) target.classList.remove('hidden');
 }
 
-function showJugar() {
-  document.getElementById('menu').classList.add('hidden');
-  document.getElementById('gameSection').classList.remove('hidden');
+function initMenu() {
+  const setupBtn = (id, action) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.onclick = action;
+  };
+
+  setupBtn('jugarBtn', () => showSection('gameSection'));
+  setupBtn('logroBtn', () => {
+    showSection('logrosSection');
+    showLogros();
+  });
+  setupBtn('habilidadesBtn', () => {
+    showSection('skillsSection');
+    import('./skills.js').then(m => m.showSkills());
+  });
+  setupBtn('infinitoBtn', () => {
+    showSection('infinitoSection');
+    nextProblem();
+  });
+  setupBtn('shopBtn', () => {
+    showSection('shopSection');
+    showPowers();
+  });
+  setupBtn('configBtn', () => showSection('configSection'));
+  setupBtn('avatarBtn', () => showSection('avatarSection'));
+  setupBtn('duelsBtn', () => showSection('duelsSection'));
+  setupBtn('rankingBtn', () => showSection('rankingSection'));
+
+  const backButtons = ['backBtn', 'backBtn2', 'backBtn3', 'backBtnShop', 'backBtnAvatar', 'backBtnDuels', 'backBtnConfig', 'backBtnRanking', 'backBtnInfinito'];
+  backButtons.forEach(id => {
+    setupBtn(id, () => {
+      if (id === 'backBtn3') {
+          const list = document.getElementById('logrosList');
+          if (list) list.innerHTML = '';
+      }
+      showSection('menu');
+    });
+  });
+
+  setupBtn('infinitySolveBtn', checkInfinity);
 }
 
 function showPowers() {
@@ -82,7 +108,8 @@ function showPowers() {
       <button class="power-btn" onclick="buyPower('light', 60)">⚡ Luz - 60 monedas (${user.powers.light || 0})</button>
     </div>
   `;
-  document.getElementById('powersList').innerHTML = html;
+  const powersList = document.getElementById('shopGrid');
+  if (powersList) powersList.innerHTML = html;
 }
 
 window.buyPower = async (type, cost) => {
@@ -90,7 +117,8 @@ window.buyPower = async (type, cost) => {
     user.coins -= cost;
     user.powers[type]++;
     await saveUser();
-    document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+    const displayCoins = document.getElementById('displayCoins');
+    if (displayCoins) displayCoins.textContent = '💰 ' + user.coins;
     showPowers();
     alert('✅ Poder comprado');
   } else alert('❌ Monedas insuficientes');
@@ -139,132 +167,121 @@ async function showLogros() {
   });
   
   for (const category in categories) {
-    html += `<div class="logros-category-title">${category}</div>`;
+    html += \`<div class="logros-category-title">\${category}</div>\`;
     html += '<div class="logros-container">';
     categories[category].forEach(a => {
       const achieved = user.logros[a.id];
-      html += `
-        <div class="logro-card ${achieved ? 'achieved' : 'locked'} animated fadeIn" title="${a.desc}">
-          <span class="logro-icon">${a.icon}</span>
-          <div class="logro-title">${a.title}</div>
-          <div class="logro-desc">${a.desc}</div>
-          <div class="logro-status">${achieved ? '✅ Desbloqueado' : '🔒 Bloqueado'}</div>
+      html += \`
+        <div class="logro-card \${achieved ? 'achieved' : 'locked'} animated fadeIn" title="\${a.desc}">
+          <span class="logro-icon">\${a.icon}</span>
+          <div class="logro-title">\${a.title}</div>
+          <div class="logro-desc">\${a.desc}</div>
+          <div class="logro-status">\${achieved ? '✅ Desbloqueado' : '🔒 Bloqueado'}</div>
         </div>
-      `;
+      \`;
     });
     html += '</div>';
   }
   
-  document.getElementById('logrosList').innerHTML = html;
+  const logrosList = document.getElementById('logrosList');
+  if (logrosList) logrosList.innerHTML = html;
 }
 
 var currentInfinityProblem = null;
 var infinityStreak = 0;
 var infinityDifficulty = 'facil';
 
+window.rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 function generateProblem(difficulty) {
   let a, b, result, question;
   
   switch(difficulty) {
     case 'facil':
-      // Suma y Resta
       const op1 = Math.random() > 0.5 ? '+' : '-';
       a = window.rnd(1, 20);
       b = window.rnd(1, 20);
       if (op1 === '+') {
-        question = `${a} + ${b}`;
+        question = \`\${a} + \${b}\`;
         result = a + b;
       } else {
-        question = `${a + b} - ${b}`;
+        question = \`\${a + b} - \${b}\`;
         result = a;
       }
       break;
-      
     case 'normal':
-      // Multiplicación y División
       const op2 = Math.random() > 0.5 ? 'x' : 'd';
       a = window.rnd(5, 20);
       b = window.rnd(5, 20);
       if (op2 === 'x') {
-        question = `${a} × ${b}`;
+        question = \`\${a} × \${b}\`;
         result = a * b;
       } else {
-        question = `${a * b} ÷ ${b}`;
+        question = \`\${a * b} ÷ \${b}\`;
         result = a;
       }
       break;
-      
     case 'dificil':
-      // Potencia y Raíz
       const op3 = Math.random() > 0.5 ? 'p' : 'r';
       if (op3 === 'p') {
         a = window.rnd(2, 10);
         b = window.rnd(2, 4);
-        question = `${a}^${b}`;
+        question = \`\${a}^\${b}\`;
         result = Math.pow(a, b);
       } else {
         a = window.rnd(2, 10);
-        question = `√${a * a}`;
+        question = \`√\${a * a}\`;
         result = a;
       }
       break;
-      
     case 'extremo':
-      // Ecuaciones Cuadráticas
       const p = window.rnd(1, 10);
       const q = window.rnd(1, 10);
       const b_coef = -(p + q);
       const c_coef = p * q;
-      question = `x² + ${b_coef}x + ${c_coef} = 0 (suma de raíces)`;
+      question = \`x² + \${b_coef}x + \${c_coef} = 0 (suma de raíces)\`;
       result = p + q;
       break;
   }
-  
   return { q: question, a: result };
 }
 
 function nextProblem() {
-  // Seleccionar dificultad ALEATORIA
   const difficulties = ['facil', 'normal', 'dificil', 'extremo'];
   infinityDifficulty = difficulties[window.rnd(0, 3)];
-  
   currentInfinityProblem = generateProblem(infinityDifficulty);
   
-  const difficultyEmoji = {
-    'facil': '😊',
-    'normal': '😐',
-    'dificil': '😤',
-    'extremo': '🔥'
-  };
+  const difficultyEmoji = { 'facil': '😊', 'normal': '😐', 'dificil': '😤', 'extremo': '🔥' };
+  const difficultyLabel = { 'facil': 'FÁCIL', 'normal': 'NORMAL', 'dificil': 'DIFÍCIL', 'extremo': 'EXPERTO' };
   
-  const difficultyLabel = {
-    'facil': 'FÁCIL',
-    'normal': 'NORMAL',
-    'dificil': 'DIFÍCIL',
-    'extremo': 'EXPERTO'
-  };
-  
-  document.getElementById('infinityProblemBox').innerHTML = `
-    <div class="problem-box animated zoomIn" style="background: rgba(8,12,26,0.8); border: 2px solid #4c90ff; border-radius: 20px; padding: 40px; box-shadow: 0 0 30px rgba(76,144,255,0.2);">
-      <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">${difficultyEmoji[infinityDifficulty]} ${difficultyLabel[infinityDifficulty]}</div>
-      <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">${currentInfinityProblem.q} = ?</div>
-    </div>`;
+  const probBox = document.getElementById('infinityProblemBox');
+  if (probBox) {
+    probBox.innerHTML = \`
+      <div class="problem-box animated zoomIn" style="background: rgba(8,12,26,0.8); border: 2px solid #4c90ff; border-radius: 20px; padding: 40px; box-shadow: 0 0 30px rgba(76,144,255,0.2);">
+        <div class="prob-level" style="color: #4c90ff; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">\${difficultyEmoji[infinityDifficulty]} \${difficultyLabel[infinityDifficulty]}</div>
+        <div class="prob-question" style="font-family: 'Orbitron'; font-size: 48px; color: #fff; text-shadow: 0 0 15px rgba(76,144,255,0.5);">\${currentInfinityProblem.q} = ?</div>
+      </div>\`;
+  }
   updateStreakDisplay();
 }
 
 function updateStreakDisplay() {
   const streakBox = document.getElementById('infinityStreakBox');
   const streakCount = document.getElementById('infinityStreakCount');
-  if (infinityStreak > 0) {
-    streakBox.style.display = 'block';
-    streakCount.textContent = '🔥 ' + infinityStreak;
-  } else {
-    streakBox.style.display = 'none';
+  if (streakBox && streakCount) {
+    if (infinityStreak > 0) {
+      streakBox.style.display = 'block';
+      streakCount.textContent = '🔥 ' + infinityStreak;
+    } else {
+      streakBox.style.display = 'none';
+    }
   }
 }
 
 async function checkInfinity() {
-  const val = parseInt(document.getElementById('infinityEquation').value);
+  const input = document.getElementById('infinityEquation');
+  if (!input) return;
+  const val = parseInt(input.value);
   if (val === currentInfinityProblem.a) {
     infinityStreak++;
     user.xp += 5; 
@@ -272,7 +289,6 @@ async function checkInfinity() {
     user.infinityStreak = infinityStreak;
     user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityStreak);
     
-    // Contar problemas resueltos en infinito
     if (!user.infinityProblemsSolved) user.infinityProblemsSolved = 0;
     user.infinityProblemsSolved++;
     if (!user.infinityCoinsEarned) user.infinityCoinsEarned = 0;
@@ -280,22 +296,24 @@ async function checkInfinity() {
     if (!user.infinityXpEarned) user.infinityXpEarned = 0;
     user.infinityXpEarned += 5;
     
-    // Verificar y desbloquear logros de racha automáticamente
-    const newAchievement = checkStreakAchievements();
+    checkStreakAchievements();
     
-    document.getElementById('infinityResult').innerHTML = '<span class="correct animated bounceIn">✅ +5 XP +2 💰 🔥 Racha: ' + infinityStreak + '</span>';
+    const resultBox = document.getElementById('infinityResult');
+    if (resultBox) resultBox.innerHTML = '<span class="correct animated bounceIn">✅ +5 XP +2 💰 🔥 Racha: ' + infinityStreak + '</span>';
     
-    // Guardar cambios en Firebase
     await saveUser(); 
     
-    document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-    document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
-    document.getElementById('infinityEquation').value = ''; 
+    const displayCoins = document.getElementById('displayCoins');
+    const displayXP = document.getElementById('displayXP');
+    if (displayCoins) displayCoins.textContent = '💰 ' + user.coins;
+    if (displayXP) displayXP.textContent = '⭐ ' + user.xp + ' XP';
+    input.value = ''; 
     nextProblem();
   } else {
     infinityStreak = 0;
     user.infinityStreak = 0;
-    document.getElementById('infinityResult').innerHTML = '<span class="wrong animated shake">❌ Racha perdida</span>';
+    const resultBox = document.getElementById('infinityResult');
+    if (resultBox) resultBox.innerHTML = '<span class="wrong animated shake">❌ Racha perdida</span>';
     await saveUser();
     updateStreakDisplay();
   }
@@ -304,16 +322,10 @@ async function checkInfinity() {
 function checkStreakAchievements() {
   if (!user.logros) user.logros = {};
   let unlockedAny = false;
-  
   const streakAchievements = [
-    { id: 'streak_3', value: 3 },
-    { id: 'streak_5', value: 5 },
-    { id: 'streak_10', value: 10 },
-    { id: 'streak_25', value: 25 },
-    { id: 'streak_50', value: 50 },
-    { id: 'streak_100', value: 100 },
-    { id: 'streak_250', value: 250 },
-    { id: 'streak_500', value: 500 }
+    { id: 'streak_3', value: 3 }, { id: 'streak_5', value: 5 }, { id: 'streak_10', value: 10 },
+    { id: 'streak_25', value: 25 }, { id: 'streak_50', value: 50 }, { id: 'streak_100', value: 100 },
+    { id: 'streak_250', value: 250 }, { id: 'streak_500', value: 500 }
   ];
   
   streakAchievements.forEach(achievement => {
@@ -323,36 +335,22 @@ function checkStreakAchievements() {
       unlockedAny = true;
     }
   });
-  
   return unlockedAny;
 }
 
 function showAchievementNotification(achievementId) {
   const achievementNames = {
-    'streak_3': '🔥 Racha x3',
-    'streak_5': '🔥🔥 Racha x5',
-    'streak_10': '🔥🔥🔥 Racha x10',
-    'streak_25': '🌪️ Racha x25',
-    'streak_50': '⚡ Racha x50',
-    'streak_100': '💥 Racha x100',
-    'streak_250': '🌟 Racha x250',
-    'streak_500': '👑 Racha x500'
+    'streak_3': '🔥 Racha x3', 'streak_5': '🔥🔥 Racha x5', 'streak_10': '🔥🔥🔥 Racha x10',
+    'streak_25': '🌪️ Racha x25', 'streak_50': '⚡ Racha x50', 'streak_100': '💥 Racha x100',
+    'streak_250': '🌟 Racha x250', 'streak_500': '👑 Racha x500'
   };
   
   const notification = document.createElement('div');
   notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #ffd700, #ff9500);
-    color: #000;
-    padding: 20px 30px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-family: 'Orbitron', sans-serif;
-    box-shadow: 0 10px 30px rgba(255,215,0,0.5);
-    z-index: 9999;
-    animation: slideIn 0.5s ease;
+    position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #ffd700, #ff9500);
+    color: #000; padding: 20px 30px; border-radius: 12px; font-weight: bold;
+    font-family: 'Orbitron', sans-serif; box-shadow: 0 10px 30px rgba(255,215,0,0.5);
+    z-index: 9999; animation: slideIn 0.5s ease;
   `;
   notification.innerHTML = `🏆 ¡LOGRO DESBLOQUEADO!<br>${achievementNames[achievementId] || achievementId}`;
   document.body.appendChild(notification);
