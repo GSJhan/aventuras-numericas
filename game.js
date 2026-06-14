@@ -49,6 +49,16 @@ function initGame() {
     document.getElementById('gameChoice').classList.add('hidden');
     document.getElementById('quizSection').classList.remove('hidden');
   };
+  
+  // Manejar selección de dificultad
+  document.querySelectorAll('.difficulty-card').forEach(card => {
+    card.onclick = function() {
+      document.querySelectorAll('.difficulty-card').forEach(c => c.style.opacity = '0.6');
+      this.style.opacity = '1';
+      document.getElementById('quizDifficulty').value = this.dataset.difficulty;
+    };
+  });
+  
   document.getElementById('startQuizBtn').onclick = () => {
     document.getElementById('quizSetup').classList.add('hidden');
     document.getElementById('quizGame').classList.remove('hidden');
@@ -74,6 +84,25 @@ function solveEquationHandler() {
       ${formattedResult}
     </div>
   `;
+  
+  // Contar ecuaciones resueltas
+  if (!user.calcTotalSolved) user.calcTotalSolved = 0;
+  user.calcTotalSolved++;
+  
+  // Clasificar por tipo
+  if (input.includes('^2') || input.includes('x2')) {
+    if (!user.calcQuadraticSolved) user.calcQuadraticSolved = 0;
+    user.calcQuadraticSolved++;
+  } else if (input.includes('x') && !input.includes('^')) {
+    if (!user.calcLinearSolved) user.calcLinearSolved = 0;
+    user.calcLinearSolved++;
+  } else {
+    if (!user.calcComplexSolved) user.calcComplexSolved = 0;
+    user.calcComplexSolved++;
+  }
+  
+  // Guardar cambios
+  saveUser();
   
   drawChart();
 }
@@ -284,7 +313,22 @@ function showQuestion() {
   }
   opts.sort(() => Math.random() - 0.5);
 
+  const difficulty = document.getElementById('quizDifficulty')?.value || 'facil';
+  const difficultyEmoji = {
+    'facil': '😊',
+    'normal': '😐',
+    'dificil': '😤',
+    'extremo': '🔥'
+  };
+  const difficultyLabel = {
+    'facil': 'FÁCIL',
+    'normal': 'NORMAL',
+    'dificil': 'DIFÍCIL',
+    'extremo': 'EXPERTO'
+  };
+
   let html = `
+    <div style="text-align: center; margin-bottom: 15px; font-family: 'Orbitron'; font-size: 14px; color: #4cff90; text-transform: uppercase; letter-spacing: 2px;">Nivel: ${difficultyEmoji[difficulty]} ${difficultyLabel[difficulty]}</div>
     <div class="powers-row" style="margin-bottom:20px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
       <button class="p-btn" onclick="window.usePower('double')">💰 Doble (${user.powers.double || 0})</button>
       <button class="p-btn" onclick="window.usePower('fifty')">🌓 50/50 (${user.powers.fifty || 0})</button>
@@ -312,6 +356,26 @@ function showQuestion() {
         // Registrar que se completó un quiz
         if (!user.quizCompleted) user.quizCompleted = 0;
         user.quizCompleted++;
+        
+        // Contar preguntas respondidas
+        if (!user.quizQuestionsAnswered) user.quizQuestionsAnswered = 0;
+        user.quizQuestionsAnswered++;
+        
+        // Contar por dificultad
+        const difficulty = document.getElementById('quizDifficulty')?.value || 'facil';
+        if (difficulty === 'facil') {
+          if (!user.quizEasyCompleted) user.quizEasyCompleted = 0;
+          user.quizEasyCompleted++;
+        } else if (difficulty === 'normal') {
+          if (!user.quizNormalCompleted) user.quizNormalCompleted = 0;
+          user.quizNormalCompleted++;
+        } else if (difficulty === 'dificil') {
+          if (!user.quizHardCompleted) user.quizHardCompleted = 0;
+          user.quizHardCompleted++;
+        } else if (difficulty === 'extremo') {
+          if (!user.quizExpertCompleted) user.quizExpertCompleted = 0;
+          user.quizExpertCompleted++;
+        }
         
         // Desbloquear logro de Primer Quiz
         if (!user.logros) user.logros = {};

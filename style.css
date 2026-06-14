@@ -558,3 +558,21 @@ color: transparent;
 .shake { animation-name: shake; }
 @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(400px); opacity: 0; } }
+
+
+/* --- ANIMACIONES DUELOS --- */
+@keyframes slideInDuel {
+  from {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 20px 60px rgba(255, 77, 109, 0.3); }
+  50% { box-shadow: 0 20px 80px rgba(255, 77, 109, 0.6); }
+}

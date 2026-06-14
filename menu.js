@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAllAchievements, getAchievementStats } from './achievements.js';
+import { checkAllAchievements } from './global-achievements.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -20,7 +21,11 @@ if (!currentUser) window.location.href = 'index.html';
 var user = null;
 var userRef = null;
 
-async function saveUser() { await setDoc(userRef, user); }
+async function saveUser() {
+  await setDoc(userRef, user);
+  // Verificar logros automáticamente después de guardar
+  await checkAllAchievements(user, userRef);
+}
 
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
@@ -272,6 +277,14 @@ async function checkInfinity() {
     user.coins += 2;
     user.infinityStreak = infinityStreak;
     user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityStreak);
+    
+    // Contar problemas resueltos en infinito
+    if (!user.infinityProblemsSolved) user.infinityProblemsSolved = 0;
+    user.infinityProblemsSolved++;
+    if (!user.infinityCoinsEarned) user.infinityCoinsEarned = 0;
+    user.infinityCoinsEarned += 2;
+    if (!user.infinityXpEarned) user.infinityXpEarned = 0;
+    user.infinityXpEarned += 5;
     
     // Verificar y desbloquear logros de racha automáticamente
     const newAchievement = checkStreakAchievements();

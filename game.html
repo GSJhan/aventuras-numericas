@@ -50,13 +50,33 @@
     <div id="quizSection" class="section hidden">
       <div id="quizSetup">
         <h2>❓ Responder Preguntas</h2>
-        <select id="quizDifficulty">
-          <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
-          <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
-          <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
-          <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
-        </select>
-        <button id="startQuizBtn" class="btn-primary">Comenzar</button>
+        <div style="margin: 30px 0; text-align: center;">
+          <p style="color: #a78bfa; font-size: 14px; margin-bottom: 20px;">Selecciona una dificultad:</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto;">
+            <div class="difficulty-card" data-difficulty="facil" style="background: linear-gradient(135deg, #4cff90, #2ecc71); cursor: pointer; padding: 25px; border-radius: 12px; border: 3px solid #4cff90; transition: all 0.3s ease;">
+              <div style="font-size: 40px; margin-bottom: 10px;">😊</div>
+              <div style="font-weight: bold; color: #000; font-size: 16px; margin-bottom: 5px;">FÁCIL</div>
+              <div style="font-size: 12px; color: #000;">+10 XP +2 💰</div>
+            </div>
+            <div class="difficulty-card" data-difficulty="normal" style="background: linear-gradient(135deg, #ffd700, #ffb700); cursor: pointer; padding: 25px; border-radius: 12px; border: 3px solid #ffd700; transition: all 0.3s ease;">
+              <div style="font-size: 40px; margin-bottom: 10px;">😐</div>
+              <div style="font-weight: bold; color: #000; font-size: 16px; margin-bottom: 5px;">NORMAL</div>
+              <div style="font-size: 12px; color: #000;">+25 XP +5 💰</div>
+            </div>
+            <div class="difficulty-card" data-difficulty="dificil" style="background: linear-gradient(135deg, #ff9500, #ff6b00); cursor: pointer; padding: 25px; border-radius: 12px; border: 3px solid #ff9500; transition: all 0.3s ease;">
+              <div style="font-size: 40px; margin-bottom: 10px;">😤</div>
+              <div style="font-weight: bold; color: #fff; font-size: 16px; margin-bottom: 5px;">DIFÍCIL</div>
+              <div style="font-size: 12px; color: #fff;">+50 XP +10 💰</div>
+            </div>
+            <div class="difficulty-card" data-difficulty="extremo" style="background: linear-gradient(135deg, #ff4d6d, #c41e3a); cursor: pointer; padding: 25px; border-radius: 12px; border: 3px solid #ff4d6d; transition: all 0.3s ease;">
+              <div style="font-size: 40px; margin-bottom: 10px;">🔥</div>
+              <div style="font-weight: bold; color: #fff; font-size: 16px; margin-bottom: 5px;">EXPERTO</div>
+              <div style="font-size: 12px; color: #fff;">+100 XP +20 💰</div>
+            </div>
+          </div>
+          <input type="hidden" id="quizDifficulty" value="facil">
+        </div>
+        <button id="startQuizBtn" class="btn-primary" style="margin-top: 20px;">Comenzar</button>
       </div>
       <div id="quizGame" class="hidden"></div>
     </div>
