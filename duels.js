@@ -1,4 +1,5 @@
 import { collection, query, getDocs, setDoc, doc, getDoc, onSnapshot, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { checkAllAchievements } from './global-achievements.js';
 
 export async function renderDuelsInterface(db, user, currentUser, userRef, saveUser) {
   const container = document.getElementById('duelsContainer');
@@ -105,7 +106,7 @@ function startDuelGame(db, duelId, currentUser, user, userRef, saveUser) {
     const timeLeft = Math.max(0, 60 - Math.floor((Date.now() - duel.startTime) / 1000));
 
     if (duel.status === 'finished') {
-      showResults(duel, currentUser, user, saveUser);
+      showResults(duel, currentUser, user, userRef, saveUser);
       return;
     }
 
@@ -136,20 +137,31 @@ function startDuelGame(db, duelId, currentUser, user, userRef, saveUser) {
   });
 }
 
-async function showResults(duel, currentUser, user, saveUser) {
+async function showResults(duel, currentUser, user, userRef, saveUser) {
   const isP1 = currentUser === duel.player1;
   const myScore = isP1 ? duel.player1Score : duel.player2Score;
   const oppScore = isP1 ? duel.player2Score : duel.player1Score;
   const win = myScore > oppScore, draw = myScore === oppScore;
 
-  if (win) { user.coins += duel.bet; user.xp += 100; }
-  else if (!draw) { user.coins -= duel.bet; }
+  if (win) { 
+    user.coins += duel.bet; 
+    user.xp += 100;
+    user.duelsWon = (user.duelsWon || 0) + 1;
+    user.duelCurrentStreak = (user.duelCurrentStreak || 0) + 1;
+    if (user.duelCurrentStreak > (user.duelBestStreak || 0)) user.duelBestStreak = user.duelCurrentStreak;
+  } else if (!draw) { 
+    user.coins -= duel.bet; 
+    user.duelCurrentStreak = 0;
+  }
+  
   await saveUser();
+  await checkAllAchievements(user, userRef);
 
   document.getElementById('duelPlayArea').innerHTML = `
     <div class="clash-result-modal animated bounceIn">
       <h2>${win ? '🔥 VICTORIA' : (draw ? '🤝 EMPATE' : '💀 DERROTA')}</h2>
-      <p>Ganaste/Perdiste: 💰${duel.bet}</p>
+      <p>${win ? 'Ganaste' : (draw ? 'Empataste' : 'Perdiste')}: 💰${duel.bet}</p>
+      <div class="streak-badge">Racha Actual: ${user.duelCurrentStreak || 0} 🔥</div>
       <button class="clash-btn-confirm" onclick="location.reload()">VOLVER</button>
     </div>`;
 }

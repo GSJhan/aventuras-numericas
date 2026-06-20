@@ -3,50 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aventuras Numéricas - Juego</title>
+  <title>Jugar - Aventuras Numéricas</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <button class="back-btn" onclick="window.location.href='menu.html'">← Menú</button>
+      <button class="back-btn" onclick="window.location.href='menu.html'">← Volver</button>
       <div class="user-info">
         <span class="coins-badge" id="displayCoins">💰 0</span>
         <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
       </div>
     </div>
-    <h2 style="text-align:center;margin:20px 0;font-family:'Orbitron',monospace;color:#4c90ff;">🎮 ¿Cómo quieres jugar?</h2>
-    <div class="game-options">
+    
+    <div id="gameChoice" class="game-options">
       <button class="game-btn" id="calcBtn">
         <span class="icon">🧮</span>
         Calcular<br><small>Ecuaciones</small>
       </button>
       <button class="game-btn" id="quizBtn">
-        <span class="icon">❓</span>
-        Preguntas<br><small>Elige dificultad</small>
+        <span class="icon">🎯</span>
+        Quiz<br><small>Desafío Matemático</small>
       </button>
     </div>
+
+    <!-- CALCULADORA -->
     <div id="calculatorSection" class="section hidden">
-      <h2>🧮 Calcular Ecuaciones</h2>
-      <p style="opacity:0.7;margin-bottom:12px">Ejemplo: x^2-3x+2=0</p>
-      <input id="eqInput" placeholder="x^2-3x+2=0" />
-      <button id="solveBtn" class="btn-primary">Resolver</button>
+      <h2>🧮 Calculadora de Ecuaciones</h2>
+      <p style="opacity:0.7;margin-bottom:12px">Ejemplo: x^2-5x+6=0 o 2x+4=0</p>
+      <input id="eqInput" placeholder="Escribe tu ecuación aquí..." />
+      <button id="solveBtn" class="btn-primary">Resolver Paso a Paso</button>
       <div id="calcResult" class="result-box"></div>
     </div>
+
+    <!-- QUIZ -->
     <div id="quizSection" class="section hidden">
-      <h2>❓ Responder Preguntas</h2>
-      <select id="quizDifficulty">
-        <option value="facil">😊 Fácil (+10 XP, +2 monedas)</option>
-        <option value="normal">😐 Normal (+25 XP, +5 monedas)</option>
-        <option value="dificil">😤 Difícil (+50 XP, +10 monedas)</option>
-        <option value="experto">🔥 Experto (+100 XP, +20 monedas)</option>
-      </select>
-      <button id="startQuizBtn" class="btn-primary">Comenzar</button>
-      <div id="quizGame"></div>
-      <div id="quizStats" class="result-box" style="display:none"></div>
+      <h2>🎯 Desafío de Preguntas</h2>
+      <div id="quizSetup">
+        <select id="quizDifficulty">
+          <option value="facil">😊 Fácil (+10 XP)</option>
+          <option value="normal">😐 Normal (+25 XP)</option>
+          <option value="dificil">😤 Difícil (+50 XP)</option>
+          <option value="experto">🔥 Experto (+100 XP)</option>
+        </select>
+        <button id="startQuizBtn" class="btn-primary">¡Comenzar!</button>
+      </div>
+
+      <div id="quizStats" style="display:none; margin-top:20px;">
+        <div id="currentStreakDisplay" style="font-size:24px; color:#ff9500; font-weight:bold; text-align:center;">🔥 Racha: 0</div>
+      </div>
+
+      <div id="quizGame" class="question-box" style="display:none; margin-top:20px;">
+        <div id="questionText" class="question-text">?</div>
+        <input type="number" id="quizAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
+        <button onclick="window.checkQuizAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
+      </div>
     </div>
   </div>
   <script type="module" src="game.js"></script>
+  <script>
+    // Pequeña lógica para alternar vistas en el HTML
+    document.getElementById('startQuizBtn').onclick = () => {
+        document.getElementById('quizSetup').style.display = 'none';
+        document.getElementById('quizStats').style.display = 'block';
+        document.getElementById('quizGame').style.display = 'block';
+    };
+    document.getElementById('calcBtn').onclick = () => {
+        document.getElementById('gameChoice').classList.add('hidden');
+        document.getElementById('calculatorSection').classList.remove('hidden');
+    };
+    document.getElementById('quizBtn').onclick = () => {
+        document.getElementById('gameChoice').classList.add('hidden');
+        document.getElementById('quizSection').classList.remove('hidden');
+    };
+  </script>
 </body>
 </html>
