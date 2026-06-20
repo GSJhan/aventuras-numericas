@@ -94,16 +94,16 @@ export async function checkAllAchievements(user, userRef) {
       case 'power_light_2': shouldUnlock = (user.powerLightUsed || 0) >= 25; break;
       case 'power_all_100': shouldUnlock = ((user.powerDoubleUsed || 0) + (user.powerFiftyUsed || 0) + (user.powerLightUsed || 0)) >= 100; break;
 
-      // Avatares
-      case 'avatar_batman': shouldUnlock = (user.skins || []).includes('batman.jpg'); break;
-      case 'avatar_goku': shouldUnlock = (user.skins || []).includes('goku.png'); break;
-      case 'avatar_ironman': shouldUnlock = (user.skins || []).includes('ironman.png'); break;
-      case 'avatar_sasuke': shouldUnlock = (user.skins || []).includes('sasuke.png'); break;
-      case 'avatar_kakashi': shouldUnlock = (user.skins || []).includes('kakashi.jpg'); break;
-      case 'avatar_vegeta': shouldUnlock = (user.skins || []).includes('vegeta.png'); break;
-      case 'avatar_itachi': shouldUnlock = (user.skins || []).includes('itachi.png'); break;
-      case 'avatar_zoro': shouldUnlock = (user.skins || []).includes('zoro.png'); break;
-      case 'avatar_luffy': shouldUnlock = (user.skins || []).includes('luffy.png'); break;
+      // Avatares - CORREGIDO: Sin extensión de archivo
+      case 'avatar_batman': shouldUnlock = (user.skins || []).includes('batman'); break;
+      case 'avatar_goku': shouldUnlock = (user.skins || []).includes('goku'); break;
+      case 'avatar_ironman': shouldUnlock = (user.skins || []).includes('ironman'); break;
+      case 'avatar_sasuke': shouldUnlock = (user.skins || []).includes('sasuke'); break;
+      case 'avatar_kakashi': shouldUnlock = (user.skins || []).includes('kakashi'); break;
+      case 'avatar_vegeta': shouldUnlock = (user.skins || []).includes('vegeta'); break;
+      case 'avatar_itachi': shouldUnlock = (user.skins || []).includes('itachi'); break;
+      case 'avatar_zoro': shouldUnlock = (user.skins || []).includes('zoro'); break;
+      case 'avatar_luffy': shouldUnlock = (user.skins || []).includes('luffy'); break;
       case 'avatar_collector': shouldUnlock = (user.skins || []).length >= 10; break;
 
       // Especiales y Desafíos

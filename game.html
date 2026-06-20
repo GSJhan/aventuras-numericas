@@ -62,21 +62,5 @@
     </div>
   </div>
   <script type="module" src="game.js"></script>
-  <script>
-    // Pequeña lógica para alternar vistas en el HTML
-    document.getElementById('startQuizBtn').onclick = () => {
-        document.getElementById('quizSetup').style.display = 'none';
-        document.getElementById('quizStats').style.display = 'block';
-        document.getElementById('quizGame').style.display = 'block';
-    };
-    document.getElementById('calcBtn').onclick = () => {
-        document.getElementById('gameChoice').classList.add('hidden');
-        document.getElementById('calculatorSection').classList.remove('hidden');
-    };
-    document.getElementById('quizBtn').onclick = () => {
-        document.getElementById('gameChoice').classList.add('hidden');
-        document.getElementById('quizSection').classList.remove('hidden');
-    };
-  </script>
 </body>
 </html>

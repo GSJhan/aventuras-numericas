@@ -47,23 +47,31 @@ var currentStreak = 0;
 var currentProblem = null;
 
 function initGame() {
+  // Botón Calculadora
   document.getElementById('calcBtn').onclick = () => {
+    document.getElementById('gameChoice').classList.add('hidden');
     document.getElementById('calculatorSection').classList.remove('hidden');
     document.getElementById('quizSection').classList.add('hidden');
   };
 
+  // Botón Quiz
   document.getElementById('quizBtn').onclick = () => {
+    document.getElementById('gameChoice').classList.add('hidden');
     document.getElementById('quizSection').classList.remove('hidden');
     document.getElementById('calculatorSection').classList.add('hidden');
   };
 
+  // Botón Comenzar Quiz
   document.getElementById('startQuizBtn').onclick = () => {
     difficulty = document.getElementById('quizDifficulty').value;
     currentStreak = 0;
+    document.getElementById('quizSetup').style.display = 'none';
     document.getElementById('quizStats').style.display = 'block';
+    document.getElementById('quizGame').style.display = 'block';
     showQuestion();
   };
 
+  // Botón Resolver Ecuación
   document.getElementById('solveBtn').onclick = () => {
     const eq = document.getElementById('eqInput').value;
     const result = solveEquation(eq);
@@ -87,42 +95,82 @@ function showQuestion() {
 }
 
 function generateProblem(diff) {
-  let a, b, q, ans;
+  let a, b, c, q, ans;
+  
   if (diff === 'facil') {
-    a = Math.floor(Math.random() * 10);
-    b = Math.floor(Math.random() * 10);
+    a = Math.floor(Math.random() * 10) + 1;
+    b = Math.floor(Math.random() * 10) + 1;
     q = `${a} + ${b}`;
     ans = a + b;
   } else if (diff === 'normal') {
-    a = Math.floor(Math.random() * 20);
-    b = Math.floor(Math.random() * 20);
-    q = `${a} * ${b}`;
+    a = Math.floor(Math.random() * 15) + 1;
+    b = Math.floor(Math.random() * 15) + 1;
+    q = `${a} × ${b}`;
     ans = a * b;
-  } else {
-    a = Math.floor(Math.random() * 50);
-    b = Math.floor(Math.random() * 50);
-    q = `${a} * ${b} - ${a}`;
-    ans = a * b - a;
+  } else if (diff === 'dificil') {
+    a = Math.floor(Math.random() * 30) + 10;
+    b = Math.floor(Math.random() * 30) + 10;
+    c = Math.floor(Math.random() * 20) + 5;
+    q = `(${a} × ${b}) - ${c}`;
+    ans = (a * b) - c;
+  } else if (diff === 'experto') {
+    a = Math.floor(Math.random() * 50) + 20;
+    b = Math.floor(Math.random() * 50) + 20;
+    c = Math.floor(Math.random() * 50) + 10;
+    q = `(${a} × ${b}) ÷ ${c}`;
+    ans = Math.floor((a * b) / c);
   }
+  
   return { q, ans };
+}
+
+function getXPReward(diff) {
+  switch(diff) {
+    case 'facil': return 10;
+    case 'normal': return 25;
+    case 'dificil': return 50;
+    case 'experto': return 100;
+    default: return 10;
+  }
+}
+
+function getCoinReward(diff) {
+  switch(diff) {
+    case 'facil': return 3;
+    case 'normal': return 8;
+    case 'dificil': return 15;
+    case 'experto': return 30;
+    default: return 3;
+  }
 }
 
 window.checkQuizAnswer = async () => {
   const userAns = parseInt(document.getElementById('quizAnsInput').value);
+  const xpReward = getXPReward(difficulty);
+  const coinReward = getCoinReward(difficulty);
+  
   if (userAns === currentProblem.ans) {
     currentStreak++;
-    user.xp += 10;
-    user.coins += 5;
+    user.xp += xpReward;
+    user.coins += coinReward;
     user.quizQuestionsAnswered = (user.quizQuestionsAnswered || 0) + 1;
+    
+    // Registrar completación por dificultad
+    if (difficulty === 'facil') user.quizEasyCompleted = (user.quizEasyCompleted || 0) + 1;
+    else if (difficulty === 'normal') user.quizNormalCompleted = (user.quizNormalCompleted || 0) + 1;
+    else if (difficulty === 'dificil') user.quizHardCompleted = (user.quizHardCompleted || 0) + 1;
+    else if (difficulty === 'experto') user.quizExpertCompleted = (user.quizExpertCompleted || 0) + 1;
+    
     if (currentStreak > (user.infinityBestStreak || 0)) user.infinityBestStreak = currentStreak;
     
-    alert('¡Correcto! +10 XP +5 💰');
+    alert(`¡Correcto! +${xpReward} XP +${coinReward} 💰`);
     showQuestion();
   } else {
     alert('Incorrecto. La respuesta era ' + currentProblem.ans);
     currentStreak = 0;
     showQuestion();
   }
+  
   saveUser();
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
