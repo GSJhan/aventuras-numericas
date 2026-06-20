@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4c90ff">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23080c1a' width='192' height='192'/><circle cx='96' cy='96' r='88' stroke='%234c90ff' stroke-width='4' fill='rgba(76,144,255,0.1)'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%234c90ff' font-family='Orbitron' font-weight='900'>∑</text></svg>">
   <title>Aventuras Numéricas - Menú</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -24,63 +21,17 @@
       <button id="logoutBtn" class="logout-btn">🚪 Salir</button>
     </div>
     <div id="avatarDisplay" class="avatar-anime">🦸</div>
-    <div id="mainMenuGrid" class="menu-grid">
+    <div class="menu-grid">
       <button class="menu-btn" data-page="avatar"><span class="icon">👤</span>Avatar</button>
-      <button class="menu-btn" data-page="skills"><span class="icon">🌳</span>Habilidades</button>
+      <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
       <button class="menu-btn" data-page="game"><span class="icon">🎮</span>Jugar</button>
-      <button class="menu-btn" data-page="duels"><span class="icon">⚔️</span>Duelos</button>
       <button class="menu-btn" data-page="infinito"><span class="icon">∞</span>Infinito</button>
       <button class="menu-btn" data-page="logros"><span class="icon">🏆</span>Logros</button>
-      <button class="menu-btn" data-page="ranking"><span class="icon">🥇</span>Ranking</button>
-      <button class="menu-btn" data-page="shop"><span class="icon">🛒</span>Tienda</button>
-      <button class="menu-btn" data-page="config"><span class="icon">⚙️</span>Config</button>
     </div>
-
-    <!-- Secciones -->
     <div id="avatarSection" class="section hidden">
       <h2>👤 Avatar</h2>
       <div id="avatarEditor" class="avatar-editor"></div>
     </div>
-
-    <div id="skillsSection" class="section hidden">
-      <h2>🌳 Árbol de Habilidades</h2>
-      <p class="inf-desc">Desbloquea habilidades matemáticas y mejora tus puntuaciones</p>
-      <div class="skills-tree-container" id="skillsTree"></div>
-    </div>
-
-    <div id="duelsSection" class="section hidden">
-      <h2>⚔️ Duelos Online</h2>
-      <p class="inf-desc">Desafía a tus amigos a resolver problemas en tiempo real</p>
-      <div class="duels-container" id="duelsContainer"></div>
-    </div>
-
-    <div id="infinitoSection" class="section hidden">
-      <h2>∞ Modo Infinito</h2>
-      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
-      <div id="infinityProblemBox" class="problem-box"></div>
-      <div id="infinityStreakBox" style="text-align:center; margin-bottom:10px; font-family:'Orbitron', sans-serif; color:#ffd700; font-size:18px; display:none;">🔥 Racha: <span id="infinityStreakCount">0</span></div>
-      <div class="infinity-input-row">
-        <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
-        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
-      </div>
-      <div id="infinityResult" class="result-box"></div>
-    </div>
-
-    <div id="logrosSection" class="section hidden">
-      <h2>🏆 Logros</h2>
-      <div id="logrosList" class="logros-list"></div>
-    </div>
-
-    <div id="rankingSection" class="section hidden">
-      <h2>🥇 Tabla de Clasificación Global</h2>
-      <div id="rankingList" style="margin-top: 20px;"></div>
-    </div>
-
-    <div id="shopSection" class="section hidden">
-      <h2>🛒 Tienda de Poderes</h2>
-      <div class="shop-grid" id="shopGrid"></div>
-    </div>
-
     <div id="configSection" class="section hidden">
       <h2>⚙️ Configuraciones</h2>
       <label class="config-label">Fondo</label>
@@ -96,16 +47,21 @@
         🎵 Música de fondo
       </label>
     </div>
+    <div id="logrosSection" class="section hidden">
+      <h2>🏆 Logros</h2>
+      <div id="logrosList" class="logros-list"></div>
+    </div>
+    <div id="infinitoSection" class="section hidden">
+      <h2>∞ Modo Infinito</h2>
+      <p class="inf-desc">Resuelve problemas uno tras otro y acumula XP y monedas</p>
+      <div id="infinityProblemBox" class="problem-box"></div>
+      <div class="infinity-input-row">
+        <input id="infinityEquation" placeholder="Tu respuesta..." type="number"/>
+        <button id="infinitySolveBtn" class="btn-primary">✔ Verificar</button>
+      </div>
+      <div id="infinityResult" class="result-box"></div>
+    </div>
   </div>
   <script type="module" src="menu.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-        console.log('Service Worker registrado en menú');
-      }).catch(function(error) {
-        console.log('Error al registrar Service Worker:', error);
-      });
-    }
-  </script>
 </body>
 </html>

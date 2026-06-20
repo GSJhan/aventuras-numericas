@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { tryAspaSolution, createAspaDiagram } from './equation-solver.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -73,110 +72,73 @@ function initGame() {
 
   document.getElementById('solveBtn').onclick = function() {
     var eq = document.getElementById('eqInput').value.replace(/\s/g, '');
-    // Intentar parsear la ecuación para obtener a, b, c
-    const quadraticMatch = eq.match(/([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)x([+-]\d*\.?\d*)=0/i);
-    let a = 1, b = 0, c = 0;
-
-    if (quadraticMatch) {
-      a = parseFloat(quadraticMatch[1]) || 1;
-      if (quadraticMatch[1] === '+' || quadraticMatch[1] === '') a = 1;
-      if (quadraticMatch[1] === '-') a = -1;
-      b = parseFloat(quadraticMatch[2]);
-      c = parseFloat(quadraticMatch[3]);
-    } else {
-      document.getElementById('calcResult').innerHTML = '<span class="wrong">❌ Formato incorrecto. Usa: ax^2+bx+c=0</span>';
+    var match = eq.match(/x\^2([+-]\d+)x([+-]\d+)=0/);
+    if (!match) {
+      document.getElementById('calcResult').innerHTML = '<span class="wrong">❌ Formato incorrecto. Usa: x^2-3x+2=0</span>';
       return;
     }
-
-    const delta = (b * b) - (4 * a * c);
+    var b = Number(match[1]), c = Number(match[2]);
+    var delta = (b * b) - (4 * c);
 
     var html = '';
     html += '<div style="line-height:2;font-size:15px">';
     html += '<p style="color:#4c90ff;font-family:Orbitron,monospace;margin-bottom:10px">📐 Resolución paso a paso</p>';
-    html += '<p><strong>Ecuación:</strong> ' + (a === 1 ? 'x²' : a + 'x²') + (b >= 0 ? '+' : '') + b + 'x ' + (c >= 0 ? '+' : '') + c + ' = 0</p>';
+    html += '<p><strong>Ecuación:</strong> x² ' + (b >= 0 ? '+' : '') + b + 'x ' + (c >= 0 ? '+' : '') + c + ' = 0</p>';
     html += '<p style="color:#aaa;font-size:13px">Forma general: ax² + bx + c = 0</p>';
-    html += '<p style="color:#aaa;font-size:13px">Donde: a = ' + a + ', b = ' + b + ', c = ' + c + '</p>';
+    html += '<p style="color:#aaa;font-size:13px">Donde: a = 1, b = ' + b + ', c = ' + c + '</p>';
+    html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
+    html += '<p style="color:#ffd700"><strong>Método: Fórmula para hallar la Discriminante</strong></p>';
+    html += '<p style="color:#aaa;font-size:13px">x = (-b ± √(b² - 4ac)) / 2a</p>';
+    html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
+    html += '<p><strong>Paso 1 — Calcular la Discriminante (Δ):</strong></p>';
+    html += '<p style="color:#aaa;font-size:13px">Δ = b² - 4ac</p>';
+    html += '<p style="color:#aaa;font-size:13px">Δ = (' + b + ')² - 4 × 1 × (' + c + ')</p>';
+    html += '<p style="color:#aaa;font-size:13px">Δ = ' + (b*b) + ' - ' + (4*c) + '</p>';
+    html += '<p>Δ = <strong style="color:' + (delta >= 0 ? '#4cff90' : '#ff4d6d') + '">' + delta + '</strong></p>';
     html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
 
-    const aspaSolution = tryAspaSolution(a, b, c);
-    if (aspaSolution) {
-      html += '<p style="color:#ffd700"><strong>MÉTODO: ASPA SIMPLE (Factorización)</strong></p>';
-      html += aspaSolution.diagram;
-      html += '<strong style="color: #4cff90;">Verificación: ' + aspaSolution.p1 + 'x + ' + aspaSolution.p2 + 'x = ' + (aspaSolution.p1 + aspaSolution.p2) + 'x ✓</strong>';
-      html += '<br><strong>Factorización:</strong> (' + aspaSolution.factor1 + ')(' + aspaSolution.factor2 + ') = 0';
-      html += '<br><strong>Soluciones:</strong>';
-      html += 
-'<p style="color:#4cff90; font-size: 13px; margin-top: 15px;"><strong>VERIFICACIÓN DEL TÉRMINO LINEAL:</strong></p>';
-      html += 
-'<div>' + aspaSolution.p1 + 'x</div>';
-      html += 
-'<div>' + aspaSolution.p2 + 'x</div>';
-      html += 
-'<div>x + (' + (-aspaSolution.x1) + ') = 0 → x<sub style="font-size: 9px;">1</sub> = ' + aspaSolution.x1.toFixed(4) + '</div>';
-      html += 
-'<div>x + (' + (-aspaSolution.x2) + ') = 0 → x<sub style="font-size: 9px;">2</sub> = ' + aspaSolution.x2.toFixed(4) + '</div>';
-      html += 
-'<p style="color:#aaa;font-size:13px">Verificación: ' + aspaSolution.p1 + 'x + ' + aspaSolution.p2 + 'x = ' + (aspaSolution.p1 + aspaSolution.p2) + 'x ✓</p>';
-      html += 
-'<p style="color:#aaa;font-size:13px">Verificación x₁: ' + (a*Math.pow(Number(aspaSolution.x1),2) + b*Number(aspaSolution.x1) + c).toFixed(2) + ' ≈ 0 ✅ | x₂: ' + (a*Math.pow(Number(aspaSolution.x2),2) + b*Number(aspaSolution.x2) + c).toFixed(2) + ' ≈ 0 ✅</p>';
-      
-      // Continuar con la gráfica
+    if (delta < 0) {
+      html += '<p style="color:#ff4d6d"><strong>Paso 2 — Analizar la Discriminante:</strong></p>';
+      html += '<p style="color:#aaa;font-size:13px">Como Δ = ' + delta + ' es menor que 0,</p>';
+      html += '<p style="color:#aaa;font-size:13px">la ecuación <strong>no tiene soluciones reales.</strong></p>';
+      html += '<p style="color:#ff4d6d">❌ Sin soluciones reales</p>';
+    } else if (delta === 0) {
+      var x1 = (-b / 2).toFixed(2);
+      html += '<p style="color:#4cff90"><strong>Paso 2 — Analizar la Discriminante:</strong></p>';
+      html += '<p style="color:#aaa;font-size:13px">Como Δ = 0, la ecuación tiene <strong>una sola solución (raíz doble).</strong></p>';
+      html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
+      html += '<p><strong>Paso 3 — Calcular la solución:</strong></p>';
+      html += '<p style="color:#aaa;font-size:13px">x = -b / 2a</p>';
+      html += '<p style="color:#aaa;font-size:13px">x = -(' + b + ') / 2×1</p>';
+      html += '<p style="color:#aaa;font-size:13px">x = ' + (-b) + ' / 2</p>';
+      html += '<p>x = <strong style="color:#4cff90">' + x1 + '</strong> (raíz doble)</p>';
+      html += '<p style="color:#4cff90">✅ Solución: x = ' + x1 + '</p>';
     } else {
-      html += '<p style="color:#ffd700"><strong>MÉTODO: FÓRMULA GENERAL</strong></p>';
-      html += '<p style="color:#aaa;font-size:13px">x = (-b ± √(b² - 4ac)) / 2a</p>';
+      var sqrtDelta = Math.sqrt(delta);
+      var x1 = ((-b + sqrtDelta) / 2).toFixed(2);
+      var x2 = ((-b - sqrtDelta) / 2).toFixed(2);
+      html += '<p style="color:#4cff90"><strong>Paso 2 — Analizar la Discriminante:</strong></p>';
+      html += '<p style="color:#aaa;font-size:13px">la ecuación tiene <strong>dos soluciones reales distintas.</strong></p>';
       html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
-      html += '<p><strong>Paso 1 — Calcular la Discriminante (Δ):</strong></p>';
-      html += '<p style="color:#aaa;font-size:13px">Δ = b² - 4ac</p>';
-      html += '<p style="color:#aaa;font-size:13px">Δ = (' + b + ')² - 4 × ' + a + ' × (' + c + ')</p>';
-      html += '<p style="color:#aaa;font-size:13px">Δ = ' + (b*b) + ' - ' + (4*a*c) + '</p>';
-      html += '<p>Δ = <strong style="color:' + (delta >= 0 ? '#4cff90' : '#ff4d6d') + '">' + delta + '</strong></p>';
+      html += '<p><strong>Paso 3 — Calcular √Δ:</strong></p>';
+      html += '<p style="color:#aaa;font-size:13px">√' + delta + ' = ' + sqrtDelta.toFixed(4) + '</p>';
       html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
-      
-      if (delta < 0) {
-        html += '<p style="color:#ff4d6d"><strong>Paso 2 — Analizar la Discriminante:</strong></p>';
-        html += '<p style="color:#aaa;font-size:13px">Como Δ = ' + delta + ' es menor que 0,</p>';
-        html += '<p style="color:#aaa;font-size:13px">la ecuación <strong>no tiene soluciones reales.</strong></p>';
-        html += '<p style="color:#ff4d6d">❌ Sin soluciones reales</p>';
-      } else if (delta === 0) {
-        var x1 = (-b / (2 * a)).toFixed(2);
-        html += '<p style="color:#4cff90"><strong>Paso 2 — Analizar la Discriminante:</strong></p>';
-        html += '<p style="color:#aaa;font-size:13px">Como Δ = 0, la ecuación tiene <strong>una sola solución (raíz doble).</strong></p>';
-        html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
-        html += '<p><strong>Paso 3 — Calcular la solución:</strong></p>';
-        html += '<p style="color:#aaa;font-size:13px">x = -b / 2a</p>';
-        html += '<p style="color:#aaa;font-size:13px">x = -(' + b + ') / 2×' + a + '</p>';
-        html += '<p style="color:#aaa;font-size:13px">x = ' + (-b) + ' / ' + (2 * a) + '</p>';
-        html += '<p>x = <strong style="color:#4cff90">' + x1 + '</strong> (raíz doble)</p>';
-        html += '<p style="color:#4cff90">✅ Solución: x = ' + x1 + '</p>';
-      } else {
-        var sqrtDelta = Math.sqrt(delta);
-        var x1 = ((-b + sqrtDelta) / (2 * a)).toFixed(2);
-        var x2 = ((-b - sqrtDelta) / (2 * a)).toFixed(2);
-        html += '<p style="color:#4cff90"><strong>Paso 2 — Analizar la Discriminante:</strong></p>';
-        html += '<p style="color:#aaa;font-size:13px">la ecuación tiene <strong>dos soluciones reales distintas.</strong></p>';
-        html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
-        html += '<p><strong>Paso 3 — Calcular √Δ:</strong></p>';
-        html += '<p style="color:#aaa;font-size:13px">√' + delta + ' = ' + sqrtDelta.toFixed(4) + '</p>';
-        html += '<hr style="border-color:rgba(76,144,255,0.2);margin:10px 0"/>';
-        html += '<p><strong>Paso 4 — Calcular x₁ y x₂:</strong></p>';
-        html += '<p>x₁ = <strong style="color:#4cff90">' + x1 + '</strong></p>';
-        html += '<p>x₂ = <strong style="color:#4cff90">' + x2 + '</strong></p>';
-        html += '<p style="color:#4cff90">✅ Soluciones: x₁ = ' + x1 + ' | x₂ = ' + x2 + '</p>';
-        var v1 = (a*Math.pow(Number(x1),2) + b*Number(x1) + c).toFixed(2);
-        var v2 = (a*Math.pow(Number(x2),2) + b*Number(x2) + c).toFixed(2);
-        html += '<p style="color:#aaa;font-size:13px">Verificación x₁: ' + v1 + ' ≈ 0 ✅ | x₂: ' + v2 + ' ≈ 0 ✅</p>';
-      }
+      html += '<p><strong>Paso 4 — Calcular x₁ y x₂:</strong></p>';
+      html += '<p>x₁ = <strong style="color:#4cff90">' + x1 + '</strong></p>';
+      html += '<p>x₂ = <strong style="color:#4cff90">' + x2 + '</strong></p>';
+      html += '<p style="color:#4cff90">✅ Soluciones: x₁ = ' + x1 + ' | x₂ = ' + x2 + '</p>';
+      var v1 = (Math.pow(Number(x1),2) + b*Number(x1) + c).toFixed(2);
+      var v2 = (Math.pow(Number(x2),2) + b*Number(x2) + c).toFixed(2);
+      html += '<p style="color:#aaa;font-size:13px">Verificación x₁: ' + v1 + ' ≈ 0 ✅ | x₂: ' + v2 + ' ≈ 0 ✅</p>';
     }
-
-    // La lógica de la fórmula general ya se maneja arriba
 
     html += '</div>';
 
     var sqrtD = Math.sqrt(Math.abs(delta));
-    var rx1 = delta >= 0 ? (-b + sqrtD) / (2 * a) : null;
-    var rx2 = delta >= 0 ? (-b - sqrtD) / (2 * a) : null;
-    var vertexX = -b / (2 * a);
-    var vertexY = -(delta / (4 * a));
+    var rx1 = delta >= 0 ? (-b + sqrtD) / 2 : null;
+    var rx2 = delta >= 0 ? (-b - sqrtD) / 2 : null;
+    var vertexX = -b / 2;
+    var vertexY = -(delta / 4);
 
     var W = 380, H = 260;
     var padL = 46, padR = 24, padT = 24, padB = 36;
@@ -251,7 +213,7 @@ function initGame() {
       ctx.beginPath();
       var first = true;
       for (var xp = minX-8; xp <= maxX+8; xp += 0.03) {
-        var yp = a*xp*xp + b*xp + c;
+        var yp = xp*xp + b*xp + c;
         var sxp = toSX(xp, minX, maxX), syp = toSY(yp, minY, maxY);
         if (first) { ctx.moveTo(sxp, syp); first = false; } else ctx.lineTo(sxp, syp);
       }
@@ -286,7 +248,7 @@ function initGame() {
       }
       ctx.fillStyle = 'rgba(76,144,255,0.45)'; ctx.font = '10px Orbitron,monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('f(x) = '+(a===1?'x²':a+'x²')+(b>=0?' +':' ')+b+'x'+(c>=0?' +':' ')+c, W/2, H-7);
+      ctx.fillText('f(x) = x²'+(b>=0?' +':' ')+b+'x'+(c>=0?' +':' ')+c, W/2, H-7);
       ctx.textAlign = 'left';
     }
 

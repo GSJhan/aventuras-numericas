@@ -34,10 +34,7 @@ async function handleAuth() {
     var newUser = {
       password: password, xp: 0, coins: 0, level: 1,
       skin: 'spiderman', skins: ['spiderman'],
-      powers: { double: 0, fifty: 0, light: 0 },
-      logros: {},
-      infinityStreak: 0,
-      infinityBestStreak: 0,
+      logros: { mision3: false, rach5: false, nivel10: false, experto1: false, comprador: false },
       misionesCompletas: 0
     };
     await setDoc(userRef, newUser);

@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4c90ff">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23080c1a' width='192' height='192'/><circle cx='96' cy='96' r='88' stroke='%234c90ff' stroke-width='4' fill='rgba(76,144,255,0.1)'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%234c90ff' font-family='Orbitron' font-weight='900'>∑</text></svg>">
   <title>Aventuras Numéricas</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -32,18 +29,6 @@
     <p class="switch-auth">¿Ya tienes cuenta? <a id="switchLink">Inicia aquí</a></p>
   </div>
   <script type="module" src="main.js"></script>
-  <script>
-    // Registrar Service Worker para PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-          console.log('Service Worker registrado exitosamente:', registration);
-        }).catch(function(error) {
-          console.log('Error al registrar Service Worker:', error);
-        });
-      });
-    }
-  </script>
   <script>
     const p = document.getElementById('particles');
     for (let i = 0; i < 40; i++) {
