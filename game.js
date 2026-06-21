@@ -48,6 +48,10 @@ async function loadUser() {
   if (!user.logros) user.logros = {};
   if (!user.xp) user.xp = 0;
   if (!user.coins) user.coins = 0;
+  if (!user.stats) user.stats = { facil: 0, normal: 0, dificil: 0, experto: 0, infinito: 0 };
+  if (!user.infinityStreak) user.infinityStreak = 0;
+  if (!user.infinityBestStreak) user.infinityBestStreak = 0;
+  if (!user.infinityCoinsEarned) user.infinityCoinsEarned = 0;
   
   updateXPDisplay();
 
@@ -86,6 +90,9 @@ function initMusic() {
 var difficulty = 'facil';
 var currentStreak = 0;
 var currentProblem = null;
+var infinityMode = false;
+var infinityStreak = 0;
+var infinityCoinsEarned = 0;
 
 function initGame() {
   // Botón Calculadora
@@ -93,6 +100,7 @@ function initGame() {
     document.getElementById('gameChoice').classList.add('hidden');
     document.getElementById('calculatorSection').classList.remove('hidden');
     document.getElementById('quizSection').classList.add('hidden');
+    document.getElementById('infinitySection').classList.add('hidden');
   };
 
   // Botón Quiz
@@ -100,16 +108,37 @@ function initGame() {
     document.getElementById('gameChoice').classList.add('hidden');
     document.getElementById('quizSection').classList.remove('hidden');
     document.getElementById('calculatorSection').classList.add('hidden');
+    document.getElementById('infinitySection').classList.add('hidden');
+  };
+
+  // Botón Infinito
+  document.getElementById('infinityBtn').onclick = () => {
+    document.getElementById('gameChoice').classList.add('hidden');
+    document.getElementById('infinitySection').classList.remove('hidden');
+    document.getElementById('quizSection').classList.add('hidden');
+    document.getElementById('calculatorSection').classList.add('hidden');
   };
 
   // Botón Comenzar Quiz
   document.getElementById('startQuizBtn').onclick = () => {
     difficulty = document.getElementById('quizDifficulty').value;
     currentStreak = 0;
+    infinityMode = false;
     document.getElementById('quizSetup').style.display = 'none';
     document.getElementById('quizStats').style.display = 'block';
     document.getElementById('quizGame').style.display = 'block';
     showQuestion();
+  };
+
+  // Botón Comenzar Infinito
+  document.getElementById('startInfinityBtn').onclick = () => {
+    infinityMode = true;
+    infinityStreak = 0;
+    infinityCoinsEarned = 0;
+    document.getElementById('infinitySetup').style.display = 'none';
+    document.getElementById('infinityStats').style.display = 'block';
+    document.getElementById('infinityGame').style.display = 'block';
+    showInfinityQuestion();
   };
 
   // Botón Resolver Ecuación
@@ -134,18 +163,35 @@ function showQuestion() {
     diffToUse = diffs[Math.floor(Math.random() * diffs.length)];
   }
   currentProblem = generateProblem(diffToUse);
-  currentProblem.actualDiff = diffToUse; // Guardar la dificultad real usada
+  currentProblem.actualDiff = diffToUse;
   document.getElementById('questionText').innerHTML = currentProblem.q;
   document.getElementById('quizAnsInput').value = '';
   document.getElementById('quizAnsInput').focus();
   document.getElementById('currentStreakDisplay').textContent = '🔥 Racha: ' + currentStreak;
 }
 
+function showInfinityQuestion() {
+  const diffs = ['facil', 'normal', 'dificil', 'experto'];
+  const diffToUse = diffs[Math.floor(Math.random() * diffs.length)];
+  
+  currentProblem = generateProblem(diffToUse);
+  currentProblem.actualDiff = diffToUse;
+  
+  const diffNames = { facil: '😊 Fácil', normal: '😐 Normal', dificil: '😤 Difícil', experto: '🔥 Experto' };
+  
+  document.getElementById('infinityQuestionText').innerHTML = currentProblem.q;
+  document.getElementById('infinityDiffSpan2').textContent = diffNames[diffToUse];
+  document.getElementById('infinityAnsInput').value = '';
+  document.getElementById('infinityAnsInput').focus();
+  document.getElementById('infinityStreakDisplay').textContent = infinityStreak;
+  document.getElementById('infinityBestStreakDisplay').textContent = user.infinityBestStreak || 0;
+  document.getElementById('infinityCoinsDisplay').textContent = infinityCoinsEarned;
+}
+
 function generateProblem(diff) {
   let a, b, c, q, ans;
   
   if (diff === 'facil') {
-    // Fácil: Suma y Resta
     a = Math.floor(Math.random() * 20) + 1;
     b = Math.floor(Math.random() * 20) + 1;
     if (Math.random() > 0.5) {
@@ -157,7 +203,6 @@ function generateProblem(diff) {
       ans = a - b;
     }
   } else if (diff === 'normal') {
-    // Normal: Multiplicación y División
     if (Math.random() > 0.5) {
       a = Math.floor(Math.random() * 12) + 1;
       b = Math.floor(Math.random() * 12) + 1;
@@ -170,10 +215,9 @@ function generateProblem(diff) {
       q = `${a} ÷ ${b}`;
     }
   } else if (diff === 'dificil') {
-    // Difícil: Potencia y Raíz
     if (Math.random() > 0.5) {
       a = Math.floor(Math.random() * 10) + 2;
-      b = Math.floor(Math.random() * 2) + 2; // cuadrado o cubo
+      b = Math.floor(Math.random() * 2) + 2;
       q = `${a}<sup>${b}</sup>`;
       ans = Math.pow(a, b);
     } else {
@@ -182,14 +226,11 @@ function generateProblem(diff) {
       q = `√${a}`;
     }
   } else if (diff === 'experto') {
-    // Experto: Ecuaciones Cuadráticas (x² + bx + c = 0)
-    // Generamos raíces enteras para que sea resoluble mentalmente (x-r1)(x-r2) = x² - (r1+r2)x + r1*r2
     let r1 = Math.floor(Math.random() * 10) + 1;
     let r2 = Math.floor(Math.random() * 10) + 1;
     let b_val = -(r1 + r2);
     let c_val = r1 * r2;
     
-    // Formato: x² + bx + c = 0. Pedimos la raíz mayor.
     let b_str = b_val < 0 ? `${b_val}x` : `+${b_val}x`;
     let c_str = c_val < 0 ? `${c_val}` : `+${c_val}`;
     q = `x² ${b_str} ${c_str} = 0 (Raíz >)`;
@@ -230,8 +271,9 @@ window.checkQuizAnswer = async () => {
     user.xp += xpReward;
     user.coins += coinReward;
     user.quizQuestionsAnswered = (user.quizQuestionsAnswered || 0) + 1;
+    user.stats = user.stats || { facil: 0, normal: 0, dificil: 0, experto: 0, infinito: 0 };
+    user.stats[diffUsed] = (user.stats[diffUsed] || 0) + 1;
     
-    // Registrar completación por dificultad
     if (diffUsed === 'facil') user.quizEasyCompleted = (user.quizEasyCompleted || 0) + 1;
     else if (diffUsed === 'normal') user.quizNormalCompleted = (user.quizNormalCompleted || 0) + 1;
     else if (diffUsed === 'dificil') user.quizHardCompleted = (user.quizHardCompleted || 0) + 1;
@@ -249,6 +291,48 @@ window.checkQuizAnswer = async () => {
     alert('Incorrecto. La respuesta era ' + currentProblem.ans);
     currentStreak = 0;
     showQuestion();
+  }
+  
+  saveUser();
+  updateXPDisplay();
+};
+
+window.checkInfinityAnswer = async () => {
+  const userAns = parseInt(document.getElementById('infinityAnsInput').value);
+  const diffUsed = currentProblem.actualDiff;
+  const xpReward = getXPReward(diffUsed);
+  const coinReward = getCoinReward(diffUsed);
+  
+  if (userAns === currentProblem.ans) {
+    infinityStreak++;
+    infinityCoinsEarned += coinReward;
+    user.xp += xpReward;
+    user.coins += coinReward;
+    user.infinityProblemsSolved = (user.infinityProblemsSolved || 0) + 1;
+    user.infinityCoinsEarned = (user.infinityCoinsEarned || 0) + coinReward;
+    user.infinityXpEarned = (user.infinityXpEarned || 0) + xpReward;
+    user.stats = user.stats || { facil: 0, normal: 0, dificil: 0, experto: 0, infinito: 0 };
+    user.stats.infinito = (user.stats.infinito || 0) + 1;
+    
+    if (infinityStreak > (user.infinityBestStreak || 0)) {
+      user.infinityBestStreak = infinityStreak;
+    }
+    
+    alert(`¡Correcto! +${xpReward} XP +${coinReward} 💰\n🔥 Racha: ${infinityStreak}`);
+    showInfinityQuestion();
+  } else {
+    alert(`Incorrecto. La respuesta era ${currentProblem.ans}\n🔥 Racha perdida: ${infinityStreak}`);
+    user.infinityStreak = infinityStreak;
+    infinityStreak = 0;
+    
+    // Mostrar resumen y volver al menú
+    setTimeout(() => {
+      alert(`Sesión Infinito terminada!\nRacha: ${user.infinityStreak}\nMonedas ganadas: ${infinityCoinsEarned}\nXP ganado: ${user.infinityXpEarned || 0}`);
+      document.getElementById('infinitySetup').style.display = 'block';
+      document.getElementById('infinityStats').style.display = 'none';
+      document.getElementById('infinityGame').style.display = 'none';
+      document.getElementById('gameChoice').classList.remove('hidden');
+    }, 500);
   }
   
   saveUser();

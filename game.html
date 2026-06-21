@@ -26,6 +26,10 @@
         <span class="icon">🎯</span>
         Quiz<br><small>Desafío Matemático</small>
       </button>
+      <button class="game-btn" id="infinityBtn">
+        <span class="icon">♾️</span>
+        Infinito<br><small>Modo Infinito</small>
+      </button>
     </div>
 
     <!-- CALCULADORA -->
@@ -57,8 +61,40 @@
 
       <div id="quizGame" class="question-box" style="display:none; margin-top:20px;">
         <div id="questionText" class="question-text">?</div>
+        <div id="infinityDifficultyDisplay" style="text-align:center; font-size:18px; color:#4c90ff; margin-bottom:15px; display:none;">Dificultad: <span id="infinityDiffSpan"></span></div>
         <input type="number" id="quizAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
         <button onclick="window.checkQuizAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
+      </div>
+    </div>
+
+    <!-- MODO INFINITO -->
+    <div id="infinitySection" class="section hidden">
+      <h2>♾️ Modo Infinito</h2>
+      <div id="infinitySetup">
+        <p style="text-align:center; margin-bottom:20px; opacity:0.8;">Resuelve preguntas de dificultad aleatoria sin límite. ¡Mantén tu racha!</p>
+        <button id="startInfinityBtn" class="btn-primary">¡Comenzar Infinito!</button>
+      </div>
+      <div id="infinityStats" style="display:none; margin-top:20px;">
+        <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="font-size:28px; color:#ff9500; font-weight:bold;">🔥 <span id="infinityStreakDisplay">0</span></div>
+            <div style="font-size:12px; opacity:0.8;">Racha Actual</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:28px; color:#4cff90; font-weight:bold;">⭐ <span id="infinityBestStreakDisplay">0</span></div>
+            <div style="font-size:12px; opacity:0.8;">Mejor Racha</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:28px; color:#ffd700; font-weight:bold;">💰 <span id="infinityCoinsDisplay">0</span></div>
+            <div style="font-size:12px; opacity:0.8;">Monedas Ganadas</div>
+          </div>
+        </div>
+      </div>
+      <div id="infinityGame" class="question-box" style="display:none; margin-top:20px;">
+        <div id="infinityQuestionText" class="question-text">?</div>
+        <div id="infinityDiffDisplay" style="text-align:center; font-size:16px; color:#4c90ff; margin-bottom:15px;">Dificultad: <span id="infinityDiffSpan2"></span></div>
+        <input type="number" id="infinityAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
+        <button onclick="window.checkInfinityAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
       </div>
     </div>
   </div>

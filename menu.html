@@ -27,6 +27,18 @@
         <span class="icon">🎮</span>
         <span>Jugar</span>
       </button>
+      <button class="menu-btn" data-page="skills">
+        <span class="icon">⭐</span>
+        <span>Habilidades</span>
+      </button>
+      <button class="menu-btn" data-page="ranking">
+        <span class="icon">🏅</span>
+        <span>Ranking</span>
+      </button>
+      <button class="menu-btn" data-page="tienda">
+        <span class="icon">🛍️</span>
+        <span>Tienda</span>
+      </button>
       <button class="menu-btn" data-page="logros">
         <span class="icon">🏆</span>
         <span>Logros</span>
@@ -39,6 +51,42 @@
         <span class="icon">⚙️</span>
         <span>Ajustes</span>
       </button>
+    </div>
+
+    <!-- SECCIÓN BARRA XP MEJORADA -->
+    <div id="xpBarSection" class="xp-bar-container">
+      <div class="xp-header">
+        <span class="xp-level">Nivel <span id="xpLevel">1</span></span>
+        <span class="xp-progress-text"><span id="xpCurrent">0</span> / <span id="xpNeeded">500</span> XP</span>
+      </div>
+      <div class="xp-bar-bg">
+        <div class="xp-bar-fill" id="xpBarFill" style="width: 0%"></div>
+      </div>
+      <div class="xp-bar-label">Experiencia</div>
+    </div>
+
+    <!-- SECCIÓN HABILIDADES -->
+    <div id="skillsSection" class="section hidden">
+      <h2>⭐ Tus Habilidades</h2>
+      <div class="skills-container">
+        <div class="skills-radar-container">
+          <canvas id="skillsRadar" width="300" height="300"></canvas>
+        </div>
+        <div id="skillsStats" class="skills-stats"></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN RANKING -->
+    <div id="rankingSection" class="section hidden">
+      <h2>🏅 Ranking Global</h2>
+      <div id="rankingPodium" class="podium-container"></div>
+      <div id="rankingList" class="ranking-list"></div>
+    </div>
+
+    <!-- SECCIÓN TIENDA -->
+    <div id="tiendaSection" class="section hidden">
+      <h2>🛍️ Tienda de Poderes</h2>
+      <div id="tiendaPoderes" class="tienda-grid"></div>
     </div>
 
     <!-- SECCIÓN LOGROS -->
@@ -73,6 +121,7 @@
     <button id="floatingMusicBtn" class="music-btn off">🔇</button>
   </div>
   <audio id="bgMusic" loop></audio>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module" src="menu.js"></script>
 </body>
 </html>
