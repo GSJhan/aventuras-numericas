@@ -57,12 +57,46 @@ function initMenu() {
 
   var savedBg = localStorage.getItem('background') || 'ciudad';
   document.body.className = savedBg;
-  document.getElementById('backgroundSelect').value = savedBg;
+  showThemes();
 
-  document.getElementById('backgroundSelect').addEventListener('change', function(e) {
-    document.body.className = e.target.value;
-    localStorage.setItem('background', e.target.value);
-  });
+  // --- LÓGICA DE MÚSICA ---
+  const bgMusic = document.getElementById('bgMusic');
+  const floatingMusicBtn = document.getElementById('floatingMusicBtn');
+  const configMusicBtn = document.getElementById('toggleMusicBtnConfig');
+  const musicStatusText = document.getElementById('musicStatusText');
+
+  const tracks = {
+    'ciudad': 'ciudad.mp3',
+    'galaxia': 'galaxia.mp3',
+    'parque': 'parque.mp3',
+    'fondo1': 'bosque.mp3',
+    'fondo2': 'neon.mp3'
+  };
+
+  function updateMusicSource() {
+    const currentBg = localStorage.getItem('background') || 'ciudad';
+    bgMusic.src = tracks[currentBg] || 'ciudad.mp3';
+  }
+
+  function toggleMusic() {
+    if (bgMusic.paused) {
+      bgMusic.play().catch(e => console.log("Error al reproducir:", e));
+      floatingMusicBtn.classList.remove('off');
+      floatingMusicBtn.textContent = '🎵';
+      if (configMusicBtn) configMusicBtn.textContent = 'Desactivar Música';
+      if (musicStatusText) musicStatusText.textContent = 'Estado: Activada';
+    } else {
+      bgMusic.pause();
+      floatingMusicBtn.classList.add('off');
+      floatingMusicBtn.textContent = '🔇';
+      if (configMusicBtn) configMusicBtn.textContent = 'Activar Música';
+      if (musicStatusText) musicStatusText.textContent = 'Estado: Desactivada';
+    }
+  }
+
+  floatingMusicBtn.onclick = toggleMusic;
+  if (configMusicBtn) configMusicBtn.onclick = toggleMusic;
+  updateMusicSource();
 
   document.getElementById('logoutBtn').onclick = function() {
     localStorage.removeItem('currentUser');
@@ -77,7 +111,7 @@ function initMenu() {
       if (page === 'game') window.location.href = 'game.html';
       else if (page === 'avatar') { document.getElementById('avatarSection').classList.remove('hidden'); showAvatarEditor(); }
       else if (page === 'logros') { document.getElementById('logrosSection').classList.remove('hidden'); showLogros(); }
-      else if (page === 'config') document.getElementById('configSection').classList.remove('hidden');
+      else if (page === 'config') { document.getElementById('configSection').classList.remove('hidden'); showThemes(); }
     });
   });
 
@@ -126,6 +160,44 @@ function initMenu() {
     } else {
       alert('No tienes suficientes monedas');
     }
+  };
+
+  function showThemes() {
+    const themes = [
+      { id: 'ciudad', name: 'Ciudad Futurista', img: 'ciudad.jpg' },
+      { id: 'galaxia', name: 'Galaxia', img: 'galaxia.jpg' },
+      { id: 'parque', name: 'Parque', img: 'parque.jpg' },
+      { id: 'fondo1', name: 'Bosque', img: 'bosque.jpg' },
+      { id: 'fondo2', name: 'Neón (Llamativo)', img: 'neon.jpg', special: 'neon-theme' }
+    ];
+
+    const container = document.getElementById('themesContainer');
+    if (!container) return;
+    
+    const currentBg = localStorage.getItem('background') || 'ciudad';
+    let html = '';
+    themes.forEach(t => {
+      const active = currentBg === t.id;
+      html += `
+        <div class="theme-item ${t.special || ''}">
+          <img src="${t.img}" class="theme-preview">
+          <span class="theme-name">${t.name}</span>
+          <button class="select-theme-btn ${active ? 'active' : ''}" onclick="window.setTheme('${t.id}')">
+            ${active ? 'Seleccionado' : 'Seleccionar'}
+          </button>
+        </div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  window.setTheme = (themeId) => {
+    document.body.className = themeId;
+    localStorage.setItem('background', themeId);
+    updateMusicSource();
+    if (!bgMusic.paused) {
+      bgMusic.play();
+    }
+    showThemes();
   };
 
   function showLogros() {

@@ -42,10 +42,10 @@
       <h2>🎯 Desafío de Preguntas</h2>
       <div id="quizSetup">
         <select id="quizDifficulty">
-          <option value="facil">😊 Fácil (+10 XP)</option>
-          <option value="normal">😐 Normal (+25 XP)</option>
-          <option value="dificil">😤 Difícil (+50 XP)</option>
-          <option value="experto">🔥 Experto (+100 XP)</option>
+          <option value="facil">😊 Fácil: Suma/Resta (+10 XP)</option>
+          <option value="normal">😐 Normal: Mult/Div (+25 XP)</option>
+          <option value="dificil">😤 Difícil: Potencia/Raíz (+50 XP)</option>
+          <option value="experto">🔥 Experto: Ecuaciones (+100 XP)</option>
         </select>
         <button id="startQuizBtn" class="btn-primary">¡Comenzar!</button>
       </div>
@@ -61,6 +61,10 @@
       </div>
     </div>
   </div>
+  <div class="music-control">
+    <button id="floatingMusicBtn" class="music-btn off">🔇</button>
+  </div>
+  <audio id="bgMusic" loop></audio>
   <script type="module" src="game.js"></script>
 </body>
 </html>

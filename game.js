@@ -40,6 +40,35 @@ async function loadUser() {
   document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
 
   initGame();
+  initMusic();
+}
+
+function initMusic() {
+  const bgMusic = document.getElementById('bgMusic');
+  const floatingMusicBtn = document.getElementById('floatingMusicBtn');
+  
+  const tracks = {
+    'ciudad': 'ciudad.mp3',
+    'galaxia': 'galaxia.mp3',
+    'parque': 'parque.mp3',
+    'fondo1': 'bosque.mp3',
+    'fondo2': 'neon.mp3'
+  };
+
+  const currentBg = localStorage.getItem('background') || 'ciudad';
+  bgMusic.src = tracks[currentBg] || 'ciudad.mp3';
+
+  floatingMusicBtn.onclick = () => {
+    if (bgMusic.paused) {
+      bgMusic.play().catch(e => console.log("Error al reproducir:", e));
+      floatingMusicBtn.classList.remove('off');
+      floatingMusicBtn.textContent = '🎵';
+    } else {
+      bgMusic.pause();
+      floatingMusicBtn.classList.add('off');
+      floatingMusicBtn.textContent = '🔇';
+    }
+  };
 }
 
 var difficulty = 'facil';
@@ -88,7 +117,7 @@ function initGame() {
 
 function showQuestion() {
   currentProblem = generateProblem(difficulty);
-  document.getElementById('questionText').textContent = currentProblem.q;
+  document.getElementById('questionText').innerHTML = currentProblem.q;
   document.getElementById('quizAnsInput').value = '';
   document.getElementById('quizAnsInput').focus();
   document.getElementById('currentStreakDisplay').textContent = '🔥 Racha: ' + currentStreak;
@@ -98,27 +127,55 @@ function generateProblem(diff) {
   let a, b, c, q, ans;
   
   if (diff === 'facil') {
-    a = Math.floor(Math.random() * 10) + 1;
-    b = Math.floor(Math.random() * 10) + 1;
-    q = `${a} + ${b}`;
-    ans = a + b;
+    // Fácil: Suma y Resta
+    a = Math.floor(Math.random() * 20) + 1;
+    b = Math.floor(Math.random() * 20) + 1;
+    if (Math.random() > 0.5) {
+      q = `${a} + ${b}`;
+      ans = a + b;
+    } else {
+      if (a < b) [a, b] = [b, a];
+      q = `${a} - ${b}`;
+      ans = a - b;
+    }
   } else if (diff === 'normal') {
-    a = Math.floor(Math.random() * 15) + 1;
-    b = Math.floor(Math.random() * 15) + 1;
-    q = `${a} × ${b}`;
-    ans = a * b;
+    // Normal: Multiplicación y División
+    if (Math.random() > 0.5) {
+      a = Math.floor(Math.random() * 12) + 1;
+      b = Math.floor(Math.random() * 12) + 1;
+      q = `${a} × ${b}`;
+      ans = a * b;
+    } else {
+      b = Math.floor(Math.random() * 10) + 2;
+      ans = Math.floor(Math.random() * 10) + 1;
+      a = b * ans;
+      q = `${a} ÷ ${b}`;
+    }
   } else if (diff === 'dificil') {
-    a = Math.floor(Math.random() * 30) + 10;
-    b = Math.floor(Math.random() * 30) + 10;
-    c = Math.floor(Math.random() * 20) + 5;
-    q = `(${a} × ${b}) - ${c}`;
-    ans = (a * b) - c;
+    // Difícil: Potencia y Raíz
+    if (Math.random() > 0.5) {
+      a = Math.floor(Math.random() * 10) + 2;
+      b = Math.floor(Math.random() * 2) + 2; // cuadrado o cubo
+      q = `${a}<sup>${b}</sup>`;
+      ans = Math.pow(a, b);
+    } else {
+      ans = Math.floor(Math.random() * 15) + 2;
+      a = ans * ans;
+      q = `√${a}`;
+    }
   } else if (diff === 'experto') {
-    a = Math.floor(Math.random() * 50) + 20;
-    b = Math.floor(Math.random() * 50) + 20;
-    c = Math.floor(Math.random() * 50) + 10;
-    q = `(${a} × ${b}) ÷ ${c}`;
-    ans = Math.floor((a * b) / c);
+    // Experto: Ecuaciones Cuadráticas (x² + bx + c = 0)
+    // Generamos raíces enteras para que sea resoluble mentalmente (x-r1)(x-r2) = x² - (r1+r2)x + r1*r2
+    let r1 = Math.floor(Math.random() * 10) + 1;
+    let r2 = Math.floor(Math.random() * 10) + 1;
+    let b_val = -(r1 + r2);
+    let c_val = r1 * r2;
+    
+    // Formato: x² + bx + c = 0. Pedimos la raíz mayor.
+    let b_str = b_val < 0 ? `${b_val}x` : `+${b_val}x`;
+    let c_str = c_val < 0 ? `${c_val}` : `+${c_val}`;
+    q = `x² ${b_str} ${c_str} = 0 (Raíz >)`;
+    ans = Math.max(r1, r2);
   }
   
   return { q, ans };

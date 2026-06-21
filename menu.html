@@ -57,18 +57,22 @@
     <div id="configSection" class="section hidden">
       <h2>⚙️ Ajustes</h2>
       <div class="card">
-        <label>Fondo de Pantalla:</label>
-        <select id="backgroundSelect">
-          <option value="ciudad">Ciudad Futurista</option>
-          <option value="galaxia">Galaxia</option>
-          <option value="parque">Parque</option>
-          <option value="fondo1">Bosque</option>
-          <option value="fondo2">Neón</option>
-        </select>
+        <h3>Música de Fondo</h3>
+        <div id="musicStatusText" style="margin-bottom: 10px; opacity: 0.8;">Estado: Desactivada</div>
+        <button id="toggleMusicBtnConfig" class="btn-primary">Activar Música</button>
+      </div>
+      
+      <h3 style="margin-top: 20px; color: var(--accent); font-family: 'Orbitron';">Temas Visuales</h3>
+      <div id="themesContainer" class="themes-grid">
+        <!-- Los temas se cargarán dinámicamente -->
       </div>
     </div>
   </div>
 
+  <div class="music-control">
+    <button id="floatingMusicBtn" class="music-btn off">🔇</button>
+  </div>
+  <audio id="bgMusic" loop></audio>
   <script type="module" src="menu.js"></script>
 </body>
 </html>
