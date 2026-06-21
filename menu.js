@@ -242,8 +242,23 @@ window.addFriend = async function(name) {
 
 // --- BATALLAS (DUELS) ---
 window.showBattles = function() {
+  let html = `
+    <div class="friends-tabs">
+      <button class="tab-btn active" onclick="window.showBattlesDesafiar()">Desafiar</button>
+      <button class="tab-btn" onclick="window.showBattlesHistorial()">Historial</button>
+    </div>
+    <div id="battlesContentInner"></div>
+  `;
+  document.getElementById('battlesContent').innerHTML = html;
+  window.showBattlesDesafiar();
+};
+
+window.showBattlesDesafiar = function() {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  
   if (!user.friends || user.friends.length === 0) {
-    document.getElementById('battlesContent').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">Añade amigos para batallar.</p>';
+    document.getElementById('battlesContentInner').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">Añade amigos para batallar.</p>';
     return;
   }
 
@@ -252,10 +267,64 @@ window.showBattles = function() {
     html += `
       <div class="friend-item">
         <span>👤 ${f}</span>
-        <button class="btn-primary" onclick="window.startBattleInvite('${f}')">⚔️ Desafiar</button>
+        <button class="btn-primary" onclick="window.startBattleInvite('${f}')">Desafiar</button>
       </div>`;
   });
-  document.getElementById('battlesContent').innerHTML = html;
+  document.getElementById('battlesContentInner').innerHTML = html;
+};
+
+window.showBattlesHistorial = async function() {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[1].classList.add('active');
+  
+  try {
+    const duelsRef = collection(db, 'duels');
+    const q = query(duelsRef, where('status', '==', 'finished'));
+    const snap = await getDocs(q);
+    
+    const myDuels = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(d => d.challenger === currentUser || d.opponent === currentUser)
+      .sort((a, b) => b.createdAt - a.createdAt);
+    
+    if (myDuels.length === 0) {
+      document.getElementById('battlesContentInner').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">No hay batallas completadas aun.</p>';
+      return;
+    }
+    
+    let html = '<div class="battles-history">';
+    myDuels.forEach(duel => {
+      const isChallenger = duel.challenger === currentUser;
+      const opponent = isChallenger ? duel.opponent : duel.challenger;
+      const myScore = isChallenger ? duel.p1Score : duel.p2Score;
+      const opScore = isChallenger ? duel.p2Score : duel.p1Score;
+      const won = myScore > opScore;
+      const result = won ? 'GANADA' : (myScore === opScore ? 'EMPATE' : 'PERDIDA');
+      const resultColor = won ? '#4cff90' : (myScore === opScore ? '#ffd700' : '#ff4d6d');
+      const date = new Date(duel.createdAt).toLocaleString('es-ES');
+      
+      html += `
+        <div class="battle-history-item" style="background:rgba(76,144,255,0.1); border:1px solid rgba(76,144,255,0.3); padding:15px; border-radius:10px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:bold; color:#fff;">vs ${opponent}</div>
+              <div style="font-size:12px; opacity:0.7;">${date}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:18px; font-weight:bold; color:${resultColor};">${result}</div>
+              <div style="font-size:14px; color:#4cff90; margin-top:5px;">${myScore} - ${opScore}</div>
+              <div style="font-size:12px; opacity:0.8; margin-top:5px;">${duel.bet} monedas</div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    document.getElementById('battlesContentInner').innerHTML = html;
+  } catch (e) {
+    console.error('Error cargando historial:', e);
+    document.getElementById('battlesContentInner').innerHTML = '<p style="color:#ff4d6d;">Error al cargar el historial.</p>';
+  }
 };
 
 window.startBattleInvite = async function(opponent) {
@@ -588,25 +657,8 @@ window.showRanking = async function() {
 window.showTienda = function() {
   let html = '<div class="tienda-grid">';
   
-  // Avatares
-  html += '<h3 style="grid-column:1/-1; color:#4c90ff; font-family:Orbitron;">👤 Avatares (500 monedas c/u)</h3>';
-  AVATARS.forEach(avatar => {
-    const owned = user.skins && user.skins.includes(avatar);
-    const btnText = owned ? 'Equipado' : 'Comprar';
-    const btnClass = owned ? 'btn-gray' : 'btn-green';
-    html += `
-      <div class="tienda-item">
-        <img src="${getAvatarSrc(avatar)}" style="width:60px; height:60px; border-radius:10px; object-fit:cover;">
-        <div>${avatar}</div>
-        <button class="${btnClass}" onclick="window.buyAvatar('${avatar}')" ${owned ? 'disabled' : ''}>
-          ${btnText}
-        </button>
-      </div>
-    `;
-  });
-  
   // Poderes
-  html += '<h3 style="grid-column:1/-1; color:#4c90ff; font-family:Orbitron; margin-top:20px;">⚡ Poderes</h3>';
+  html += '<h3 style="grid-column:1/-1; color:#4c90ff; font-family:Orbitron;">⚡ Poderes Especiales</h3>';
   POWERS.forEach(power => {
     html += `
       <div class="tienda-item">
@@ -621,7 +673,7 @@ window.showTienda = function() {
   });
   
   html += '</div>';
-  document.getElementById('tiendaSection').innerHTML = '<h2>🛍️ Tienda de Poderes</h2>' + html;
+  document.getElementById('tiendaSection').innerHTML = '<h2>🛍️ Tienda</h2>' + html;
 };
 
 window.buyAvatar = async function(avatar) {
@@ -634,7 +686,7 @@ window.buyAvatar = async function(avatar) {
   await saveUser();
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   alert('¡Avatar comprado!');
-  window.showTienda();
+  window.showAvatarEditor();
 };
 
 window.buyPower = async function(powerId, cost) {
@@ -656,16 +708,22 @@ window.showAvatarEditor = function() {
   let html = '<div class="avatar-grid">';
   AVATARS.forEach(avatar => {
     const isSelected = user.skin === avatar;
+    const owned = user.skins && user.skins.includes(avatar);
+    const btnText = owned ? (isSelected ? '✓ Equipado' : 'Equipar') : 'Comprar (500 💰)';
+    const btnClass = owned ? (isSelected ? 'btn-gray' : 'btn-green') : 'btn-primary';
+    
     html += `
-      <div class="avatar-option ${isSelected ? 'selected' : ''}" onclick="window.selectAvatar('${avatar}')">
+      <div class="avatar-option ${isSelected ? 'selected' : ''}">
         <img src="${getAvatarSrc(avatar)}" class="avatar-choice-img">
         <div style="margin-top:10px; font-size:12px;">${avatar}</div>
-        ${isSelected ? '<div style="color:#4cff90; font-weight:bold;">✓ Equipado</div>' : ''}
+        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar}')` : `window.buyAvatar('${avatar}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:11px;">
+          ${btnText}
+        </button>
       </div>
     `;
   });
   html += '</div>';
-  document.getElementById('avatarSection').innerHTML = '<h2>👤 Cambiar Avatar</h2>' + html;
+  document.getElementById('avatarSection').innerHTML = '<h2>👤 Avatares</h2>' + html;
 };
 
 window.selectAvatar = async function(avatar) {
@@ -677,6 +735,7 @@ window.selectAvatar = async function(avatar) {
   await saveUser();
   const avatarDisplay = document.getElementById('avatarDisplay');
   if (avatarDisplay) avatarDisplay.innerHTML = `<img src="${getAvatarSrc(avatar)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   window.showAvatarEditor();
 };
 
