@@ -115,15 +115,15 @@ function initMenu() {
       var page = this.dataset.page;
       document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
       if (page === 'game') window.location.href = 'game.html';
-      else if (page === 'profile') { document.getElementById('profileSection').classList.remove('hidden'); showProfile(currentUser); }
-      else if (page === 'friends') { document.getElementById('friendsSection').classList.remove('hidden'); showFriendsList(); }
-      else if (page === 'battles') { document.getElementById('battlesSection').classList.remove('hidden'); showBattles(); }
-      else if (page === 'skills') { document.getElementById('skillsSection').classList.remove('hidden'); showSkills(); }
-      else if (page === 'ranking') { document.getElementById('rankingSection').classList.remove('hidden'); showRanking(); }
-      else if (page === 'tienda') { document.getElementById('tiendaSection').classList.remove('hidden'); showTienda(); }
-      else if (page === 'avatar') { document.getElementById('avatarSection').classList.remove('hidden'); showAvatarEditor(); }
-      else if (page === 'logros') { document.getElementById('logrosSection').classList.remove('hidden'); showLogros(); }
-      else if (page === 'config') { document.getElementById('configSection').classList.remove('hidden'); showThemes(); }
+      else if (page === 'profile') { document.getElementById('profileSection').classList.remove('hidden'); window.showProfile(currentUser); }
+      else if (page === 'friends') { document.getElementById('friendsSection').classList.remove('hidden'); window.showFriendsList(); }
+      else if (page === 'battles') { document.getElementById('battlesSection').classList.remove('hidden'); window.showBattles(); }
+      else if (page === 'skills') { document.getElementById('skillsSection').classList.remove('hidden'); window.showSkills(); }
+      else if (page === 'ranking') { document.getElementById('rankingSection').classList.remove('hidden'); window.showRanking(); }
+      else if (page === 'tienda') { document.getElementById('tiendaSection').classList.remove('hidden'); window.showTienda(); }
+      else if (page === 'avatar') { document.getElementById('avatarSection').classList.remove('hidden'); window.showAvatarEditor(); }
+      else if (page === 'logros') { document.getElementById('logrosSection').classList.remove('hidden'); window.showLogros(); }
+      else if (page === 'config') { document.getElementById('configSection').classList.remove('hidden'); window.showThemes(); }
     });
   });
 
@@ -134,7 +134,7 @@ function initMenu() {
 }
 
 // --- PERFIL ---
-async function showProfile(username) {
+window.showProfile = async function(username) {
   const targetRef = doc(db, 'users', username);
   const snap = await getDoc(targetRef);
   if (!snap.exists()) return;
@@ -160,10 +160,10 @@ async function showProfile(username) {
     </div>
   `;
   document.getElementById('profileContent').innerHTML = html;
-}
+};
 
 // --- AMIGOS ---
-window.showFriendsList = () => {
+window.showFriendsList = function() {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-btn')[0].classList.add('active');
   
@@ -184,7 +184,7 @@ window.showFriendsList = () => {
   document.getElementById('friendsContent').innerHTML = html;
 };
 
-window.showAddFriends = () => {
+window.showAddFriends = function() {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-btn')[1].classList.add('active');
 
@@ -197,7 +197,7 @@ window.showAddFriends = () => {
   `;
 };
 
-window.searchUser = async () => {
+window.searchUser = async function() {
   const name = document.getElementById('searchUser').value.trim();
   if (!name || name === currentUser) {
     document.getElementById('searchResults').innerHTML = '<p style="color:#ff4d6d;">Ingresa un nombre válido.</p>';
@@ -230,7 +230,7 @@ window.searchUser = async () => {
   }
 };
 
-window.addFriend = async (name) => {
+window.addFriend = async function(name) {
   if (!user.friends) user.friends = [];
   if (user.friends.includes(name)) { alert('Ya es tu amigo'); return; }
   
@@ -241,7 +241,7 @@ window.addFriend = async (name) => {
 };
 
 // --- BATALLAS (DUELS) ---
-function showBattles() {
+window.showBattles = function() {
   if (!user.friends || user.friends.length === 0) {
     document.getElementById('battlesContent').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">Añade amigos para batallar.</p>';
     return;
@@ -256,9 +256,9 @@ function showBattles() {
       </div>`;
   });
   document.getElementById('battlesContent').innerHTML = html;
-}
+};
 
-window.startBattleInvite = async (opponent) => {
+window.startBattleInvite = async function(opponent) {
   const bet = parseInt(prompt('Cantidad a apostar (mínimo 50):', '50'));
   if (isNaN(bet) || bet < 50) { alert('Mínimo 50 monedas'); return; }
   if (user.coins < bet) { alert('No tienes suficientes monedas'); return; }
@@ -286,10 +286,10 @@ window.startBattleInvite = async (opponent) => {
   await saveUser();
   
   activeBattleInvite = duelId;
-  showInviteModal(opponent, bet, 60);
+  window.showInviteModal(opponent, bet, 60);
 };
 
-function showInviteModal(opponent, bet, time) {
+window.showInviteModal = function(opponent, bet, time) {
   document.getElementById('inviteOpponentName').textContent = opponent;
   document.getElementById('inviteBetAmount').textContent = bet;
   document.getElementById('inviteTimer').textContent = time;
@@ -325,19 +325,19 @@ function showInviteModal(opponent, bet, time) {
       alert('El tiempo de invitación expiró.');
     }
   }, 1000);
-}
+};
 
-window.minimizeBattleInvite = () => {
+window.minimizeBattleInvite = function() {
   document.getElementById('battleInviteModal').classList.add('hidden');
   document.getElementById('battlePendingBadge').classList.remove('hidden');
 };
 
-window.restoreBattleInvite = () => {
+window.restoreBattleInvite = function() {
   document.getElementById('battleInviteModal').classList.remove('hidden');
   document.getElementById('battlePendingBadge').classList.add('hidden');
 };
 
-window.cancelBattleInvite = async () => {
+window.cancelBattleInvite = async function() {
   if (activeBattleInvite) {
     const duelRef = doc(db, 'duels', activeBattleInvite);
     const snap = await getDoc(duelRef);
@@ -362,13 +362,13 @@ function listenForInvites() {
     snapshot.docChanges().forEach((change) => {
       if (change.type === 'added') {
         const d = change.doc.data();
-        showReceiveInvite(d);
+        window.showReceiveInvite(d);
       }
     });
   });
 }
 
-function showReceiveInvite(duel) {
+window.showReceiveInvite = function(duel) {
   document.getElementById('challengerName').textContent = duel.challenger;
   document.getElementById('challengerBet').textContent = duel.bet;
   document.getElementById('challengerDuration').textContent = duel.duration;
@@ -399,10 +399,10 @@ function showReceiveInvite(duel) {
     await setDoc(doc(db, 'duels', duel.id), { status: 'declined' }, { merge: true });
     document.getElementById('receiveInviteModal').classList.add('hidden');
   };
-}
+};
 
 // --- HABILIDADES ---
-window.showSkills = () => {
+window.showSkills = function() {
   const algebra = Math.min(5, Math.floor((user.calcTotalSolved || 0) / 10));
   const geometry = Math.min(5, Math.floor((user.infinityProblemsSolved || 0) / 50));
   const duels = Math.min(5, Math.floor((user.duelsWon || 0) / 20));
@@ -530,7 +530,7 @@ function drawSkillsRadar(stats) {
 }
 
 // --- RANKING ---
-window.showRanking = async () => {
+window.showRanking = async function() {
   const usersRef = collection(db, 'users');
   const q = query(usersRef, orderBy('xp', 'desc'), limit(10));
   const snap = await getDocs(q);
@@ -579,7 +579,7 @@ window.showRanking = async () => {
 };
 
 // --- TIENDA ---
-window.showTienda = async () => {
+window.showTienda = function() {
   let html = '<div class="tienda-grid">';
   
   // Avatares
@@ -618,7 +618,7 @@ window.showTienda = async () => {
   document.getElementById('tiendaSection').innerHTML = '<h2>🛍️ Tienda de Poderes</h2>' + html;
 };
 
-window.buyAvatar = async (avatar) => {
+window.buyAvatar = async function(avatar) {
   if (user.coins < 500) { alert('No tienes suficientes monedas'); return; }
   if (user.skins && user.skins.includes(avatar)) { alert('Ya lo posees'); return; }
   
@@ -631,7 +631,7 @@ window.buyAvatar = async (avatar) => {
   window.showTienda();
 };
 
-window.buyPower = async (powerId, cost) => {
+window.buyPower = async function(powerId, cost) {
   if (user.coins < cost) { alert('No tienes suficientes monedas'); return; }
   
   user.coins -= cost;
@@ -646,7 +646,7 @@ window.buyPower = async (powerId, cost) => {
 };
 
 // --- AVATAR EDITOR ---
-window.showAvatarEditor = () => {
+window.showAvatarEditor = function() {
   let html = '<div class="avatar-grid">';
   AVATARS.forEach(avatar => {
     const isSelected = user.skin === avatar;
@@ -662,7 +662,7 @@ window.showAvatarEditor = () => {
   document.getElementById('avatarSection').innerHTML = '<h2>👤 Cambiar Avatar</h2>' + html;
 };
 
-window.selectAvatar = async (avatar) => {
+window.selectAvatar = async function(avatar) {
   if (!user.skins || !user.skins.includes(avatar)) {
     alert('Debes comprar este avatar primero');
     return;
@@ -675,7 +675,7 @@ window.selectAvatar = async (avatar) => {
 };
 
 // --- LOGROS ---
-window.showLogros = () => {
+window.showLogros = function() {
   const allAchievements = getAllAchievements();
   const stats = getAchievementStats(user.logros || {});
   
@@ -704,7 +704,7 @@ window.showLogros = () => {
 };
 
 // --- TEMAS ---
-window.showThemes = () => {
+window.showThemes = function() {
   const bgMusic = document.getElementById('bgMusic');
   const musicStatus = bgMusic && !bgMusic.paused ? 'Activada' : 'Desactivada';
   
@@ -738,7 +738,7 @@ window.showThemes = () => {
   document.getElementById('configSection').innerHTML = '<h2>⚙️ Ajustes</h2>' + html;
 };
 
-window.toggleMusic = () => {
+window.toggleMusic = function() {
   const bgMusic = document.getElementById('bgMusic');
   if (bgMusic) {
     if (bgMusic.paused) {
@@ -750,7 +750,7 @@ window.toggleMusic = () => {
   }
 };
 
-window.selectTheme = (themeName) => {
+window.selectTheme = function(themeName) {
   localStorage.setItem('background', themeName);
   document.body.className = themeName;
   window.showThemes();
