@@ -138,7 +138,9 @@ function initMenu() {
         <div class="skin-item ${active ? 'active' : ''} ${!owned ? 'locked' : ''}" onclick="window.selectSkin('${s.avatar}', ${s.price})">
           <img src="${getAvatarSrc(s.avatar)}" class="skin-img"/>
           <div class="skin-name">${s.name}</div>
-          <small>${owned ? (active ? '✅ Activo' : 'Equipar') : '💰 ' + s.price}</small>
+          <div class="skin-action">
+            <small>${owned ? (active ? '✅ Seleccionado' : 'Equipar') : '💰 ' + s.price}</small>
+          </div>
         </div>`;
     });
     html += `</div>`;
