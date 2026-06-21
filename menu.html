@@ -39,6 +39,18 @@
         <span class="icon">🎮</span>
         <span>Jugar</span>
       </button>
+      <button class="menu-btn" data-page="profile">
+        <span class="icon">🆔</span>
+        <span>Perfil</span>
+      </button>
+      <button class="menu-btn" data-page="friends">
+        <span class="icon">👥</span>
+        <span>Amigos</span>
+      </button>
+      <button class="menu-btn" data-page="battles">
+        <span class="icon">⚔️</span>
+        <span>Batallas</span>
+      </button>
       <button class="menu-btn" data-page="skills">
         <span class="icon">⭐</span>
         <span>Habilidades</span>
@@ -115,6 +127,69 @@
       <h3 style="margin-top: 20px; color: var(--accent); font-family: 'Orbitron';">Temas Visuales</h3>
       <div id="themesContainer" class="themes-grid">
         <!-- Los temas se cargarán dinámicamente -->
+      </div>
+    </div>
+
+    <!-- SECCIÓN PERFIL -->
+    <div id="profileSection" class="section hidden">
+      <h2>🆔 Mi Perfil</h2>
+      <div id="profileContent" class="profile-card"></div>
+    </div>
+
+    <!-- SECCIÓN AMIGOS -->
+    <div id="friendsSection" class="section hidden">
+      <h2>👥 Amigos</h2>
+      <div class="friends-tabs">
+        <button onclick="window.showFriendsList()" class="tab-btn active">Lista</button>
+        <button onclick="window.showAddFriends()" class="tab-btn">Añadir</button>
+      </div>
+      <div id="friendsContent"></div>
+    </div>
+
+    <!-- SECCIÓN BATALLAS -->
+    <div id="battlesSection" class="section hidden">
+      <h2>⚔️ Batallas de Apuestas</h2>
+      <div id="battlesContent">
+        <p style="text-align:center; opacity:0.7;">Selecciona un amigo para desafiarlo</p>
+        <div id="battleFriendsList" class="friends-list"></div>
+      </div>
+    </div>
+
+    <!-- MODAL DE INVITACIÓN DE BATALLA (TIPO CLASH ROYALE) -->
+    <div id="battleInviteModal" class="battle-invite-modal hidden">
+      <div class="battle-invite-content">
+        <div class="battle-invite-header">
+          <h3>Batalla Enviada</h3>
+          <button class="close-invite-btn" onclick="window.minimizeBattleInvite()">X</button>
+        </div>
+        <div class="battle-invite-body">
+          <p>Esperando a <span id="inviteOpponentName">...</span></p>
+          <div class="battle-timer-box">
+            Tiempo restante: <span id="inviteTimer">60</span> seg
+          </div>
+          <p>Apuesta: <span id="inviteBetAmount">0</span> 💰</p>
+          <button class="btn-red" onclick="window.cancelBattleInvite()">Cancelar Batalla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICACIÓN DE BATALLA PENDIENTE (MINIMIZADA) -->
+    <div id="battlePendingBadge" class="battle-pending-badge hidden" onclick="window.restoreBattleInvite()">
+      ⚔️ Batalla Pendiente
+    </div>
+
+    <!-- MODAL DE RECIBIR INVITACIÓN -->
+    <div id="receiveInviteModal" class="battle-invite-modal hidden">
+      <div class="battle-invite-content">
+        <h3>¡Desafío Recibido!</h3>
+        <p><span id="challengerName">...</span> te ha desafiado</p>
+        <p>Apuesta: <span id="challengerBet">0</span> 💰</p>
+        <p>Tiempo: <span id="challengerDuration">30</span>s</p>
+        <div class="battle-timer-box">Expira en: <span id="receiveTimer">60</span>s</div>
+        <div class="invite-actions">
+          <button class="btn-green" id="acceptBattleBtn">ACEPTAR</button>
+          <button class="btn-red" id="declineBattleBtn">RECHAZAR</button>
+        </div>
       </div>
     </div>
   </div>

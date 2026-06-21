@@ -1287,3 +1287,216 @@ color: transparent;
   margin-bottom: 30px;
   line-height: 1.5;
 }
+
+/* --- ESTILOS PERFIL, AMIGOS Y BATALLAS --- */
+.profile-card {
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  border: 1px solid rgba(76,144,255,0.2);
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid var(--accent);
+  margin-bottom: 20px;
+  box-shadow: 0 0 30px rgba(76,144,255,0.4);
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.stat-item {
+  background: rgba(8,12,26,0.6);
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid rgba(76,144,255,0.1);
+}
+
+.friends-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(76,144,255,0.2);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  border-color: #fff;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.friend-item {
+  background: rgba(255,255,255,0.05);
+  padding: 15px 20px;
+  border-radius: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border: 1px solid rgba(76,144,255,0.1);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.friend-item:hover {
+  background: rgba(76,144,255,0.1);
+}
+
+.btn-small {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.btn-green { background: #4cff90; color: #000; font-weight: bold; }
+.btn-red { background: #ff4d6d; color: #fff; font-weight: bold; }
+
+/* MODAL BATALLA CLASH ROYALE */
+.battle-invite-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 11000;
+  width: 90%;
+  max-width: 350px;
+}
+
+.battle-invite-content {
+  background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+  border: 4px solid var(--accent);
+  border-radius: 20px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.battle-invite-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-invite-btn {
+  background: #ff4d6d;
+  color: #fff;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.battle-timer-box {
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 10px;
+  margin: 15px 0;
+  font-family: 'Orbitron', sans-serif;
+  color: var(--gold);
+}
+
+.battle-pending-badge {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(76,144,255,0.5);
+  z-index: 10000;
+  animation: pulse 2s infinite;
+}
+
+/* ARENA DE BATALLA */
+.battle-arena {
+  padding: 20px;
+}
+
+.battle-header-players {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.battle-player {
+  text-align: center;
+}
+
+.b-avatar {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+.b-name {
+  font-weight: bold;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.b-score {
+  font-size: 32px;
+  color: var(--green);
+  font-weight: 900;
+}
+
+.battle-vs {
+  font-size: 24px;
+  font-family: 'Orbitron', sans-serif;
+  color: var(--red);
+}
+
+.battle-timer-bar {
+  width: 100%;
+  height: 25px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+
+.timer-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(to right, #4cff90, #ffd700, #ff4d6d);
+  transition: width 1s linear;
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  text-shadow: 0 0 5px #000;
+}

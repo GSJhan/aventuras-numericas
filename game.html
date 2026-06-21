@@ -64,7 +64,6 @@
 
       <div id="quizGame" class="question-box" style="display:none; margin-top:20px;">
         <div id="questionText" class="question-text">?</div>
-        <div id="infinityDifficultyDisplay" style="text-align:center; font-size:18px; color:#4c90ff; margin-bottom:15px; display:none;">Dificultad: <span id="infinityDiffSpan"></span></div>
         <input type="number" id="quizAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
         <button onclick="window.checkQuizAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
       </div>
@@ -101,7 +100,36 @@
         <button onclick="window.checkInfinityAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
       </div>
     </div>
+
+    <!-- SECCIÓN DUELO (BATTLE) -->
+    <div id="battleSection" class="section hidden">
+      <div class="battle-arena">
+        <div class="battle-header-players">
+          <div class="battle-player">
+            <div id="p1Avatar" class="b-avatar">👤</div>
+            <div id="p1Name" class="b-name">Tú</div>
+            <div id="p1Score" class="b-score">0</div>
+          </div>
+          <div class="battle-vs">VS</div>
+          <div class="battle-player">
+            <div id="p2Avatar" class="b-avatar">👤</div>
+            <div id="p2Name" class="b-name">Oponente</div>
+            <div id="p2Score" class="b-score">0</div>
+          </div>
+        </div>
+        <div class="battle-timer-bar">
+          <div id="battleTimerFill" class="timer-fill"></div>
+          <div id="battleTimerText" class="timer-text">30s</div>
+        </div>
+        <div id="battleGame" style="text-align:center; margin-top:20px;">
+          <div class="question-box" id="battleQuestionText">Cargando...</div>
+          <input type="number" id="battleAnsInput" class="ans-input" placeholder="?" style="font-size:32px; text-align:center; width:100%; padding:15px; margin-top:15px;" />
+          <button onclick="window.checkBattleAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
+        </div>
+      </div>
+    </div>
   </div>
+
   <!-- MODAL DE NOTIFICACIÓN -->
   <div id="customModal" class="modal-overlay hidden">
     <div class="modal-content">
