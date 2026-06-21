@@ -25,6 +25,11 @@ var activeDuelId = localStorage.getItem('activeDuel');
 var isBattleMode = new URLSearchParams(window.location.search).get('mode') === 'battle';
 var duelData = null;
 var battleTimer = null;
+var currentProblem = null;
+var quizStreak = 0;
+var infinityStreak = 0;
+var infinityBestStreak = 0;
+var infinityCoinsEarned = 0;
 
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
@@ -45,6 +50,11 @@ function updateXPDisplay() {
   const level = Math.floor(user.xp / 500) + 1;
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
   document.getElementById('displayXP').textContent = `⭐ ${user.xp} XP (Nivel ${level})`;
+}
+
+async function saveUser() {
+  await setDoc(userRef, user);
+  await checkAllAchievements(user, userRef);
 }
 
 // --- LÓGICA DE BATALLA ---
@@ -118,7 +128,6 @@ window.checkBattleAnswer = async () => {
     showBattleQuestion();
   } else {
     document.getElementById('battleAnsInput').value = '';
-    // Penalización visual o simplemente borrar
   }
 };
 
@@ -142,6 +151,7 @@ async function finishBattle() {
     resultMsg = `¡GANASTE! +${duelData.bet} monedas`;
     icon = '🏆';
     user.coins += duelData.bet;
+    user.duelsWon = (user.duelsWon || 0) + 1;
   } else if (myScore < opScore) {
     resultMsg = `PERDISTE. -${duelData.bet} monedas`;
     icon = '💀';
@@ -149,9 +159,10 @@ async function finishBattle() {
   } else {
     resultMsg = '¡EMPATE! Se devuelven las monedas';
     icon = '🤝';
+    user.coins += duelData.bet;
   }
 
-  await setDoc(userRef, user);
+  await saveUser();
   localStorage.removeItem('activeDuel');
   
   window.showCustomModal('Resultado de Batalla', resultMsg, icon, () => {
@@ -159,10 +170,7 @@ async function finishBattle() {
   });
 }
 
-// --- RESTO DE LÓGICA (QUIZ, INFINITO, ETC) ---
-// ... (Mantener lógica previa de generateProblem, solveEquation, etc.)
-// Reutilizo generateProblem de la versión anterior
-var currentProblem = null;
+// --- GENERADOR DE PROBLEMAS ---
 function generateProblem(diff) {
   let a, b, c, q, ans;
   if (diff === 'facil') {
@@ -184,7 +192,7 @@ function generateProblem(diff) {
   return { q, ans };
 }
 
-// Copio funciones necesarias para que el archivo sea funcional
+// --- LÓGICA DEL JUEGO ---
 window.goBackToChoice = () => {
   document.getElementById('gameChoice').classList.remove('hidden');
   document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
@@ -215,13 +223,15 @@ function initGame() {
     document.getElementById('quizSetup').style.display = 'none';
     document.getElementById('quizStats').style.display = 'block';
     document.getElementById('quizGame').style.display = 'block';
-    currentProblem = generateProblem(diff);
-    document.getElementById('questionText').innerHTML = currentProblem.q;
+    quizStreak = 0;
+    showQuizQuestion(diff);
   };
   document.getElementById('startInfinityBtn').onclick = () => {
     document.getElementById('infinitySetup').style.display = 'none';
     document.getElementById('infinityStats').style.display = 'block';
     document.getElementById('infinityGame').style.display = 'block';
+    infinityStreak = 0;
+    infinityCoinsEarned = 0;
     showInfinityQuestion();
   };
   document.getElementById('solveBtn').onclick = () => {
@@ -231,14 +241,99 @@ function initGame() {
   };
 }
 
-function showInfinityQuestion() {
+// --- QUIZ ---
+window.quizDifficulty = 'facil';
+
+window.showQuizQuestion = (diff) => {
+  window.quizDifficulty = diff;
+  currentProblem = generateProblem(diff);
+  document.getElementById('questionText').innerHTML = currentProblem.q;
+  document.getElementById('quizAnsInput').value = '';
+  document.getElementById('quizAnsInput').focus();
+  updateQuizStreak();
+};
+
+window.checkQuizAnswer = async () => {
+  const ans = parseInt(document.getElementById('quizAnsInput').value);
+  if (ans === currentProblem.ans) {
+    quizStreak++;
+    user.quizQuestionsAnswered = (user.quizQuestionsAnswered || 0) + 1;
+    
+    // Agregar XP según dificultad
+    const xpGain = { facil: 10, normal: 25, dificil: 50, experto: 100 };
+    user.xp += xpGain[window.quizDifficulty] || 10;
+    
+    // Agregar monedas
+    user.coins += 5;
+    
+    // Actualizar stats
+    if (!user.stats) user.stats = {};
+    user.stats[window.quizDifficulty] = (user.stats[window.quizDifficulty] || 0) + 1;
+    
+    await saveUser();
+    updateXPDisplay();
+    window.showQuizQuestion(window.quizDifficulty);
+  } else {
+    quizStreak = 0;
+    document.getElementById('quizAnsInput').value = '';
+    updateQuizStreak();
+  }
+};
+
+function updateQuizStreak() {
+  document.getElementById('currentStreakDisplay').textContent = `🔥 Racha: ${quizStreak}`;
+}
+
+// --- INFINITO ---
+window.showInfinityQuestion = () => {
   const diffs = ['facil', 'normal', 'dificil', 'experto'];
   const diff = diffs[Math.floor(Math.random() * diffs.length)];
   currentProblem = generateProblem(diff);
   document.getElementById('infinityQuestionText').innerHTML = currentProblem.q;
   document.getElementById('infinityDiffSpan2').textContent = diff;
+  updateInfinityDisplay();
+};
+
+window.checkInfinityAnswer = async () => {
+  const ans = parseInt(document.getElementById('infinityAnsInput').value);
+  if (ans === currentProblem.ans) {
+    infinityStreak++;
+    if (infinityStreak > infinityBestStreak) infinityBestStreak = infinityStreak;
+    
+    user.infinityProblemsSolved = (user.infinityProblemsSolved || 0) + 1;
+    user.infinityStreak = infinityStreak;
+    user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityBestStreak);
+    
+    // Monedas por racha
+    const coinsEarned = Math.floor(infinityStreak / 5) + 1;
+    infinityCoinsEarned += coinsEarned;
+    user.coins += coinsEarned;
+    user.infinityCoinsEarned = (user.infinityCoinsEarned || 0) + coinsEarned;
+    
+    // XP
+    user.xp += 15;
+    
+    // Stats
+    if (!user.stats) user.stats = {};
+    user.stats.infinito = (user.stats.infinito || 0) + 1;
+    
+    await saveUser();
+    updateXPDisplay();
+    window.showInfinityQuestion();
+  } else {
+    infinityStreak = 0;
+    document.getElementById('infinityAnsInput').value = '';
+    updateInfinityDisplay();
+  }
+};
+
+function updateInfinityDisplay() {
+  document.getElementById('infinityStreakDisplay').textContent = infinityStreak;
+  document.getElementById('infinityBestStreakDisplay').textContent = infinityBestStreak;
+  document.getElementById('infinityCoinsDisplay').textContent = infinityCoinsEarned;
 }
 
+// --- MODAL ---
 window.showCustomModal = (title, message, icon, callback) => {
   const modal = document.getElementById('customModal');
   document.getElementById('modalTitle').textContent = title;
@@ -251,6 +346,7 @@ window.showCustomModal = (title, message, icon, callback) => {
   };
 };
 
+// --- MÚSICA ---
 function initMusic() {
   const bgMusic = document.getElementById('bgMusic');
   const floatingMusicBtn = document.getElementById('floatingMusicBtn');

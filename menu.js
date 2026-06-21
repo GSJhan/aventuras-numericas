@@ -23,6 +23,23 @@ var userRef = null;
 var activeBattleInvite = null;
 var battleTimerInterval = null;
 
+// Avatares disponibles
+const AVATARS = ['spiderman', 'batman', 'goku', 'ironman', 'sasuke', 'kakashi', 'vegeta', 'itachi', 'zoro', 'luffy'];
+const THEMES = [
+  { name: 'ciudad', label: '🏙️ Ciudad', icon: 'ciudad.jpg' },
+  { name: 'galaxia', label: '🌌 Galaxia', icon: 'galaxia.jpg' },
+  { name: 'parque', label: '🌳 Parque', icon: 'parque.jpg' },
+  { name: 'fondo1', label: '🌲 Bosque', icon: 'bosque.jpg' },
+  { name: 'fondo2', label: '🌃 Neón', icon: 'neon.jpg' }
+];
+
+// Poderes disponibles en la tienda
+const POWERS = [
+  { id: 'double', name: '2x Puntos', icon: '2️⃣', cost: 150, desc: 'Duplica tus puntos en la siguiente pregunta' },
+  { id: 'fifty', name: '50/50', icon: '5️⃣', cost: 100, desc: 'Elimina 2 respuestas incorrectas' },
+  { id: 'light', name: 'Iluminación', icon: '💡', cost: 80, desc: 'Obtén una pista' }
+];
+
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
   var snap = await getDoc(userRef);
@@ -35,6 +52,9 @@ async function loadUser() {
   if (!user.skin) user.skin = 'spiderman';
   if (!user.stats) user.stats = { facil: 0, normal: 0, dificil: 0, experto: 0, infinito: 0 };
   if (!user.friends) user.friends = [];
+  if (!user.powerDoubleOwned) user.powerDoubleOwned = 0;
+  if (!user.powerFiftyOwned) user.powerFiftyOwned = 0;
+  if (!user.powerLightOwned) user.powerLightOwned = 0;
   
   await checkAllAchievements(user, userRef);
   initMenu();
@@ -155,7 +175,7 @@ window.showFriendsList = () => {
   let html = '<div class="friends-list">';
   user.friends.forEach(f => {
     html += `
-      <div class="friend-item" onclick="showProfile('${f}')">
+      <div class="friend-item" onclick="window.showProfile('${f}')">
         <span>👤 ${f}</span>
         <button class="btn-small" onclick="event.stopPropagation(); window.startBattleInvite('${f}')">⚔️ Desafiar</button>
       </div>`;
@@ -179,21 +199,34 @@ window.showAddFriends = () => {
 
 window.searchUser = async () => {
   const name = document.getElementById('searchUser').value.trim();
-  if (!name || name === currentUser) return;
+  if (!name || name === currentUser) {
+    document.getElementById('searchResults').innerHTML = '<p style="color:#ff4d6d;">Ingresa un nombre válido.</p>';
+    return;
+  }
 
   const targetRef = doc(db, 'users', name);
   const snap = await getDoc(targetRef);
   
   if (snap.exists()) {
     const data = snap.data();
+    const isAlreadyFriend = user.friends && user.friends.includes(name);
+    const btnText = isAlreadyFriend ? 'Ya es amigo' : 'Añadir';
+    const btnClass = isAlreadyFriend ? 'btn-gray' : 'btn-green';
+    
     document.getElementById('searchResults').innerHTML = `
       <div class="friend-item">
-        <span>👤 ${name} (Nivel ${calculateLevel(data.xp || 0)})</span>
-        <button class="btn-green" onclick="window.addFriend('${name}')">Añadir</button>
+        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.showProfile('${name}')">
+          <img src="${getAvatarSrc(data.skin || 'spiderman')}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+          <div>
+            <span>👤 ${name}</span>
+            <p style="font-size:12px; opacity:0.7;">Nivel ${calculateLevel(data.xp || 0)}</p>
+          </div>
+        </div>
+        <button class="${btnClass}" onclick="window.addFriend('${name}')" ${isAlreadyFriend ? 'disabled' : ''}>${btnText}</button>
       </div>
     `;
   } else {
-    document.getElementById('searchResults').innerHTML = '<p>Usuario no encontrado.</p>';
+    document.getElementById('searchResults').innerHTML = '<p style="color:#ff4d6d;">Usuario no encontrado.</p>';
   }
 };
 
@@ -210,7 +243,7 @@ window.addFriend = async (name) => {
 // --- BATALLAS (DUELS) ---
 function showBattles() {
   if (!user.friends || user.friends.length === 0) {
-    document.getElementById('battleFriendsList').innerHTML = '<p>Añade amigos para batallar.</p>';
+    document.getElementById('battlesContent').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">Añade amigos para batallar.</p>';
     return;
   }
 
@@ -222,7 +255,7 @@ function showBattles() {
         <button class="btn-primary" onclick="window.startBattleInvite('${f}')">⚔️ Desafiar</button>
       </div>`;
   });
-  document.getElementById('battleFriendsList').innerHTML = html;
+  document.getElementById('battlesContent').innerHTML = html;
 }
 
 window.startBattleInvite = async (opponent) => {
@@ -249,6 +282,9 @@ window.startBattleInvite = async (opponent) => {
   };
 
   await setDoc(duelRef, duelData);
+  user.coins -= bet;
+  await saveUser();
+  
   activeBattleInvite = duelId;
   showInviteModal(opponent, bet, 60);
 };
@@ -267,17 +303,19 @@ function showInviteModal(opponent, bet, time) {
     document.getElementById('inviteTimer').textContent = timeLeft;
     
     // Verificar si el oponente aceptó
-    const snap = await getDoc(doc(db, 'duels', activeBattleInvite));
-    if (snap.exists()) {
-      const d = snap.data();
-      if (d.status === 'accepted') {
-        clearInterval(battleTimerInterval);
-        localStorage.setItem('activeDuel', activeBattleInvite);
-        window.location.href = 'game.html?mode=battle';
-      } else if (d.status === 'declined') {
-        clearInterval(battleTimerInterval);
-        alert('El oponente rechazó el desafío.');
-        window.cancelBattleInvite();
+    if (activeBattleInvite) {
+      const snap = await getDoc(doc(db, 'duels', activeBattleInvite));
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.status === 'accepted') {
+          clearInterval(battleTimerInterval);
+          localStorage.setItem('activeDuel', activeBattleInvite);
+          window.location.href = 'game.html?mode=battle';
+        } else if (d.status === 'declined') {
+          clearInterval(battleTimerInterval);
+          alert('El oponente rechazó el desafío.');
+          window.cancelBattleInvite();
+        }
       }
     }
 
@@ -301,7 +339,15 @@ window.restoreBattleInvite = () => {
 
 window.cancelBattleInvite = async () => {
   if (activeBattleInvite) {
-    await deleteDoc(doc(db, 'duels', activeBattleInvite));
+    const duelRef = doc(db, 'duels', activeBattleInvite);
+    const snap = await getDoc(duelRef);
+    if (snap.exists() && snap.data().status === 'pending') {
+      await deleteDoc(duelRef);
+      // Devolver monedas si no fue aceptada
+      const duelData = snap.data();
+      user.coins += duelData.bet;
+      await saveUser();
+    }
     activeBattleInvite = null;
   }
   clearInterval(battleTimerInterval);
@@ -341,6 +387,8 @@ function showReceiveInvite(duel) {
   document.getElementById('acceptBattleBtn').onclick = async () => {
     if (user.coins < duel.bet) { alert('No tienes suficientes monedas'); return; }
     clearInterval(timer);
+    user.coins -= duel.bet;
+    await saveUser();
     await setDoc(doc(db, 'duels', duel.id), { status: 'accepted' }, { merge: true });
     localStorage.setItem('activeDuel', duel.id);
     window.location.href = 'game.html?mode=battle';
@@ -352,5 +400,360 @@ function showReceiveInvite(duel) {
     document.getElementById('receiveInviteModal').classList.add('hidden');
   };
 }
+
+// --- HABILIDADES ---
+window.showSkills = () => {
+  const algebra = Math.min(5, Math.floor((user.calcTotalSolved || 0) / 10));
+  const geometry = Math.min(5, Math.floor((user.infinityProblemsSolved || 0) / 50));
+  const duels = Math.min(5, Math.floor((user.duelsWon || 0) / 20));
+  const speed = Math.min(5, Math.floor((user.infinityBestStreak || 0) / 50));
+  const accuracy = Math.min(5, Math.floor((user.quizQuestionsAnswered || 0) / 100));
+
+  const stats = {
+    'Álgebra': algebra,
+    'Geometría': geometry,
+    'Duelos': duels,
+    'Rapidez': speed,
+    'Precisión': accuracy
+  };
+
+  let html = `<h2 style="font-family:'Orbitron',sans-serif; color:#4c90ff; text-align:center;">🌳 Pentágono de Habilidades</h2>`;
+  html += `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(16,24,52,0.6); padding: 20px; border-radius: 20px; border: 1px solid rgba(76,144,255,0.2);">`;
+  html += `<canvas id="skillsCanvas" width="500" height="500" style="max-width: 100%; filter: drop-shadow(0 0 10px rgba(76,144,255,0.3));"></canvas>`;
+  html += `<div id="skillsStats" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; width: 100%;"></div>`;
+  html += `</div>`;
+  document.getElementById('skillsSection').innerHTML = html;
+
+  drawSkillsRadar(stats);
+
+  const statsContainer = document.getElementById('skillsStats');
+  const labels = Object.keys(stats);
+  const values = Object.values(stats);
+  const icons = ['📐', '📏', '⚔️', '⚡', '🎯'];
+
+  labels.forEach((label, i) => {
+    const percentage = (values[i] / 5) * 100;
+    statsContainer.innerHTML += `
+      <div style="padding: 12px; border: 1px solid rgba(76,144,255,0.3); background: rgba(76,144,255,0.05); border-radius: 10px; text-align: center;">
+        <div style="font-size: 24px; margin-bottom: 8px;">${icons[i]}</div>
+        <div style="font-weight: bold; color: #4c90ff; font-size: 14px;">${label}</div>
+        <div style="font-size: 18px; font-family: 'Orbitron'; color: #fff; margin: 8px 0;">${values[i]}/5</div>
+        <div style="height: 6px; background: rgba(76,144,255,0.2); border-radius: 3px; overflow: hidden;">
+          <div style="height: 100%; background: linear-gradient(90deg, #4c90ff, #4cff90); width: ${percentage}%; transition: width 0.3s;"></div>
+        </div>
+      </div>
+    `;
+  });
+};
+
+function drawSkillsRadar(stats) {
+  const canvas = document.getElementById('skillsCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius = 180;
+  const labels = Object.keys(stats);
+  const values = Object.values(stats);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Dibujar Telaraña Base
+  ctx.strokeStyle = 'rgba(76,144,255,0.2)';
+  ctx.lineWidth = 1;
+  for (let j = 1; j <= 5; j++) {
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const r = (radius / 5) * j;
+      const x = centerX + Math.cos(angle) * r;
+      const y = centerY + Math.sin(angle) * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // Dibujar Ejes
+  ctx.strokeStyle = 'rgba(76,144,255,0.1)';
+  for (let i = 0; i < 5; i++) {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
+    ctx.stroke();
+  }
+
+  // Dibujar Área de Habilidades
+  ctx.beginPath();
+  ctx.fillStyle = 'rgba(76,144,255,0.3)';
+  ctx.strokeStyle = '#4c90ff';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 5; i++) {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const r = (values[i] / 5) * radius;
+    const x = centerX + Math.cos(angle) * r;
+    const y = centerY + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Dibujar Puntos
+  for (let i = 0; i < 5; i++) {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const r = (values[i] / 5) * radius;
+    const x = centerX + Math.cos(angle) * r;
+    const y = centerY + Math.sin(angle) * r;
+    
+    ctx.fillStyle = '#4cff90';
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Dibujar Etiquetas
+  ctx.fillStyle = '#e8eaff';
+  ctx.font = 'bold 16px Rajdhani';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < 5; i++) {
+    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+    const x = centerX + Math.cos(angle) * (radius + 45);
+    const y = centerY + Math.sin(angle) * (radius + 45);
+    ctx.fillText(labels[i], x, y);
+  }
+}
+
+// --- RANKING ---
+window.showRanking = async () => {
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, orderBy('xp', 'desc'), limit(10));
+  const snap = await getDocs(q);
+  
+  let html = '<div class="podium-container">';
+  const users = snap.docs.map(d => ({ name: d.id, ...d.data() }));
+  
+  // Top 3 en podio
+  if (users.length >= 1) {
+    html += `<div class="podium-1st">
+      <div style="font-size:40px;">🥇</div>
+      <div>${users[0].name}</div>
+      <div style="color:#ffd700; font-weight:bold;">${users[0].xp || 0} XP</div>
+    </div>`;
+  }
+  if (users.length >= 2) {
+    html += `<div class="podium-2nd">
+      <div style="font-size:40px;">🥈</div>
+      <div>${users[1].name}</div>
+      <div style="color:#c0c0c0; font-weight:bold;">${users[1].xp || 0} XP</div>
+    </div>`;
+  }
+  if (users.length >= 3) {
+    html += `<div class="podium-3rd">
+      <div style="font-size:40px;">🥉</div>
+      <div>${users[2].name}</div>
+      <div style="color:#cd7f32; font-weight:bold;">${users[2].xp || 0} XP</div>
+    </div>`;
+  }
+  html += '</div>';
+  
+  // Lista completa
+  html += '<div class="ranking-list">';
+  users.forEach((u, i) => {
+    const level = calculateLevel(u.xp || 0);
+    html += `<div class="ranking-item">
+      <span style="font-weight:bold; color:#4c90ff;">#${i + 1}</span>
+      <span>${u.name}</span>
+      <span>Nivel ${level}</span>
+      <span style="color:#4cff90; font-weight:bold;">${u.xp || 0} XP</span>
+    </div>`;
+  });
+  html += '</div>';
+  
+  document.getElementById('rankingSection').innerHTML = '<h2>🏅 Ranking Global</h2>' + html;
+};
+
+// --- TIENDA ---
+window.showTienda = async () => {
+  let html = '<div class="tienda-grid">';
+  
+  // Avatares
+  html += '<h3 style="grid-column:1/-1; color:#4c90ff; font-family:Orbitron;">👤 Avatares (500 monedas c/u)</h3>';
+  AVATARS.forEach(avatar => {
+    const owned = user.skins && user.skins.includes(avatar);
+    const btnText = owned ? 'Equipado' : 'Comprar';
+    const btnClass = owned ? 'btn-gray' : 'btn-green';
+    html += `
+      <div class="tienda-item">
+        <img src="${getAvatarSrc(avatar)}" style="width:60px; height:60px; border-radius:10px; object-fit:cover;">
+        <div>${avatar}</div>
+        <button class="${btnClass}" onclick="window.buyAvatar('${avatar}')" ${owned ? 'disabled' : ''}>
+          ${btnText}
+        </button>
+      </div>
+    `;
+  });
+  
+  // Poderes
+  html += '<h3 style="grid-column:1/-1; color:#4c90ff; font-family:Orbitron; margin-top:20px;">⚡ Poderes</h3>';
+  POWERS.forEach(power => {
+    html += `
+      <div class="tienda-item">
+        <div style="font-size:40px;">${power.icon}</div>
+        <div>${power.name}</div>
+        <div style="font-size:12px; opacity:0.8;">${power.desc}</div>
+        <button class="btn-primary" onclick="window.buyPower('${power.id}', ${power.cost})">
+          ${power.cost} 💰
+        </button>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  document.getElementById('tiendaSection').innerHTML = '<h2>🛍️ Tienda de Poderes</h2>' + html;
+};
+
+window.buyAvatar = async (avatar) => {
+  if (user.coins < 500) { alert('No tienes suficientes monedas'); return; }
+  if (user.skins && user.skins.includes(avatar)) { alert('Ya lo posees'); return; }
+  
+  user.coins -= 500;
+  if (!user.skins) user.skins = [];
+  user.skins.push(avatar);
+  await saveUser();
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+  alert('¡Avatar comprado!');
+  window.showTienda();
+};
+
+window.buyPower = async (powerId, cost) => {
+  if (user.coins < cost) { alert('No tienes suficientes monedas'); return; }
+  
+  user.coins -= cost;
+  if (powerId === 'double') user.powerDoubleOwned = (user.powerDoubleOwned || 0) + 1;
+  else if (powerId === 'fifty') user.powerFiftyOwned = (user.powerFiftyOwned || 0) + 1;
+  else if (powerId === 'light') user.powerLightOwned = (user.powerLightOwned || 0) + 1;
+  
+  await saveUser();
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+  alert('¡Poder comprado!');
+  window.showTienda();
+};
+
+// --- AVATAR EDITOR ---
+window.showAvatarEditor = () => {
+  let html = '<div class="avatar-grid">';
+  AVATARS.forEach(avatar => {
+    const isSelected = user.skin === avatar;
+    html += `
+      <div class="avatar-option ${isSelected ? 'selected' : ''}" onclick="window.selectAvatar('${avatar}')">
+        <img src="${getAvatarSrc(avatar)}" class="avatar-choice-img">
+        <div style="margin-top:10px; font-size:12px;">${avatar}</div>
+        ${isSelected ? '<div style="color:#4cff90; font-weight:bold;">✓ Equipado</div>' : ''}
+      </div>
+    `;
+  });
+  html += '</div>';
+  document.getElementById('avatarSection').innerHTML = '<h2>👤 Cambiar Avatar</h2>' + html;
+};
+
+window.selectAvatar = async (avatar) => {
+  if (!user.skins || !user.skins.includes(avatar)) {
+    alert('Debes comprar este avatar primero');
+    return;
+  }
+  user.skin = avatar;
+  await saveUser();
+  const avatarDisplay = document.getElementById('avatarDisplay');
+  if (avatarDisplay) avatarDisplay.innerHTML = `<img src="${getAvatarSrc(avatar)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
+  window.showAvatarEditor();
+};
+
+// --- LOGROS ---
+window.showLogros = () => {
+  const allAchievements = getAllAchievements();
+  const stats = getAchievementStats(user.logros || {});
+  
+  let html = `<div style="text-align:center; margin-bottom:20px; padding:15px; background:rgba(76,144,255,0.1); border-radius:10px;">
+    <div style="font-size:24px; color:#4cff90; font-weight:bold;">${stats.unlocked}/${stats.total}</div>
+    <div style="opacity:0.8;">Logros desbloqueados (${stats.percentage}%)</div>
+    <div style="height:8px; background:rgba(76,144,255,0.2); border-radius:4px; margin-top:10px; overflow:hidden;">
+      <div style="height:100%; background:linear-gradient(90deg, #4c90ff, #4cff90); width:${stats.percentage}%;"></div>
+    </div>
+  </div>`;
+  
+  html += '<div class="achievements-grid">';
+  allAchievements.forEach(ach => {
+    const unlocked = user.logros && user.logros[ach.id];
+    html += `
+      <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+        <div style="font-size:32px; margin-bottom:8px;">${ach.icon}</div>
+        <div style="font-weight:bold; font-size:14px;">${ach.title}</div>
+        <div style="font-size:12px; opacity:0.7; margin-top:5px;">${ach.desc}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  
+  document.getElementById('logrosSection').innerHTML = '<h2>🏆 Tus Logros</h2>' + html;
+};
+
+// --- TEMAS ---
+window.showThemes = () => {
+  const bgMusic = document.getElementById('bgMusic');
+  const musicStatus = bgMusic && !bgMusic.paused ? 'Activada' : 'Desactivada';
+  
+  let html = `
+    <div class="card">
+      <h3>🎵 Música de Fondo</h3>
+      <div style="margin-bottom:10px; opacity:0.8;">Estado: ${musicStatus}</div>
+      <button class="btn-primary" onclick="window.toggleMusic()">
+        ${bgMusic && !bgMusic.paused ? 'Desactivar' : 'Activar'} Música
+      </button>
+    </div>
+    
+    <h3 style="margin-top:20px; color:#4c90ff; font-family:'Orbitron';">🎨 Temas Visuales</h3>
+    <div class="themes-grid">
+  `;
+  
+  THEMES.forEach(theme => {
+    const isActive = localStorage.getItem('background') === theme.name;
+    html += `
+      <div class="theme-option ${isActive ? 'active' : ''}" onclick="window.selectTheme('${theme.name}')">
+        <img src="${theme.icon}" style="width:100%; height:100%; object-fit:cover; border-radius:10px;">
+        <div style="position:absolute; bottom:10px; left:10px; right:10px; background:rgba(0,0,0,0.7); padding:8px; border-radius:8px; text-align:center;">
+          ${theme.label}
+        </div>
+        ${isActive ? '<div style="position:absolute; top:10px; right:10px; background:#4cff90; color:#000; padding:8px 12px; border-radius:20px; font-weight:bold;">✓</div>' : ''}
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  document.getElementById('configSection').innerHTML = '<h2>⚙️ Ajustes</h2>' + html;
+};
+
+window.toggleMusic = () => {
+  const bgMusic = document.getElementById('bgMusic');
+  if (bgMusic) {
+    if (bgMusic.paused) {
+      bgMusic.play();
+    } else {
+      bgMusic.pause();
+    }
+    window.showThemes();
+  }
+};
+
+window.selectTheme = (themeName) => {
+  localStorage.setItem('background', themeName);
+  document.body.className = themeName;
+  window.showThemes();
+};
 
 loadUser();
