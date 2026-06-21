@@ -1,20 +1,20 @@
 const CACHE_NAME = 'aventuras-numericas-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/menu.html',
-  '/game.html',
-  '/style.css',
-  '/main.js',
-  '/menu.js',
-  '/game.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './menu.html',
+  './game.html',
+  './style.css',
+  './main.js',
+  './menu.js',
+  './game.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      return cache.addAll(ASSETS).catch(err => console.log('Error caching assets:', err));
     })
   );
 });

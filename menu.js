@@ -357,15 +357,21 @@ window.cancelBattleInvite = async function() {
 
 // --- ESCUCHAR INVITACIONES ENTRANTES ---
 function listenForInvites() {
-  const q = query(collection(db, 'duels'), where('opponent', '==', currentUser), where('status', '==', 'pending'));
-  onSnapshot(q, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === 'added') {
-        const d = change.doc.data();
-        window.showReceiveInvite(d);
-      }
+  try {
+    const q = query(collection(db, 'duels'), where('opponent', '==', currentUser), where('status', '==', 'pending'));
+    onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const d = change.doc.data();
+          window.showReceiveInvite(d);
+        }
+      });
+    }, (error) => {
+      console.warn("Firebase: Error en listener de invitaciones (posibles permisos):", error);
     });
-  });
+  } catch (e) {
+    console.error("Error al iniciar listener de invitaciones:", e);
+  }
 }
 
 window.showReceiveInvite = function(duel) {
