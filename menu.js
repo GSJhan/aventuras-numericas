@@ -160,13 +160,18 @@ function initMenu() {
     if (owned) {
       user.skin = skin;
       await saveUser();
-      location.reload();
+      // Actualizar UI sin recargar
+      document.getElementById('avatarDisplay').innerHTML = `<img src="${getAvatarSrc(skin)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
+      showAvatarEditor();
     } else if (user.coins >= price) {
       user.coins -= price;
       user.skins.push(skin);
       user.skin = skin;
       await saveUser();
-      location.reload();
+      // Actualizar UI sin recargar
+      document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
+      document.getElementById('avatarDisplay').innerHTML = `<img src="${getAvatarSrc(skin)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
+      showAvatarEditor();
     } else {
       alert('No tienes suficientes monedas');
     }

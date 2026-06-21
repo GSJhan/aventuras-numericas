@@ -686,7 +686,7 @@ color: transparent;
 .skin-item {
   background: var(--card);
   border: 3px solid rgba(76,144,255,0.4);
-  border-radius: 18px;
+  border-radius: 0; /* Rectángulo perfecto */
   padding: 0;
   text-align: center;
   cursor: pointer;
@@ -749,16 +749,16 @@ color: transparent;
 
 .skin-action-btn {
   flex: 1;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border: none;
-  border-radius: 0;
-  font-weight: bold;
-  font-size: 12px;
+  border-radius: 0; /* Rectángulo perfecto */
+  font-weight: 800;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Orbitron', sans-serif; /* Más llamativo */
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .skin-action-btn.select {
