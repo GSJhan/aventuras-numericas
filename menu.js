@@ -134,12 +134,20 @@ function initMenu() {
     skins.forEach(s => {
       const owned = user.skins.includes(s.avatar);
       const active = user.skin === s.avatar;
+      let actionHtml = '';
+      
+      if (owned) {
+        actionHtml = `<button class="skin-action-btn select" onclick="event.stopPropagation(); window.selectSkin('${s.avatar}', ${s.price})">${active ? '✅ Equipado' : 'Seleccionar'}</button>`;
+      } else {
+        actionHtml = `<button class="skin-action-btn buy" onclick="event.stopPropagation(); window.selectSkin('${s.avatar}', ${s.price})">Comprar</button><div class="skin-price">💰 ${s.price}</div>`;
+      }
+      
       html += `
-        <div class="skin-item ${active ? 'active' : ''} ${!owned ? 'locked' : ''}" onclick="window.selectSkin('${s.avatar}', ${s.price})">
+        <div class="skin-item ${active ? 'active' : ''} ${!owned ? 'locked' : ''}">
           <img src="${getAvatarSrc(s.avatar)}" class="skin-img"/>
           <div class="skin-name">${s.name}</div>
           <div class="skin-action">
-            <small>${owned ? (active ? '✅ Seleccionado' : 'Equipar') : '💰 ' + s.price}</small>
+            ${actionHtml}
           </div>
         </div>`;
     });
