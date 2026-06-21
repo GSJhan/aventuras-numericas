@@ -350,13 +350,10 @@ window.checkInfinityAnswer = async () => {
     const motivacion = ["¡Buen intento!", "¡Tu racha fue increíble!", "¡A la próxima será mejor!", "¡Sigue practicando!"];
     const msg = motivacion[Math.floor(Math.random() * motivacion.length)];
     
-    window.showCustomModal('Racha Perdida', `La respuesta era ${currentProblem.ans}. ${msg}`, '♾️', () => {
+    window.showCustomModal('Incorrecto', `La respuesta era ${currentProblem.ans}. ${msg}`, '♾️', () => {
       user.infinityStreak = infinityStreak;
-      infinityStreak = 0;
-      document.getElementById('infinitySetup').style.display = 'block';
-      document.getElementById('infinityStats').style.display = 'none';
-      document.getElementById('infinityGame').style.display = 'none';
-      document.getElementById('gameChoice').classList.remove('hidden');
+      infinityStreak = 0; // Reiniciar racha pero seguir jugando
+      showInfinityQuestion();
     });
   }
   

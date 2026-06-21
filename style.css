@@ -116,7 +116,8 @@ background-clip: text;
 -webkit-text-fill-color: transparent;
 color: transparent;
 }
-.user-info { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.user-info { display: flex; gap: 20px; align-items: center; margin-top: 6px; }
+.header-xp-wrapper { display: flex; align-items: center; }
 .username-badge, .coins-badge, .xp-badge {
   background: rgba(76,144,255,0.12); border: 1px solid rgba(76,144,255,0.3);
   border-radius: 20px; padding: 4px 13px; font-size: 13px; font-weight: 600;
