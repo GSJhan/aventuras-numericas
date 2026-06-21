@@ -810,6 +810,31 @@ color: transparent;
   margin-bottom: 20px;
 }
 
+.xp-bar-container.header-xp {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 250px;
+  backdrop-filter: none;
+}
+
+.xp-bar-container.header-xp .xp-header {
+  margin-bottom: 5px;
+}
+
+.xp-bar-container.header-xp .xp-level {
+  font-size: 14px;
+}
+
+.xp-bar-container.header-xp .xp-progress-text {
+  font-size: 11px;
+}
+
+.xp-bar-container.header-xp .xp-bar-bg {
+  height: 12px;
+}
+
 .xp-header {
   display: flex;
   justify-content: space-between;

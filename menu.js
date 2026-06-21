@@ -79,7 +79,7 @@ function initMenu() {
 
   document.getElementById('displayUsername').textContent = currentUser + ` (Nivel ${level})`;
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
-  document.getElementById('displayXP').textContent = `⭐ ${user.xp} XP (Faltan ${xpRemaining} para nivel ${level + 1})`;
+  // document.getElementById('displayXP').textContent = `⭐ ${user.xp} XP (Faltan ${xpRemaining} para nivel ${level + 1})`; // Eliminado para usar barra en header
 
   var initSkin = user.skin || 'spiderman';
   document.getElementById('avatarDisplay').innerHTML = `<img src="${getAvatarSrc(initSkin)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
