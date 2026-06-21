@@ -6,6 +6,9 @@
   <title>Aventuras Numéricas</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4c90ff">
+  <link rel="apple-touch-icon" href="spiderman.png">
 </head>
 <body class="auth-page">
   <div class="particles" id="particles"></div>
@@ -30,6 +33,14 @@
   </div>
   <script type="module" src="main.js"></script>
   <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registrado', reg))
+          .catch(err => console.log('Error al registrar Service Worker', err));
+      });
+    }
+
     const p = document.getElementById('particles');
     for (let i = 0; i < 40; i++) {
       const d = document.createElement('div');
