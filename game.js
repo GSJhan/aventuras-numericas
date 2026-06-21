@@ -94,7 +94,20 @@ var infinityMode = false;
 var infinityStreak = 0;
 var infinityCoinsEarned = 0;
 
+window.goBackToChoice = () => {
+  document.getElementById('gameChoice').classList.remove('hidden');
+  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+};
+
 function initGame() {
+  document.getElementById('mainBackBtn').onclick = () => {
+    if (!document.getElementById('gameChoice').classList.contains('hidden')) {
+      window.location.href = 'menu.html';
+    } else {
+      window.goBackToChoice();
+    }
+  };
+
   // Botón Calculadora
   document.getElementById('calcBtn').onclick = () => {
     document.getElementById('gameChoice').classList.add('hidden');
@@ -260,6 +273,20 @@ function getCoinReward(diff) {
   }
 }
 
+window.showCustomModal = (title, message, icon, callback) => {
+  const modal = document.getElementById('customModal');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMessage').textContent = message;
+  document.getElementById('modalIcon').textContent = icon;
+  modal.classList.remove('hidden');
+  
+  const confirmBtn = document.getElementById('modalConfirmBtn');
+  confirmBtn.onclick = () => {
+    modal.classList.add('hidden');
+    if (callback) callback();
+  };
+};
+
 window.checkQuizAnswer = async () => {
   const userAns = parseInt(document.getElementById('quizAnsInput').value);
   const diffUsed = currentProblem.actualDiff || difficulty;
@@ -279,18 +306,16 @@ window.checkQuizAnswer = async () => {
     else if (diffUsed === 'dificil') user.quizHardCompleted = (user.quizHardCompleted || 0) + 1;
     else if (diffUsed === 'experto') user.quizExpertCompleted = (user.quizExpertCompleted || 0) + 1;
     
-    if (difficulty === 'infinito') {
-      if (currentStreak > (user.infinityBestStreak || 0)) {
-        user.infinityBestStreak = currentStreak;
-      }
-    }
-    
-    alert(`¡Correcto! +${xpReward} XP +${coinReward} 💰`);
-    showQuestion();
+    window.showCustomModal('Felicidades', `¡Respuesta correcta! +${xpReward} XP +${coinReward} 💰`, '✅', () => {
+      showQuestion();
+    });
   } else {
-    alert('Incorrecto. La respuesta era ' + currentProblem.ans);
-    currentStreak = 0;
-    showQuestion();
+    const motivacion = ["¡No te rindas, sigue intentando!", "¡Casi lo logras!", "¡La práctica hace al maestro!", "¡Sigue adelante, tú puedes!"];
+    const msg = motivacion[Math.floor(Math.random() * motivacion.length)];
+    window.showCustomModal('Incorrecto', `La respuesta era ${currentProblem.ans}. ${msg}`, '❌', () => {
+      currentStreak = 0;
+      showQuestion();
+    });
   }
   
   saveUser();
@@ -318,21 +343,21 @@ window.checkInfinityAnswer = async () => {
       user.infinityBestStreak = infinityStreak;
     }
     
-    alert(`¡Correcto! +${xpReward} XP +${coinReward} 💰\n🔥 Racha: ${infinityStreak}`);
-    showInfinityQuestion();
+    window.showCustomModal('¡Correcto!', `+${xpReward} XP +${coinReward} 💰\n🔥 Racha: ${infinityStreak}`, '✅', () => {
+      showInfinityQuestion();
+    });
   } else {
-    alert(`Incorrecto. La respuesta era ${currentProblem.ans}\n🔥 Racha perdida: ${infinityStreak}`);
-    user.infinityStreak = infinityStreak;
-    infinityStreak = 0;
+    const motivacion = ["¡Buen intento!", "¡Tu racha fue increíble!", "¡A la próxima será mejor!", "¡Sigue practicando!"];
+    const msg = motivacion[Math.floor(Math.random() * motivacion.length)];
     
-    // Mostrar resumen y volver al menú
-    setTimeout(() => {
-      alert(`Sesión Infinito terminada!\nRacha: ${user.infinityStreak}\nMonedas ganadas: ${infinityCoinsEarned}\nXP ganado: ${user.infinityXpEarned || 0}`);
+    window.showCustomModal('Racha Perdida', `La respuesta era ${currentProblem.ans}. ${msg}`, '♾️', () => {
+      user.infinityStreak = infinityStreak;
+      infinityStreak = 0;
       document.getElementById('infinitySetup').style.display = 'block';
       document.getElementById('infinityStats').style.display = 'none';
       document.getElementById('infinityGame').style.display = 'none';
       document.getElementById('gameChoice').classList.remove('hidden');
-    }, 500);
+    });
   }
   
   saveUser();

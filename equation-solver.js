@@ -291,55 +291,80 @@ function drawGraph(canvas, a, b, c, solutions) {
     const w = canvas.width;
     const h = canvas.height;
     
-    // Limpiar
     ctx.clearRect(0, 0, w, h);
     
-    // Configuración de ejes
     const margin = 40;
     const centerX = w / 2;
     const centerY = h / 2;
     
-    // Encontrar rango para X e Y
     let minX = -10, maxX = 10;
     if (solutions && solutions.length > 0) {
         const solMin = Math.min(...solutions);
         const solMax = Math.max(...solutions);
-        minX = solMin - 5;
-        maxX = solMax + 5;
+        minX = Math.floor(solMin - 3);
+        maxX = Math.ceil(solMax + 3);
     }
     
     const scaleX = (w - 2 * margin) / (maxX - minX);
-    const rangeY = 20; // Ajustable
+    const rangeY = 20; 
     const scaleY = (h - 2 * margin) / rangeY;
     
-    // Dibujar ejes
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    // Cuadrícula sutil
+    ctx.strokeStyle = 'rgba(76, 144, 255, 0.1)';
     ctx.lineWidth = 1;
+    for (let i = minX; i <= maxX; i++) {
+        const x = centerX + i * scaleX;
+        ctx.beginPath();
+        ctx.moveTo(x, margin);
+        ctx.lineTo(x, h - margin);
+        ctx.stroke();
+    }
+    for (let i = -10; i <= 10; i++) {
+        const y = centerY - i * scaleY;
+        ctx.beginPath();
+        ctx.moveTo(margin, y);
+        ctx.lineTo(w - margin, y);
+        ctx.stroke();
+    }
+
+    // Ejes con brillo
+    ctx.strokeStyle = 'rgba(76, 144, 255, 0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#4c90ff';
+    ctx.lineWidth = 2;
     
-    // Eje X
     ctx.beginPath();
     ctx.moveTo(margin, centerY);
     ctx.lineTo(w - margin, centerY);
     ctx.stroke();
     
-    // Eje Y
     ctx.beginPath();
     ctx.moveTo(centerX, margin);
     ctx.lineTo(centerX, h - margin);
     ctx.stroke();
     
-    // Dibujar Parábola
-    ctx.strokeStyle = '#4c90ff';
-    ctx.lineWidth = 3;
+    ctx.shadowBlur = 0;
+
+    // Parábola con degradado neón
+    const gradient = ctx.createLinearGradient(0, 0, w, 0);
+    gradient.addColorStop(0, '#4c90ff');
+    gradient.addColorStop(0.5, '#4cff90');
+    gradient.addColorStop(1, '#4c90ff');
+    
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = 'rgba(76, 144, 255, 0.6)';
     ctx.beginPath();
     
     let first = true;
-    for (let x = minX; x <= maxX; x += 0.1) {
+    for (let x = minX; x <= maxX; x += 0.05) {
         const y = a * x * x + b * x + c;
         const canvasX = centerX + x * scaleX;
         const canvasY = centerY - y * scaleY;
         
-        if (canvasY >= margin && canvasY <= h - margin) {
+        if (canvasY >= margin - 20 && canvasY <= h - margin + 20) {
             if (first) {
                 ctx.moveTo(canvasX, canvasY);
                 first = false;
@@ -349,15 +374,31 @@ function drawGraph(canvas, a, b, c, solutions) {
         }
     }
     ctx.stroke();
+    ctx.shadowBlur = 0;
     
-    // Dibujar puntos de solución
+    // Raíces con efecto de pulso (puntos rojos brillantes)
     if (solutions) {
-        ctx.fillStyle = '#ff4d6d';
-        solutions.forEach(sol => {
+        solutions.forEach((sol, idx) => {
             const canvasX = centerX + sol * scaleX;
+            
+            ctx.fillStyle = '#ff4d6d';
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ff4d6d';
             ctx.beginPath();
-            ctx.arc(canvasX, centerY, 5, 0, Math.PI * 2);
+            ctx.arc(canvasX, centerY, 6, 0, Math.PI * 2);
             ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Rajdhani';
+            ctx.textAlign = 'center';
+            ctx.fillText(`x${idx+1}`, canvasX, centerY - 15);
         });
     }
+
+    // Etiquetas de ejes
+    ctx.fillStyle = 'rgba(232, 234, 255, 0.6)';
+    ctx.font = '10px Orbitron';
+    ctx.fillText('X', w - margin + 10, centerY + 5);
+    ctx.fillText('Y', centerX + 10, margin - 5);
 }

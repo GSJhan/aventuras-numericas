@@ -368,18 +368,25 @@ function initMenu() {
 
       // Mostrar podio (top 3)
       let podiumHtml = '';
+      const classes = ['gold', 'silver', 'bronze'];
       const medals = ['🥇', '🥈', '🥉'];
-      for (let i = 0; i < Math.min(3, users.length); i++) {
-        const u = users[i];
-        const level = calculateLevel(u.xp || 0);
-        podiumHtml += `
-          <div class="podium-item" style="height: ${120 - i * 30}px;">
-            <div style="font-size:32px; margin-bottom:5px;">${medals[i]}</div>
-            <div style="font-size:14px; font-weight:bold;">${u.id}</div>
-            <div style="font-size:12px; opacity:0.8;">Nivel ${level}</div>
-            <div style="font-size:12px; opacity:0.8;">${u.xp || 0} XP</div>
-          </div>`;
-      }
+      
+      // Ordenar para que el 1ero esté en el centro: 2, 1, 3
+      const order = [1, 0, 2]; 
+      
+      order.forEach(idx => {
+        if (users[idx]) {
+          const u = users[idx];
+          const level = calculateLevel(u.xp || 0);
+          podiumHtml += `
+            <div class="podium-item ${classes[idx]}">
+              <div style="font-size:32px; margin-bottom:5px;">${medals[idx]}</div>
+              <div class="podium-name">${u.id}</div>
+              <div class="podium-xp">Nivel ${level}</div>
+              <div class="podium-xp">${u.xp || 0} XP</div>
+            </div>`;
+        }
+      });
       document.getElementById('rankingPodium').innerHTML = podiumHtml;
 
       // Mostrar lista completa
@@ -430,11 +437,28 @@ function initMenu() {
     document.getElementById('tiendaPoderes').innerHTML = tiendaHtml;
   }
 
-  window.buyPower = async (powerId, price) => {
+  window.showCustomModal = (title, message, icon, callback) => {
+  const modal = document.getElementById('customModal');
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMessage').textContent = message;
+  document.getElementById('modalIcon').textContent = icon;
+  modal.classList.remove('hidden');
+  
+  const confirmBtn = document.getElementById('modalConfirmBtn');
+  confirmBtn.onclick = () => {
+    modal.classList.add('hidden');
+    if (callback) callback();
+  };
+};
+
+window.buyPower = async (powerId, price) => {
     if (user.coins < price) {
-      alert('No tienes suficientes monedas');
+      window.showCustomModal('Error', 'No tienes suficientes monedas', '❌');
       return;
     }
+
+    const powerNames = { double: 'Doble XP', fifty: '50/50', hint: 'Pista' };
+    const powerIcons = { double: '2️⃣', fifty: '5️⃣', hint: '💡' };
 
     user.coins -= price;
     if (powerId === 'double') user.powerDoubleOwned = (user.powerDoubleOwned || 0) + 1;
@@ -444,7 +468,8 @@ function initMenu() {
     await saveUser();
     document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
     showTienda();
-    alert('¡Poder comprado!');
+    
+    window.showCustomModal('+1 ' + powerNames[powerId], 'Comprado exitosamente', powerIcons[powerId]);
   };
 
   function showLogros() {
