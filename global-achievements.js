@@ -128,6 +128,7 @@ export async function checkAllAchievements(user, userRef) {
 }
 
 function calculateLevel(xp) {
+  // Fórmula de niveles: 1 nivel cada 500 XP, escalable hasta 10 millones
   return Math.floor(xp / 500) + 1;
 }
 

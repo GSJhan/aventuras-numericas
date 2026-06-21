@@ -47,10 +47,26 @@ function getAvatarSrc(name) {
   return name + '.png';
 }
 
+function calculateLevel(xp) {
+  // Fórmula que escala hasta 10 millones de niveles
+  // Cada nivel requiere un poco más que el anterior
+  // Ejemplo: Nivel 1 = 0 XP, Nivel 2 = 500 XP, etc.
+  return Math.floor(xp / 500) + 1;
+}
+
+function getXPForNextLevel(level) {
+  return level * 500;
+}
+
 function initMenu() {
-  document.getElementById('displayUsername').textContent = currentUser;
+  const level = calculateLevel(user.xp);
+  const xpForNext = getXPForNextLevel(level);
+  const xpCurrentLevel = user.xp % 500;
+  const xpRemaining = 500 - xpCurrentLevel;
+
+  document.getElementById('displayUsername').textContent = currentUser + ` (Nivel ${level})`;
   document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+  document.getElementById('displayXP').textContent = `⭐ ${user.xp} XP (Faltan ${xpRemaining} para nivel ${level + 1})`;
 
   var initSkin = user.skin || 'spiderman';
   document.getElementById('avatarDisplay').innerHTML = `<img src="${getAvatarSrc(initSkin)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
@@ -159,7 +175,7 @@ function initMenu() {
     const owned = user.skins.includes(skin);
     if (owned) {
       user.skin = skin;
-      await saveUser();
+      await setDoc(userRef, user); // Guardar directamente sin checkAllAchievements para evitar recargas o procesos lentos
       // Actualizar UI sin recargar
       document.getElementById('avatarDisplay').innerHTML = `<img src="${getAvatarSrc(skin)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;
       showAvatarEditor();
@@ -167,7 +183,7 @@ function initMenu() {
       user.coins -= price;
       user.skins.push(skin);
       user.skin = skin;
-      await saveUser();
+      await setDoc(userRef, user);
       // Actualizar UI sin recargar
       document.getElementById('displayCoins').textContent = '💰 ' + user.coins + ' monedas';
       document.getElementById('avatarDisplay').innerHTML = `<img src="${getAvatarSrc(skin)}" onerror="this.outerHTML='🦸'" class="avatar-img-main"/>`;

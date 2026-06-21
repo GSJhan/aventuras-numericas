@@ -27,6 +27,19 @@ async function saveUser() {
   await checkAllAchievements(user, userRef);
 }
 
+function calculateLevel(xp) {
+  return Math.floor(xp / 500) + 1;
+}
+
+function updateXPDisplay() {
+  const level = calculateLevel(user.xp);
+  const xpCurrentLevel = user.xp % 500;
+  const xpRemaining = 500 - xpCurrentLevel;
+  
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+  document.getElementById('displayXP').textContent = `⭐ ${user.xp} XP (Nivel ${level}, faltan ${xpRemaining})`;
+}
+
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
   var snap = await getDoc(userRef);
@@ -36,8 +49,7 @@ async function loadUser() {
   if (!user.xp) user.xp = 0;
   if (!user.coins) user.coins = 0;
   
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+  updateXPDisplay();
 
   initGame();
   initMusic();
@@ -116,7 +128,13 @@ function initGame() {
 }
 
 function showQuestion() {
-  currentProblem = generateProblem(difficulty);
+  let diffToUse = difficulty;
+  if (difficulty === 'infinito') {
+    const diffs = ['facil', 'normal', 'dificil', 'experto'];
+    diffToUse = diffs[Math.floor(Math.random() * diffs.length)];
+  }
+  currentProblem = generateProblem(diffToUse);
+  currentProblem.actualDiff = diffToUse; // Guardar la dificultad real usada
   document.getElementById('questionText').innerHTML = currentProblem.q;
   document.getElementById('quizAnsInput').value = '';
   document.getElementById('quizAnsInput').focus();
@@ -203,8 +221,9 @@ function getCoinReward(diff) {
 
 window.checkQuizAnswer = async () => {
   const userAns = parseInt(document.getElementById('quizAnsInput').value);
-  const xpReward = getXPReward(difficulty);
-  const coinReward = getCoinReward(difficulty);
+  const diffUsed = currentProblem.actualDiff || difficulty;
+  const xpReward = getXPReward(diffUsed);
+  const coinReward = getCoinReward(diffUsed);
   
   if (userAns === currentProblem.ans) {
     currentStreak++;
@@ -213,12 +232,16 @@ window.checkQuizAnswer = async () => {
     user.quizQuestionsAnswered = (user.quizQuestionsAnswered || 0) + 1;
     
     // Registrar completación por dificultad
-    if (difficulty === 'facil') user.quizEasyCompleted = (user.quizEasyCompleted || 0) + 1;
-    else if (difficulty === 'normal') user.quizNormalCompleted = (user.quizNormalCompleted || 0) + 1;
-    else if (difficulty === 'dificil') user.quizHardCompleted = (user.quizHardCompleted || 0) + 1;
-    else if (difficulty === 'experto') user.quizExpertCompleted = (user.quizExpertCompleted || 0) + 1;
+    if (diffUsed === 'facil') user.quizEasyCompleted = (user.quizEasyCompleted || 0) + 1;
+    else if (diffUsed === 'normal') user.quizNormalCompleted = (user.quizNormalCompleted || 0) + 1;
+    else if (diffUsed === 'dificil') user.quizHardCompleted = (user.quizHardCompleted || 0) + 1;
+    else if (diffUsed === 'experto') user.quizExpertCompleted = (user.quizExpertCompleted || 0) + 1;
     
-    if (currentStreak > (user.infinityBestStreak || 0)) user.infinityBestStreak = currentStreak;
+    if (difficulty === 'infinito') {
+      if (currentStreak > (user.infinityBestStreak || 0)) {
+        user.infinityBestStreak = currentStreak;
+      }
+    }
     
     alert(`¡Correcto! +${xpReward} XP +${coinReward} 💰`);
     showQuestion();
@@ -229,8 +252,7 @@ window.checkQuizAnswer = async () => {
   }
   
   saveUser();
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-  document.getElementById('displayXP').textContent = '⭐ ' + user.xp + ' XP';
+  updateXPDisplay();
 };
 
 loadUser();

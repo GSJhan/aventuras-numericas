@@ -7,7 +7,9 @@ export function solveEquation(equation) {
   // Intentar parsear como ecuación cuadrática (ax^2 + bx + c = 0)
   const quadraticMatch = equation.match(/([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)x([+-]\d*\.?\d*)=0/i);
   if (quadraticMatch) {
-    return solveQuadratic(quadraticMatch);
+    const res = solveQuadratic(quadraticMatch);
+    res.coefficients = { a: res.a, b: res.b, c: res.c };
+    return res;
   }
   
   // Intentar parsear como ecuación cuadrática sin término x (ax^2 + c = 0)
@@ -64,7 +66,8 @@ function solveQuadratic(match) {
       error: false,
       steps: steps,
       solutions: [aspaSolution.x1, aspaSolution.x2],
-      type: 'quadratic'
+      type: 'quadratic',
+      a, b, c
     };
   }
   
@@ -86,7 +89,8 @@ function solveQuadratic(match) {
       error: false,
       steps: steps,
       solutions: null,
-      type: 'quadratic'
+      type: 'quadratic',
+      a, b, c
     };
   }
   
@@ -106,7 +110,8 @@ function solveQuadratic(match) {
     error: false,
     steps: steps,
     solutions: [x1, x2],
-    type: 'quadratic'
+    type: 'quadratic',
+    a, b, c
   };
 }
 
@@ -245,24 +250,114 @@ function solveLinear(match) {
 
 export function formatSolution(result) {
   if (result.error) {
-    return `<div style="color: #ff4d6d; font-size: 14px; line-height: 1.6;">${result.message}</div>`;
+    return `<div style="color: #ff4d6d; font-size: 16px; line-height: 1.6; font-weight: 500;">${result.message}</div>`;
   }
   
-  let html = `<div style="font-size: 13px; line-height: 1.8; color: #e8eaff;">`;
+  let html = `<div style="font-size: 16px; line-height: 1.8; color: #fff; text-shadow: 0 0 1px rgba(255,255,255,0.2);">`;
   
   result.steps.forEach(step => {
-    html += `<div style="margin: 8px 0;">${step}</div>`;
+    html += `<div style="margin: 10px 0;">${step}</div>`;
   });
   
   if (result.solutions) {
-    html += `<div style="margin-top: 15px; padding: 15px; background: rgba(76,255,144,0.1); border-left: 4px solid #4cff90; border-radius: 4px;">`;
-    html += `<strong style="color: #4cff90;">✓ SOLUCIONES FINALES:</strong><br>`;
+    html += `<div style="margin-top: 20px; padding: 20px; background: rgba(76,255,144,0.15); border: 2px solid #4cff90; border-radius: 12px; box-shadow: 0 0 15px rgba(76,255,144,0.2);">`;
+    html += `<strong style="color: #4cff90; font-size: 18px;">✓ SOLUCIONES FINALES:</strong><br>`;
     result.solutions.forEach((sol, idx) => {
-      html += `x<sub style="font-size: 10px;">${idx + 1}</sub> = <strong style="color: #ffd700;">${sol.toFixed(4)}</strong><br>`;
+      html += `<div style="margin-top: 5px;">x<sub style="font-size: 12px;">${idx + 1}</sub> = <strong style="color: #ffd700; font-size: 20px;">${sol.toFixed(4)}</strong></div>`;
     });
     html += `</div>`;
+  }
+
+  // Si es cuadrática, añadir contenedor para el gráfico
+  if (result.type === 'quadratic' && result.a !== undefined) {
+    html += `<div style="margin-top: 25px; text-align: center;">`;
+    html += `<strong style="color: #4c90ff; display: block; margin-bottom: 10px;">GRÁFICO DE LA PARÁBOLA:</strong>`;
+    html += `<canvas id="equationGraph" width="400" height="300" style="background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(76,144,255,0.3); max-width: 100%;"></canvas>`;
+    html += `</div>`;
+    
+    // Inyectar script para dibujar el gráfico después de que el HTML se cargue
+    setTimeout(() => {
+        const canvas = document.getElementById('equationGraph');
+        if (canvas) drawGraph(canvas, result.a, result.b, result.c, result.solutions);
+    }, 100);
   }
   
   html += `</div>`;
   return html;
+}
+
+function drawGraph(canvas, a, b, c, solutions) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    
+    // Limpiar
+    ctx.clearRect(0, 0, w, h);
+    
+    // Configuración de ejes
+    const margin = 40;
+    const centerX = w / 2;
+    const centerY = h / 2;
+    
+    // Encontrar rango para X e Y
+    let minX = -10, maxX = 10;
+    if (solutions && solutions.length > 0) {
+        const solMin = Math.min(...solutions);
+        const solMax = Math.max(...solutions);
+        minX = solMin - 5;
+        maxX = solMax + 5;
+    }
+    
+    const scaleX = (w - 2 * margin) / (maxX - minX);
+    const rangeY = 20; // Ajustable
+    const scaleY = (h - 2 * margin) / rangeY;
+    
+    // Dibujar ejes
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    
+    // Eje X
+    ctx.beginPath();
+    ctx.moveTo(margin, centerY);
+    ctx.lineTo(w - margin, centerY);
+    ctx.stroke();
+    
+    // Eje Y
+    ctx.beginPath();
+    ctx.moveTo(centerX, margin);
+    ctx.lineTo(centerX, h - margin);
+    ctx.stroke();
+    
+    // Dibujar Parábola
+    ctx.strokeStyle = '#4c90ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    let first = true;
+    for (let x = minX; x <= maxX; x += 0.1) {
+        const y = a * x * x + b * x + c;
+        const canvasX = centerX + x * scaleX;
+        const canvasY = centerY - y * scaleY;
+        
+        if (canvasY >= margin && canvasY <= h - margin) {
+            if (first) {
+                ctx.moveTo(canvasX, canvasY);
+                first = false;
+            } else {
+                ctx.lineTo(canvasX, canvasY);
+            }
+        }
+    }
+    ctx.stroke();
+    
+    // Dibujar puntos de solución
+    if (solutions) {
+        ctx.fillStyle = '#ff4d6d';
+        solutions.forEach(sol => {
+            const canvasX = centerX + sol * scaleX;
+            ctx.beginPath();
+            ctx.arc(canvasX, centerY, 5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
 }
