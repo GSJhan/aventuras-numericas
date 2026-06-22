@@ -503,8 +503,107 @@ function drawSkillsRadar(stats) {
   const radius = 180;
   const labels = Object.keys(stats);
   const values = Object.values(stats);
+  const points = [];
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Función para redibujar todo
+  const redraw = (hoverIndex = -1) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Dibujar Telaraña Base
+    ctx.strokeStyle = 'rgba(76,144,255,0.2)';
+    ctx.lineWidth = 1;
+    for (let j = 1; j <= 5; j++) {
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+        const r = (radius / 5) * j;
+        const x = centerX + Math.cos(angle) * r;
+        const y = centerY + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    // Dibujar Ejes
+    ctx.strokeStyle = 'rgba(76,144,255,0.1)';
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
+      ctx.stroke();
+    }
+
+    // Dibujar Área de Habilidades
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255,165,0,0.15)';
+    ctx.strokeStyle = 'rgba(255,165,0,0.6)';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const r = (values[i] / 5) * radius;
+      const x = centerX + Math.cos(angle) * r;
+      const y = centerY + Math.sin(angle) * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      points[i] = { x, y, val: values[i].toFixed(2) };
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Dibujar Puntos y Tooltips
+    points.forEach((p, i) => {
+      ctx.fillStyle = (i === hoverIndex) ? '#4cff90' : '#4cff90';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, (i === hoverIndex) ? 10 : 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (i === hoverIndex) {
+        // Dibujar Tooltip
+        const text = p.val;
+        ctx.font = 'bold 14px Orbitron';
+        const textWidth = ctx.measureText(text).width;
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillRect(p.x - textWidth/2 - 10, p.y - 40, textWidth + 20, 30);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, p.x, p.y - 20);
+      }
+    });
+
+    // Dibujar Etiquetas
+    ctx.fillStyle = '#e8eaff';
+    ctx.font = 'bold 16px Rajdhani';
+    ctx.textAlign = 'center';
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const x = centerX + Math.cos(angle) * (radius + 45);
+      const y = centerY + Math.sin(angle) * (radius + 45);
+      ctx.fillText(labels[i], x, y);
+    }
+  };
+
+  redraw();
+
+  // Evento de mouse para hover
+  canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+    
+    let hoverIndex = -1;
+    points.forEach((p, i) => {
+      const dist = Math.sqrt((x - p.x)**2 + (y - p.y)**2);
+      if (dist < 15) hoverIndex = i;
+    });
+    
+    redraw(hoverIndex);
+  };
+}
 
   // Dibujar Telaraña Base
   ctx.strokeStyle = 'rgba(76,144,255,0.2)';
@@ -775,10 +874,12 @@ window.showThemes = function() {
   document.getElementById('configSection').innerHTML = '<h2>⚙️ Ajustes</h2>' + html;
 };
 
+let isMusicChanging = false;
 window.toggleMusic = async function() {
   const bgMusic = document.getElementById('bgMusic');
-  if (!bgMusic) return;
+  if (!bgMusic || isMusicChanging) return;
   
+  isMusicChanging = true;
   try {
     if (bgMusic.paused) {
       await bgMusic.play();
@@ -786,11 +887,9 @@ window.toggleMusic = async function() {
       bgMusic.pause();
     }
   } catch (e) {
-    if (e.name !== 'AbortError') {
-      console.warn('Error en música:', e.name);
-    }
+    // Silenciamos cualquier error de interrupción del navegador
   } finally {
-    // Actualizar la UI inmediatamente después del cambio de estado
+    isMusicChanging = false;
     window.showThemes();
   }
 };
