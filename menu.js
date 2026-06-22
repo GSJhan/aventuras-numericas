@@ -152,11 +152,11 @@ window.showProfile = async function(username) {
       </div>
     </div>
     <div class="profile-stats-grid">
-      <div class="stat-item"><span>Fácil:</span> <span>${stats.facil}</span></div>
-      <div class="stat-item"><span>Normal:</span> <span>${stats.normal}</span></div>
-      <div class="stat-item"><span>Difícil:</span> <span>${stats.dificil}</span></div>
-      <div class="stat-item"><span>Experto:</span> <span>${stats.experto}</span></div>
-      <div class="stat-item"><span>Infinito:</span> <span>${stats.infinito}</span></div>
+      <div class="stat-item"><span>Fácil:</span> <span>${Math.min(10, stats.facil)}/10</span></div>
+      <div class="stat-item"><span>Normal:</span> <span>${Math.min(10, stats.normal)}/10</span></div>
+      <div class="stat-item"><span>Difícil:</span> <span>${Math.min(10, stats.dificil)}/10</span></div>
+      <div class="stat-item"><span>Extremo:</span> <span>${Math.min(10, stats.experto)}/10</span></div>
+      <div class="stat-item"><span>Infinito:</span> <span>${Math.min(10, stats.infinito)}/10</span></div>
     </div>
   `;
   document.getElementById('profileContent').innerHTML = html;
@@ -189,9 +189,9 @@ window.showAddFriends = function() {
   document.querySelectorAll('.tab-btn')[1].classList.add('active');
 
   document.getElementById('friendsContent').innerHTML = `
-    <div class="search-box">
-      <input type="text" id="searchUser" placeholder="Nombre del usuario...">
-      <button class="btn-primary" onclick="window.searchUser()">Buscar</button>
+    <div class="search-box" style="display:flex; gap:10px; margin-bottom:20px;">
+      <input type="text" id="searchUser" placeholder="Nombre del usuario..." style="flex:1; padding:12px; border:1px solid rgba(76,144,255,0.3); background:rgba(76,144,255,0.05); border-radius:8px; color:#fff; font-size:14px;">
+      <button class="btn-primary" onclick="window.searchUser()" style="padding:12px 30px; white-space:nowrap;">Buscar</button>
     </div>
     <div id="searchResults"></div>
   `;
@@ -562,8 +562,8 @@ function drawSkillsRadar(stats) {
 
   // Dibujar Área de Habilidades
   ctx.beginPath();
-  ctx.fillStyle = 'rgba(76,144,255,0.3)';
-  ctx.strokeStyle = '#4c90ff';
+  ctx.fillStyle = 'rgba(255,165,0,0.15)';
+  ctx.strokeStyle = 'rgba(255,165,0,0.6)';
   ctx.lineWidth = 3;
   for (let i = 0; i < 5; i++) {
     const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
@@ -807,11 +807,11 @@ window.toggleMusic = function() {
   const bgMusic = document.getElementById('bgMusic');
   if (bgMusic) {
     if (bgMusic.paused) {
-      bgMusic.play();
+      bgMusic.play().catch(e => console.log('Error al reproducir música:', e));
     } else {
       bgMusic.pause();
     }
-    window.showThemes();
+    setTimeout(() => window.showThemes(), 100);
   }
 };
 

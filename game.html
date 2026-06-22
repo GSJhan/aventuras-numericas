@@ -50,10 +50,10 @@
       <h2>🎯 Desafío de Preguntas</h2>
       <div id="quizSetup">
         <select id="quizDifficulty">
-          <option value="facil">😊 Fácil: Suma/Resta (+10 XP)</option>
-          <option value="normal">😐 Normal: Mult/Div (+25 XP)</option>
-          <option value="dificil">😤 Difícil: Potencia/Raíz (+50 XP)</option>
-          <option value="experto">🔥 Experto: Ecuaciones (+100 XP)</option>
+          <option value="facil">Fácil (+10 XP)</option>
+          <option value="normal">Normal (+25 XP)</option>
+          <option value="dificil">Difícil (+50 XP)</option>
+          <option value="experto">Extremo (+100 XP)</option>
         </select>
         <button id="startQuizBtn" class="btn-primary">¡Comenzar!</button>
       </div>
@@ -64,6 +64,7 @@
 
       <div id="quizGame" class="question-box" style="display:none; margin-top:20px;">
         <div id="questionText" class="question-text">?</div>
+        <div id="quizFeedback" style="display:none; font-size:18px; font-weight:bold; margin:15px 0; padding:10px; border-radius:8px;"></div>
         <input type="number" id="quizAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
         <button onclick="window.checkQuizAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
       </div>

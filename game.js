@@ -196,6 +196,21 @@ function generateProblem(diff) {
 window.goBackToChoice = () => {
   document.getElementById('gameChoice').classList.remove('hidden');
   document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+  
+  // Limpiar estado del Quiz
+  document.getElementById('quizSetup').style.display = 'block';
+  document.getElementById('quizStats').style.display = 'none';
+  document.getElementById('quizGame').style.display = 'none';
+  document.getElementById('quizDifficulty').value = 'facil';
+  window.quizDifficulty = 'facil';
+  quizStreak = 0;
+  
+  // Limpiar estado del Infinito
+  document.getElementById('infinitySetup').style.display = 'block';
+  document.getElementById('infinityStats').style.display = 'none';
+  document.getElementById('infinityGame').style.display = 'none';
+  infinityStreak = 0;
+  infinityCoinsEarned = 0;
 };
 
 function initGame() {
@@ -259,7 +274,7 @@ window.checkQuizAnswer = async () => {
     quizStreak++;
     user.quizQuestionsAnswered = (user.quizQuestionsAnswered || 0) + 1;
     
-    // Agregar XP según dificultad
+    // Agregar XP segun dificultad
     const xpGain = { facil: 10, normal: 25, dificil: 50, experto: 100 };
     user.xp += xpGain[window.quizDifficulty] || 10;
     
@@ -270,13 +285,33 @@ window.checkQuizAnswer = async () => {
     if (!user.stats) user.stats = {};
     user.stats[window.quizDifficulty] = (user.stats[window.quizDifficulty] || 0) + 1;
     
+    // Mostrar mensaje de exito
+    const feedbackEl = document.getElementById('quizFeedback');
+    if (feedbackEl) {
+      feedbackEl.innerHTML = '✅ Felicidades! Respuesta correcta';
+      feedbackEl.style.color = '#4cff90';
+      feedbackEl.style.display = 'block';
+    }
+    
     await saveUser();
     updateXPDisplay();
-    window.showQuizQuestion(window.quizDifficulty);
+    setTimeout(() => window.showQuizQuestion(window.quizDifficulty), 800);
   } else {
     quizStreak = 0;
+    
+    // Mostrar mensaje de error
+    const feedbackEl = document.getElementById('quizFeedback');
+    if (feedbackEl) {
+      feedbackEl.innerHTML = '❌ Respuesta incorrecta. Tu puedes!';
+      feedbackEl.style.color = '#ff4d6d';
+      feedbackEl.style.display = 'block';
+    }
+    
     document.getElementById('quizAnsInput').value = '';
     updateQuizStreak();
+    setTimeout(() => {
+      if (feedbackEl) feedbackEl.style.display = 'none';
+    }, 1500);
   }
 };
 
@@ -291,6 +326,8 @@ window.showInfinityQuestion = () => {
   currentProblem = generateProblem(diff);
   document.getElementById('infinityQuestionText').innerHTML = currentProblem.q;
   document.getElementById('infinityDiffSpan2').textContent = diff;
+  document.getElementById('infinityAnsInput').value = '';
+  document.getElementById('infinityAnsInput').focus();
   updateInfinityDisplay();
 };
 
