@@ -152,11 +152,11 @@ window.showProfile = async function(username) {
       </div>
     </div>
     <div class="profile-stats-grid">
-      <div class="stat-item"><span>Fácil:</span> <span>${Math.min(10, stats.facil)}/10</span></div>
-      <div class="stat-item"><span>Normal:</span> <span>${Math.min(10, stats.normal)}/10</span></div>
-      <div class="stat-item"><span>Difícil:</span> <span>${Math.min(10, stats.dificil)}/10</span></div>
-      <div class="stat-item"><span>Extremo:</span> <span>${Math.min(10, stats.experto)}/10</span></div>
-      <div class="stat-item"><span>Infinito:</span> <span>${Math.min(10, stats.infinito)}/10</span></div>
+      <div class="stat-item"><span>Fácil:</span> <span>${stats.facil}/${data.quizQuestionsAnswered || 0}</span></div>
+      <div class="stat-item"><span>Normal:</span> <span>${stats.normal}/${data.quizQuestionsAnswered || 0}</span></div>
+      <div class="stat-item"><span>Difícil:</span> <span>${stats.dificil}/${data.quizQuestionsAnswered || 0}</span></div>
+      <div class="stat-item"><span>Extremo:</span> <span>${stats.experto}/${data.quizQuestionsAnswered || 0}</span></div>
+      <div class="stat-item"><span>Infinito:</span> <span>${stats.infinito}/${data.infinityProblemsSolved || 0}</span></div>
     </div>
   `;
   document.getElementById('profileContent').innerHTML = html;
@@ -242,40 +242,10 @@ window.addFriend = async function(name) {
 
 // --- BATALLAS (DUELS) ---
 window.showBattles = function() {
-  let html = `
-    <div class="friends-tabs">
-      <button class="tab-btn active" onclick="window.showBattlesDesafiar()">Desafiar</button>
-      <button class="tab-btn" onclick="window.showBattlesHistorial()">Historial</button>
-    </div>
-    <div id="battlesContentInner"></div>
-  `;
-  document.getElementById('battlesContent').innerHTML = html;
-  window.showBattlesDesafiar();
-};
-
-window.showBattlesDesafiar = function() {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-btn')[0].classList.add('active');
-  
-  if (!user.friends || user.friends.length === 0) {
-    document.getElementById('battlesContentInner').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">Añade amigos para batallar.</p>';
-    return;
-  }
-
-  let html = '';
-  user.friends.forEach(f => {
-    html += `
-      <div class="friend-item">
-        <span>👤 ${f}</span>
-        <button class="btn-primary" onclick="window.startBattleInvite('${f}')">Desafiar</button>
-      </div>`;
-  });
-  document.getElementById('battlesContentInner').innerHTML = html;
+  window.showBattlesHistorial();
 };
 
 window.showBattlesHistorial = async function() {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-btn')[1].classList.add('active');
   
   try {
     const duelsRef = collection(db, 'duels');
@@ -478,18 +448,19 @@ window.showReceiveInvite = function(duel) {
 
 // --- HABILIDADES ---
 window.showSkills = function() {
-  const algebra = Math.min(5, Math.floor((user.calcTotalSolved || 0) / 10));
-  const geometry = Math.min(5, Math.floor((user.infinityProblemsSolved || 0) / 50));
-  const duels = Math.min(5, Math.floor((user.duelsWon || 0) / 20));
-  const speed = Math.min(5, Math.floor((user.infinityBestStreak || 0) / 50));
-  const accuracy = Math.min(5, Math.floor((user.quizQuestionsAnswered || 0) / 100));
+  const totalQuestions = user.quizQuestionsAnswered || 0;
+  const facil = totalQuestions > 0 ? ((user.stats?.facil || 0) / totalQuestions) * 5 : 0;
+  const normal = totalQuestions > 0 ? ((user.stats?.normal || 0) / totalQuestions) * 5 : 0;
+  const dificil = totalQuestions > 0 ? ((user.stats?.dificil || 0) / totalQuestions) * 5 : 0;
+  const extremo = totalQuestions > 0 ? ((user.stats?.experto || 0) / totalQuestions) * 5 : 0;
+  const infinito = (user.infinityProblemsSolved || 0) > 0 ? ((user.stats?.infinito || 0) / (user.infinityProblemsSolved || 1)) * 5 : 0;
 
   const stats = {
-    'Álgebra': algebra,
-    'Geometría': geometry,
-    'Duelos': duels,
-    'Rapidez': speed,
-    'Precisión': accuracy
+    'Fácil': Math.min(5, facil),
+    'Normal': Math.min(5, normal),
+    'Difícil': Math.min(5, dificil),
+    'Extremo': Math.min(5, extremo),
+    'Infinito': Math.min(5, infinito)
   };
 
   let html = `<h2 style="font-family:'Orbitron',sans-serif; color:#4c90ff; text-align:center;">🌳 Pentágono de Habilidades</h2>`;
@@ -504,15 +475,16 @@ window.showSkills = function() {
   const statsContainer = document.getElementById('skillsStats');
   const labels = Object.keys(stats);
   const values = Object.values(stats);
-  const icons = ['📐', '📏', '⚔️', '⚡', '🎯'];
+  const icons = ['📖', '📚', '📋', '🔥', '∞'];
 
   labels.forEach((label, i) => {
     const percentage = (values[i] / 5) * 100;
+    const displayValue = values[i].toFixed(2);
     statsContainer.innerHTML += `
       <div style="padding: 12px; border: 1px solid rgba(76,144,255,0.3); background: rgba(76,144,255,0.05); border-radius: 10px; text-align: center;">
         <div style="font-size: 24px; margin-bottom: 8px;">${icons[i]}</div>
         <div style="font-weight: bold; color: #4c90ff; font-size: 14px;">${label}</div>
-        <div style="font-size: 18px; font-family: 'Orbitron'; color: #fff; margin: 8px 0;">${values[i]}/5</div>
+        <div style="font-size: 18px; font-family: 'Orbitron'; color: #fff; margin: 8px 0;">${displayValue}</div>
         <div style="height: 6px; background: rgba(76,144,255,0.2); border-radius: 3px; overflow: hidden;">
           <div style="height: 100%; background: linear-gradient(90deg, #4c90ff, #4cff90); width: ${percentage}%; transition: width 0.3s;"></div>
         </div>
@@ -814,7 +786,9 @@ window.toggleMusic = async function() {
       bgMusic.pause();
     }
   } catch (e) {
-    console.warn('Interrupción de reproducción de música controlada:', e.name);
+    if (e.name !== 'AbortError') {
+      console.warn('Error en música:', e.name);
+    }
   } finally {
     // Actualizar la UI inmediatamente después del cambio de estado
     window.showThemes();
