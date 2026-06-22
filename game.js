@@ -389,9 +389,30 @@ function initMusic() {
   const floatingMusicBtn = document.getElementById('floatingMusicBtn');
   const tracks = { 'ciudad': 'ciudad.mp3', 'galaxia': 'galaxia.mp3', 'parque': 'parque.mp3', 'fondo1': 'bosque.mp3', 'fondo2': 'neon.mp3' };
   bgMusic.src = tracks[localStorage.getItem('background') || 'ciudad'] || 'ciudad.mp3';
-  floatingMusicBtn.onclick = () => {
-    if (bgMusic.paused) { bgMusic.play(); floatingMusicBtn.textContent = '🎵'; }
-    else { bgMusic.pause(); floatingMusicBtn.textContent = '🔇'; }
+  
+  // Sincronizar estado inicial del botón
+  if (bgMusic.paused) {
+    floatingMusicBtn.textContent = '🔇';
+    floatingMusicBtn.classList.add('off');
+  } else {
+    floatingMusicBtn.textContent = '🎵';
+    floatingMusicBtn.classList.remove('off');
+  }
+
+  floatingMusicBtn.onclick = async () => {
+    try {
+      if (bgMusic.paused) {
+        await bgMusic.play();
+        floatingMusicBtn.textContent = '🎵';
+        floatingMusicBtn.classList.remove('off');
+      } else {
+        bgMusic.pause();
+        floatingMusicBtn.textContent = '🔇';
+        floatingMusicBtn.classList.add('off');
+      }
+    } catch (e) {
+      console.warn('Interrupción de música en juego:', e.name);
+    }
   };
 }
 

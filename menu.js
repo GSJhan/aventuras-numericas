@@ -803,15 +803,21 @@ window.showThemes = function() {
   document.getElementById('configSection').innerHTML = '<h2>⚙️ Ajustes</h2>' + html;
 };
 
-window.toggleMusic = function() {
+window.toggleMusic = async function() {
   const bgMusic = document.getElementById('bgMusic');
-  if (bgMusic) {
+  if (!bgMusic) return;
+  
+  try {
     if (bgMusic.paused) {
-      bgMusic.play().catch(e => console.log('Error al reproducir música:', e));
+      await bgMusic.play();
     } else {
       bgMusic.pause();
     }
-    setTimeout(() => window.showThemes(), 100);
+  } catch (e) {
+    console.warn('Interrupción de reproducción de música controlada:', e.name);
+  } finally {
+    // Actualizar la UI inmediatamente después del cambio de estado
+    window.showThemes();
   }
 };
 
