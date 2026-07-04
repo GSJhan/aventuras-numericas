@@ -292,19 +292,20 @@ function initGame() {
         max-width: 400px;
         width: 90%;
         text-align: center;
+        backdrop-filter: blur(20px);
       `;
       
       content.innerHTML = `
         <h3 style="color: #4c90ff; font-family: 'Orbitron', monospace; margin-bottom: 20px; font-size: 20px;">Cambiar Dificultad</h3>
-        <select id="tempDifficultySelect" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(76,144,255,0.5); background: transparent; color: #e8eaff; margin-bottom: 20px; font-family: 'Rajdhani', sans-serif;">
+        <select id="tempDifficultySelect" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(76,144,255,0.5); background: transparent; color: #e8eaff; margin-bottom: 20px; backdrop-filter: blur(10px);">
           <option value="facil">Fácil (+10 XP)</option>
           <option value="normal">Normal (+25 XP)</option>
           <option value="dificil">Difícil (+50 XP)</option>
           <option value="experto">Extremo (+100 XP)</option>
         </select>
         <div style="display: flex; gap: 10px;">
-          <button id="confirmDiffBtn" style="flex:1; padding: 12px; background: linear-gradient(135deg, #4c90ff, #9b59ff); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-family: 'Rajdhani', sans-serif;">Confirmar</button>
-          <button id="cancelDiffBtn" style="flex:1; padding: 12px; background: transparent; border: 2px solid rgba(255,77,109,0.5); color: #ff4d6d; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-family: 'Rajdhani', sans-serif;">Cancelar</button>
+          <button id="confirmDiffBtn" style="flex:1; padding: 12px; background: linear-gradient(135deg, #4c90ff, #9b59ff); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Confirmar</button>
+          <button id="cancelDiffBtn" style="flex:1; padding: 12px; background: transparent; border: 2px solid rgba(255,77,109,0.5); color: #ff4d6d; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,77,109,0.15)'" onmouseout="this.style.background='transparent'">Cancelar</button>
         </div>
       `;
       
