@@ -498,7 +498,106 @@ color: transparent;
 }
 .game-btn .icon { font-size: 48px; margin-bottom: 12px; }
 .game-btn small { font-size: 12px; opacity: 0.8; }
+/* --- ESTILOS TRANSPARENTES SOLO BORDES --- */
+.section {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
 
+.card {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.3);
+}
+
+.question-box {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.5);
+}
+
+.result-box {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
+
+.battle-invite-content {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.5);
+}
+
+.modal-content {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.6);
+}
+
+.tienda-item {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
+
+.friend-item {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
+
+.stat-item {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
+
+.achievement-card {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.3);
+}
+
+.achievement-card.unlocked {
+  background: transparent !important;
+  border: 2px solid rgba(76,255,144,0.6);
+}
+
+.avatar-option {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
+
+.avatar-option.selected {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.8);
+  box-shadow: 0 0 20px rgba(76,144,255,0.6);
+}
+
+.theme-option {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.3);
+}
+
+.clash-item {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.3);
+}
+
+.battle-timer-box {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.4);
+}
+
+.battle-invite-modal {
+  background: rgba(0,0,0,0.9) !important;
+}
+
+/* Inputs y Selects */
+input, select {
+  background: transparent !important;
+  border: 2px solid rgba(76,144,255,0.5);
+  color: var(--text);
+}
+
+input:focus, select:focus {
+  border: 2px solid rgba(76,144,255,0.8);
+}
+
+input::placeholder {
+  color: rgba(232,234,255,0.5);
+}
 @media(max-width:768px) {
   .container { padding: 12px; }
   .header { flex-direction: column; gap: 12px; }
