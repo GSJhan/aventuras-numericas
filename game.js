@@ -238,6 +238,7 @@ function initGame() {
     document.getElementById('quizSetup').style.display = 'none';
     document.getElementById('quizStats').style.display = 'block';
     document.getElementById('quizGame').style.display = 'block';
+    document.getElementById('quizDifficultyGame').value = diff;
     quizStreak = 0;
     showQuizQuestion(diff);
   };
@@ -255,11 +256,13 @@ function initGame() {
     document.getElementById('calcResult').innerHTML = formatSolution(result);
   };
   
-  document.getElementById('quizDifficulty').addEventListener('change', function() {
+  // Cambiar dificultad durante el juego
+  document.getElementById('quizDifficultyGame').addEventListener('change', function() {
     if (document.getElementById('quizGame').style.display !== 'none') {
       currentQuizDifficulty = this.value;
       quizStreak = 0;
       showQuizQuestion(this.value);
+      updateQuizStreak();
     }
   });
 }
