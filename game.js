@@ -301,7 +301,7 @@ window.checkQuizAnswer = async () => {
     await saveUser();
     updateXPDisplay();
     setTimeout(() => window.showQuizQuestion(currentQuizDifficulty), 800);
-  } else {
+    } else {
     quizStreak = 0;
     
     const feedbackEl = document.getElementById('quizFeedback');
@@ -313,11 +313,13 @@ window.checkQuizAnswer = async () => {
     
     document.getElementById('quizAnsInput').value = '';
     updateQuizStreak();
+    
+    // NUEVO: Cambiar el problema después de 1.5 segundos cuando falla
     setTimeout(() => {
+      window.showQuizQuestion(currentQuizDifficulty);
       if (feedbackEl) feedbackEl.style.display = 'none';
     }, 1500);
   }
-};
 
 function updateQuizStreak() {
   document.getElementById('currentStreakDisplay').textContent = `🔥 Racha: ${quizStreak}`;
@@ -364,6 +366,10 @@ window.checkInfinityAnswer = async () => {
     window.showInfinityQuestion();
   } else {
     infinityStreak = 0;
+    
+    // NUEVO: Cambiar el problema inmediatamente cuando falla en infinito
+    window.showInfinityQuestion();
+    
     document.getElementById('infinityAnsInput').value = '';
     updateInfinityDisplay();
     isProcessingInfinityAnswer = false;
