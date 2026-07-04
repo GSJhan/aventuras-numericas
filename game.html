@@ -44,39 +44,43 @@
       <div id="calcResult" class="result-box"></div>
     </div>
 
-    <!-- QUIZ -->
-    <div id="quizSection" class="section hidden">
-      <button class="back-btn-small" onclick="window.goBackToChoice()">← Atrás</button>
-      <h2>🎯 Desafío de Preguntas</h2>
-      <div id="quizSetup">
-        <select id="quizDifficulty">
-          <option value="facil">Fácil (+10 XP)</option>
-          <option value="normal">Normal (+25 XP)</option>
-          <option value="dificil">Difícil (+50 XP)</option>
-          <option value="experto">Extremo (+100 XP)</option>
-        </select>
-        <button id="startQuizBtn" class="btn-primary">¡Comenzar!</button>
-      </div>
+<!-- QUIZ -->
+<div id="quizSection" class="section hidden">
+  <button class="back-btn-small" onclick="window.goBackToChoice()">← Atrás</button>
+  <h2>🎯 Desafío de Preguntas</h2>
+  <div id="quizSetup">
+    <select id="quizDifficulty">
+      <option value="facil">Fácil (+10 XP)</option>
+      <option value="normal">Normal (+25 XP)</option>
+      <option value="dificil">Difícil (+50 XP)</option>
+      <option value="experto">Extremo (+100 XP)</option>
+    </select>
+    <button id="startQuizBtn" class="btn-primary">¡Comenzar!</button>
+  </div>
 
-      <div id="quizStats" style="display:none; margin-top:20px;">
-        <div id="currentStreakDisplay" style="font-size:24px; color:#ff9500; font-weight:bold; text-align:center;">🔥 Racha: 0</div>
-      </div>
+  <div id="quizStats" style="display:none; margin-top:20px;">
+    <div id="currentStreakDisplay" style="font-size:24px; color:#ff9500; font-weight:bold; text-align:center;">🔥 Racha: 0</div>
+  </div>
 
-      <div id="quizGame" class="question-box" style="display:none; margin-top:20px;">
-        <div style="display:flex; gap:15px; align-items:center; margin-bottom:20px;">
-          <div id="questionText" class="question-text" style="flex:1;">?</div>
-          <select id="quizDifficultyGame" style="width:180px; font-size:16px;">
-            <option value="facil">Fácil</option>
-            <option value="normal">Normal</option>
-            <option value="dificil">Difícil</option>
-            <option value="experto">Extremo</option>
-          </select>
-        </div>
-        <div id="quizFeedback" style="display:none; font-size:18px; font-weight:bold; margin:15px 0; padding:10px; border-radius:8px;"></div>
-        <input type="number" id="quizAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
-        <button onclick="window.checkQuizAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
-      </div>
+  <div id="quizGame" class="question-box" style="display:none; margin-top:20px;">
+    <div style="display:flex; gap:15px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+      <div id="questionText" class="question-text" style="flex:1;">?</div>
+      <select id="quizDifficultyGame" style="width:180px; font-size:16px;">
+        <option value="facil">Fácil</option>
+        <option value="normal">Normal</option>
+        <option value="dificil">Difícil</option>
+        <option value="experto">Extremo</option>
+      </select>
     </div>
+    
+    <!-- NUEVO: Botón para cambiar dificultad -->
+    <button id="changeDifficultyBtn" class="btn-small" style="width:100%; margin-bottom:15px;">🔄 Cambiar Dificultad</button>
+    
+    <div id="quizFeedback" style="display:none; font-size:18px; font-weight:bold; margin:15px 0; padding:10px; border-radius:8px;"></div>
+    <input type="number" id="quizAnsInput" placeholder="Tu respuesta..." style="font-size:24px; text-align:center; padding:15px; width:100%;" />
+    <button onclick="window.checkQuizAnswer()" class="btn-primary" style="margin-top:20px;">Enviar Respuesta</button>
+  </div>
+</div>
 
     <!-- MODO INFINITO -->
     <div id="infinitySection" class="section hidden">
