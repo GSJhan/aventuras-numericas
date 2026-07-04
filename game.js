@@ -30,6 +30,8 @@ var quizStreak = 0;
 var infinityStreak = 0;
 var infinityBestStreak = 0;
 var infinityCoinsEarned = 0;
+var isProcessingInfinityAnswer = false;
+var currentQuizDifficulty = 'facil';
 
 async function loadUser() {
   userRef = doc(db, 'users', currentUser);
@@ -72,8 +74,7 @@ async function initBattle() {
     }
   });
 
-  // Empezar cuenta regresiva
-  let timeLeft = 3; // 3 seg de preparación
+  let timeLeft = 3;
   const prepInterval = setInterval(() => {
     document.getElementById('battleQuestionText').textContent = '¡PREPÁRATE! ' + timeLeft;
     timeLeft--;
@@ -197,15 +198,13 @@ window.goBackToChoice = () => {
   document.getElementById('gameChoice').classList.remove('hidden');
   document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
   
-  // Limpiar estado del Quiz
   document.getElementById('quizSetup').style.display = 'block';
   document.getElementById('quizStats').style.display = 'none';
   document.getElementById('quizGame').style.display = 'none';
   document.getElementById('quizDifficulty').value = 'facil';
-  window.quizDifficulty = 'facil';
+  currentQuizDifficulty = 'facil';
   quizStreak = 0;
   
-  // Limpiar estado del Infinito
   document.getElementById('infinitySetup').style.display = 'block';
   document.getElementById('infinityStats').style.display = 'none';
   document.getElementById('infinityGame').style.display = 'none';
@@ -235,6 +234,7 @@ function initGame() {
   };
   document.getElementById('startQuizBtn').onclick = () => {
     const diff = document.getElementById('quizDifficulty').value;
+    currentQuizDifficulty = diff;
     document.getElementById('quizSetup').style.display = 'none';
     document.getElementById('quizStats').style.display = 'block';
     document.getElementById('quizGame').style.display = 'block';
@@ -254,13 +254,19 @@ function initGame() {
     const result = solveEquation(eq);
     document.getElementById('calcResult').innerHTML = formatSolution(result);
   };
+  
+  document.getElementById('quizDifficulty').addEventListener('change', function() {
+    if (document.getElementById('quizGame').style.display !== 'none') {
+      currentQuizDifficulty = this.value;
+      quizStreak = 0;
+      showQuizQuestion(this.value);
+    }
+  });
 }
 
-// --- QUIZ ---
-window.quizDifficulty = 'facil';
-
+// --- QUIZ CON DIFICULTAD SELECCIONABLE ---
 window.showQuizQuestion = (diff) => {
-  window.quizDifficulty = diff;
+  currentQuizDifficulty = diff;
   currentProblem = generateProblem(diff);
   document.getElementById('questionText').innerHTML = currentProblem.q;
   document.getElementById('quizAnsInput').value = '';
@@ -274,35 +280,30 @@ window.checkQuizAnswer = async () => {
     quizStreak++;
     user.quizQuestionsAnswered = (user.quizQuestionsAnswered || 0) + 1;
     
-    // Agregar XP segun dificultad
     const xpGain = { facil: 10, normal: 25, dificil: 50, experto: 100 };
-    user.xp += xpGain[window.quizDifficulty] || 10;
+    user.xp += xpGain[currentQuizDifficulty] || 10;
     
-    // Agregar monedas
     user.coins += 5;
     
-    // Actualizar stats
     if (!user.stats) user.stats = {};
-    user.stats[window.quizDifficulty] = (user.stats[window.quizDifficulty] || 0) + 1;
+    user.stats[currentQuizDifficulty] = (user.stats[currentQuizDifficulty] || 0) + 1;
     
-    // Mostrar mensaje de exito
     const feedbackEl = document.getElementById('quizFeedback');
     if (feedbackEl) {
-      feedbackEl.innerHTML = '✅ Felicidades! Respuesta correcta';
+      feedbackEl.innerHTML = '✅ ¡Felicidades! Respuesta correcta';
       feedbackEl.style.color = '#4cff90';
       feedbackEl.style.display = 'block';
     }
     
     await saveUser();
     updateXPDisplay();
-    setTimeout(() => window.showQuizQuestion(window.quizDifficulty), 800);
+    setTimeout(() => window.showQuizQuestion(currentQuizDifficulty), 800);
   } else {
     quizStreak = 0;
     
-    // Mostrar mensaje de error
     const feedbackEl = document.getElementById('quizFeedback');
     if (feedbackEl) {
-      feedbackEl.innerHTML = '❌ Respuesta incorrecta. Tu puedes!';
+      feedbackEl.innerHTML = '❌ Respuesta incorrecta. ¡Tú puedes!';
       feedbackEl.style.color = '#ff4d6d';
       feedbackEl.style.display = 'block';
     }
@@ -319,8 +320,9 @@ function updateQuizStreak() {
   document.getElementById('currentStreakDisplay').textContent = `🔥 Racha: ${quizStreak}`;
 }
 
-// --- INFINITO ---
+// --- INFINITO CON PROTECCIÓN CONTRA DOBLE CLICK ---
 window.showInfinityQuestion = () => {
+  isProcessingInfinityAnswer = false;
   const diffs = ['facil', 'normal', 'dificil', 'experto'];
   const diff = diffs[Math.floor(Math.random() * diffs.length)];
   currentProblem = generateProblem(diff);
@@ -332,6 +334,9 @@ window.showInfinityQuestion = () => {
 };
 
 window.checkInfinityAnswer = async () => {
+  if (isProcessingInfinityAnswer) return;
+  isProcessingInfinityAnswer = true;
+  
   const ans = parseInt(document.getElementById('infinityAnsInput').value);
   if (ans === currentProblem.ans) {
     infinityStreak++;
@@ -341,16 +346,13 @@ window.checkInfinityAnswer = async () => {
     user.infinityStreak = infinityStreak;
     user.infinityBestStreak = Math.max(user.infinityBestStreak || 0, infinityBestStreak);
     
-    // Monedas por racha
     const coinsEarned = Math.floor(infinityStreak / 5) + 1;
     infinityCoinsEarned += coinsEarned;
     user.coins += coinsEarned;
     user.infinityCoinsEarned = (user.infinityCoinsEarned || 0) + coinsEarned;
     
-    // XP
     user.xp += 15;
     
-    // Stats
     if (!user.stats) user.stats = {};
     user.stats.infinito = (user.stats.infinito || 0) + 1;
     
@@ -361,6 +363,7 @@ window.checkInfinityAnswer = async () => {
     infinityStreak = 0;
     document.getElementById('infinityAnsInput').value = '';
     updateInfinityDisplay();
+    isProcessingInfinityAnswer = false;
   }
 };
 
@@ -383,14 +386,46 @@ window.showCustomModal = (title, message, icon, callback) => {
   };
 };
 
-// --- MÚSICA ---
+// --- MÚSICA SINCRONIZADA CON ICONO ---
+let isMusicChanging = false;
+
 function initMusic() {
   const bgMusic = document.getElementById('bgMusic');
   const floatingMusicBtn = document.getElementById('floatingMusicBtn');
   const tracks = { 'ciudad': 'ciudad.mp3', 'galaxia': 'galaxia.mp3', 'parque': 'parque.mp3', 'fondo1': 'bosque.mp3', 'fondo2': 'neon.mp3' };
-  bgMusic.src = tracks[localStorage.getItem('background') || 'ciudad'] || 'ciudad.mp3';
   
-  // Sincronizar estado inicial del botón
+  const currentTheme = localStorage.getItem('background') || 'ciudad';
+  bgMusic.src = tracks[currentTheme] || 'ciudad.mp3';
+  
+  bgMusic.play().catch(() => {
+    // Si falla autoplay, esperar a que el usuario interactúe
+  });
+  
+  updateMusicButtonUI();
+
+  floatingMusicBtn.onclick = async () => {
+    if (isMusicChanging) return;
+    isMusicChanging = true;
+    
+    try {
+      if (bgMusic.paused) {
+        await bgMusic.play();
+      } else {
+        bgMusic.pause();
+      }
+      updateMusicButtonUI();
+    } catch (e) {
+      console.warn('Error al controlar música:', e.message);
+    } finally {
+      isMusicChanging = false;
+    }
+  };
+}
+
+function updateMusicButtonUI() {
+  const bgMusic = document.getElementById('bgMusic');
+  const floatingMusicBtn = document.getElementById('floatingMusicBtn');
+  
   if (bgMusic.paused) {
     floatingMusicBtn.textContent = '🔇';
     floatingMusicBtn.classList.add('off');
@@ -398,22 +433,6 @@ function initMusic() {
     floatingMusicBtn.textContent = '🎵';
     floatingMusicBtn.classList.remove('off');
   }
-
-  floatingMusicBtn.onclick = async () => {
-    try {
-      if (bgMusic.paused) {
-        await bgMusic.play();
-        floatingMusicBtn.textContent = '🎵';
-        floatingMusicBtn.classList.remove('off');
-      } else {
-        bgMusic.pause();
-        floatingMusicBtn.textContent = '🔇';
-        floatingMusicBtn.classList.add('off');
-      }
-    } catch (e) {
-      console.warn('Interrupción de música en juego:', e.name);
-    }
-  };
 }
 
 loadUser();

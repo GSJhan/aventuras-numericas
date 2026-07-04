@@ -190,7 +190,7 @@ window.showAddFriends = function() {
 
   document.getElementById('friendsContent').innerHTML = `
     <div class="search-box" style="display:flex; gap:10px; margin-bottom:20px;">
-      <input type="text" id="searchUser" placeholder="Nombre del usuario..." style="flex:1; padding:12px; border:1px solid rgba(76,144,255,0.3); background:rgba(76,144,255,0.05); border-radius:8px; color:#fff; font-size:14px;">
+      <input type="text" id="searchUser" placeholder="Nombre del usuario..." style="flex:1; padding:12px; border:1px solid rgba(76,144,255,0.3); background:rgba(76,144,255,0.05); border-radius:8px;">
       <button class="btn-primary" onclick="window.searchUser()" style="padding:12px 30px; white-space:nowrap;">Buscar</button>
     </div>
     <div id="searchResults"></div>
@@ -240,13 +240,12 @@ window.addFriend = async function(name) {
   window.showFriendsList();
 };
 
-// --- BATALLAS (DUELS) ---
+// --- BATALLAS (DUELS) - CON HISTORIAL ---
 window.showBattles = function() {
   window.showBattlesHistorial();
 };
 
 window.showBattlesHistorial = async function() {
-  
   try {
     const duelsRef = collection(db, 'duels');
     const q = query(duelsRef, where('status', '==', 'finished'));
@@ -255,23 +254,23 @@ window.showBattlesHistorial = async function() {
     const myDuels = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .filter(d => d.challenger === currentUser || d.opponent === currentUser)
-      .sort((a, b) => b.createdAt - a.createdAt);
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     
     if (myDuels.length === 0) {
-      document.getElementById('battlesContentInner').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">No hay batallas completadas aun.</p>';
+      document.getElementById('battlesContent').innerHTML = '<p style="text-align:center; padding:20px; opacity:0.7;">No hay batallas completadas aún.</p>';
       return;
     }
     
-    let html = '<div class="battles-history">';
+    let html = '<div class="battles-history" style="max-height:600px; overflow-y:auto;">';
     myDuels.forEach(duel => {
       const isChallenger = duel.challenger === currentUser;
       const opponent = isChallenger ? duel.opponent : duel.challenger;
-      const myScore = isChallenger ? duel.p1Score : duel.p2Score;
-      const opScore = isChallenger ? duel.p2Score : duel.p1Score;
+      const myScore = isChallenger ? (duel.p1Score || 0) : (duel.p2Score || 0);
+      const opScore = isChallenger ? (duel.p2Score || 0) : (duel.p1Score || 0);
       const won = myScore > opScore;
-      const result = won ? 'GANADA' : (myScore === opScore ? 'EMPATE' : 'PERDIDA');
+      const result = won ? 'GANADA ✅' : (myScore === opScore ? 'EMPATE 🤝' : 'PERDIDA ❌');
       const resultColor = won ? '#4cff90' : (myScore === opScore ? '#ffd700' : '#ff4d6d');
-      const date = new Date(duel.createdAt).toLocaleString('es-ES');
+      const date = new Date(duel.createdAt || Date.now()).toLocaleString('es-ES');
       
       html += `
         <div class="battle-history-item" style="background:rgba(76,144,255,0.1); border:1px solid rgba(76,144,255,0.3); padding:15px; border-radius:10px; margin-bottom:10px;">
@@ -283,17 +282,17 @@ window.showBattlesHistorial = async function() {
             <div style="text-align:right;">
               <div style="font-size:18px; font-weight:bold; color:${resultColor};">${result}</div>
               <div style="font-size:14px; color:#4cff90; margin-top:5px;">${myScore} - ${opScore}</div>
-              <div style="font-size:12px; opacity:0.8; margin-top:5px;">${duel.bet} monedas</div>
+              <div style="font-size:12px; opacity:0.8; margin-top:5px;">${duel.bet || 0} monedas</div>
             </div>
           </div>
         </div>
       `;
     });
     html += '</div>';
-    document.getElementById('battlesContentInner').innerHTML = html;
+    document.getElementById('battlesContent').innerHTML = html;
   } catch (e) {
     console.error('Error cargando historial:', e);
-    document.getElementById('battlesContentInner').innerHTML = '<p style="color:#ff4d6d;">Error al cargar el historial.</p>';
+    document.getElementById('battlesContent').innerHTML = '<p style="color:#ff4d6d;">Error al cargar el historial.</p>';
   }
 };
 
@@ -382,7 +381,6 @@ window.cancelBattleInvite = async function() {
     const snap = await getDoc(duelRef);
     if (snap.exists() && snap.data().status === 'pending') {
       await deleteDoc(duelRef);
-      // Devolver monedas si no fue aceptada
       const duelData = snap.data();
       user.coins += duelData.bet;
       await saveUser();
@@ -464,10 +462,7 @@ window.showSkills = function() {
   };
 
   let html = `<h2 style="font-family:'Orbitron',sans-serif; color:#4c90ff; text-align:center;">🌳 Pentágono de Habilidades</h2>`;
-  html += `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(16,24,52,0.6); padding: 20px; border-radius: 20px; border: 1px solid rgba(76,144,255,0.2);">`;
-  html += `<canvas id="skillsCanvas" width="500" height="500" style="max-width: 100%; filter: drop-shadow(0 0 10px rgba(76,144,255,0.3));"></canvas>`;
-  html += `<div id="skillsStats" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; width: 100%;"></div>`;
-  html += `</div>`;
+  html += `<div style="display: flex; flex-direction: column; align-items: center; background: rgba(16,24,52,0.6); padding: 20px; border-radius: 20px; border: 1px solid rgba(76,144,255,0.2);"><canvas id="skillsCanvas" width="500" height="500" style="max-width: 100%; filter: drop-shadow(0 0 10px rgba(76,144,255,0.3));"></canvas><div id="skillsStats" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; width: 100%;"></div></div>`;
   document.getElementById('skillsSection').innerHTML = html;
 
   drawSkillsRadar(stats);
@@ -505,11 +500,9 @@ function drawSkillsRadar(stats) {
   const values = Object.values(stats);
   const points = [];
 
-  // Función para redibujar todo
   const redraw = (hoverIndex = -1) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Dibujar Telaraña Base
     ctx.strokeStyle = 'rgba(76,144,255,0.2)';
     ctx.lineWidth = 1;
     for (let j = 1; j <= 5; j++) {
@@ -525,7 +518,6 @@ function drawSkillsRadar(stats) {
       ctx.stroke();
     }
 
-    // Dibujar Ejes
     ctx.strokeStyle = 'rgba(76,144,255,0.1)';
     for (let i = 0; i < 5; i++) {
       const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
@@ -535,7 +527,6 @@ function drawSkillsRadar(stats) {
       ctx.stroke();
     }
 
-    // Dibujar Área de Habilidades
     ctx.beginPath();
     ctx.fillStyle = 'rgba(255,165,0,0.15)';
     ctx.strokeStyle = 'rgba(255,165,0,0.6)';
@@ -552,7 +543,6 @@ function drawSkillsRadar(stats) {
     ctx.fill();
     ctx.stroke();
 
-    // Dibujar Puntos y Tooltips
     points.forEach((p, i) => {
       ctx.fillStyle = (i === hoverIndex) ? '#4cff90' : '#4cff90';
       ctx.beginPath();
@@ -563,7 +553,6 @@ function drawSkillsRadar(stats) {
       ctx.stroke();
 
       if (i === hoverIndex) {
-        // Dibujar Tooltip
         const text = p.val;
         ctx.font = 'bold 14px Orbitron';
         const textWidth = ctx.measureText(text).width;
@@ -575,7 +564,6 @@ function drawSkillsRadar(stats) {
       }
     });
 
-    // Dibujar Etiquetas
     ctx.fillStyle = '#e8eaff';
     ctx.font = 'bold 16px Rajdhani';
     ctx.textAlign = 'center';
@@ -589,7 +577,6 @@ function drawSkillsRadar(stats) {
 
   redraw();
 
-  // Evento de mouse para hover
   canvas.onmousemove = (e) => {
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left) * (canvas.width / rect.width);
@@ -605,76 +592,6 @@ function drawSkillsRadar(stats) {
   };
 }
 
-  // Dibujar Telaraña Base
-  ctx.strokeStyle = 'rgba(76,144,255,0.2)';
-  ctx.lineWidth = 1;
-  for (let j = 1; j <= 5; j++) {
-    ctx.beginPath();
-    for (let i = 0; i < 5; i++) {
-      const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
-      const r = (radius / 5) * j;
-      const x = centerX + Math.cos(angle) * r;
-      const y = centerY + Math.sin(angle) * r;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-  }
-
-  // Dibujar Ejes
-  ctx.strokeStyle = 'rgba(76,144,255,0.1)';
-  for (let i = 0; i < 5; i++) {
-    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
-    ctx.stroke();
-  }
-
-  // Dibujar Área de Habilidades
-  ctx.beginPath();
-  ctx.fillStyle = 'rgba(255,165,0,0.15)';
-  ctx.strokeStyle = 'rgba(255,165,0,0.6)';
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 5; i++) {
-    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
-    const r = (values[i] / 5) * radius;
-    const x = centerX + Math.cos(angle) * r;
-    const y = centerY + Math.sin(angle) * r;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // Dibujar Puntos
-  for (let i = 0; i < 5; i++) {
-    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
-    const r = (values[i] / 5) * radius;
-    const x = centerX + Math.cos(angle) * r;
-    const y = centerY + Math.sin(angle) * r;
-    
-    ctx.fillStyle = '#4cff90';
-    ctx.beginPath();
-    ctx.arc(x, y, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-
-  // Dibujar Etiquetas
-  ctx.fillStyle = '#e8eaff';
-  ctx.font = 'bold 16px Rajdhani';
-  ctx.textAlign = 'center';
-  for (let i = 0; i < 5; i++) {
-    const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
-    const x = centerX + Math.cos(angle) * (radius + 45);
-    const y = centerY + Math.sin(angle) * (radius + 45);
-    ctx.fillText(labels[i], x, y);
-  }
-}
-
 // --- RANKING ---
 window.showRanking = async function() {
   const usersRef = collection(db, 'users');
@@ -684,7 +601,6 @@ window.showRanking = async function() {
   let html = '<div class="podium-container">';
   const users = snap.docs.map(d => ({ name: d.id, ...d.data() }));
   
-  // Top 3 en podio
   if (users.length >= 1) {
     html += `<div class="podium-1st">
       <div style="font-size:40px;">🥇</div>
@@ -708,7 +624,6 @@ window.showRanking = async function() {
   }
   html += '</div>';
   
-  // Lista completa
   html += '<div class="ranking-list">';
   users.forEach((u, i) => {
     const level = calculateLevel(u.xp || 0);
@@ -724,11 +639,10 @@ window.showRanking = async function() {
   document.getElementById('rankingSection').innerHTML = '<h2>🏅 Ranking Global</h2>' + html;
 };
 
-// --- TIENDA ---
+// --- TIENDA (SOLO PODERES) ---
 window.showTienda = function() {
   let html = '<div class="tienda-grid">';
   
-  // Poderes
   html += '<h3 style="grid-column:1/-1; color:#4c90ff; font-family:Orbitron;">⚡ Poderes Especiales</h3>';
   POWERS.forEach(power => {
     html += `
@@ -747,19 +661,6 @@ window.showTienda = function() {
   document.getElementById('tiendaSection').innerHTML = '<h2>🛍️ Tienda</h2>' + html;
 };
 
-window.buyAvatar = async function(avatar) {
-  if (user.coins < 500) { alert('No tienes suficientes monedas'); return; }
-  if (user.skins && user.skins.includes(avatar)) { alert('Ya lo posees'); return; }
-  
-  user.coins -= 500;
-  if (!user.skins) user.skins = [];
-  user.skins.push(avatar);
-  await saveUser();
-  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
-  alert('¡Avatar comprado!');
-  window.showAvatarEditor();
-};
-
 window.buyPower = async function(powerId, cost) {
   if (user.coins < cost) { alert('No tienes suficientes monedas'); return; }
   
@@ -774,7 +675,7 @@ window.buyPower = async function(powerId, cost) {
   window.showTienda();
 };
 
-// --- AVATAR EDITOR ---
+// --- AVATAR EDITOR (CON COMPRA DE SKINS) ---
 window.showAvatarEditor = function() {
   let html = '<div class="avatar-grid">';
   AVATARS.forEach(avatar => {
@@ -787,14 +688,27 @@ window.showAvatarEditor = function() {
       <div class="avatar-option ${isSelected ? 'selected' : ''}">
         <img src="${getAvatarSrc(avatar)}" class="avatar-choice-img">
         <div style="margin-top:10px; font-size:12px;">${avatar}</div>
-        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar}')` : `window.buyAvatar('${avatar}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:11px;">
+        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar}')` : `window.buyAvatar('${avatar}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.3s;">
           ${btnText}
         </button>
       </div>
     `;
   });
   html += '</div>';
-  document.getElementById('avatarSection').innerHTML = '<h2>👤 Avatares</h2>' + html;
+  document.getElementById('avatarSection').innerHTML = '<h2>👤 Avatares y Skins</h2>' + html;
+};
+
+window.buyAvatar = async function(avatar) {
+  if (user.coins < 500) { alert('No tienes suficientes monedas'); return; }
+  if (user.skins && user.skins.includes(avatar)) { alert('Ya lo posees'); return; }
+  
+  user.coins -= 500;
+  if (!user.skins) user.skins = [];
+  user.skins.push(avatar);
+  await saveUser();
+  document.getElementById('displayCoins').textContent = '💰 ' + user.coins;
+  alert('¡Avatar comprado!');
+  window.showAvatarEditor();
 };
 
 window.selectAvatar = async function(avatar) {
@@ -887,7 +801,7 @@ window.toggleMusic = async function() {
       bgMusic.pause();
     }
   } catch (e) {
-    // Silenciamos cualquier error de interrupción del navegador
+    console.warn('Error al cambiar música:', e.message);
   } finally {
     isMusicChanging = false;
     window.showThemes();
