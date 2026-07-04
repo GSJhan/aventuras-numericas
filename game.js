@@ -331,7 +331,70 @@ function initGame() {
     });
   }
 }
-
+  // Botón para cambiar dificultad en Quiz
+  if (document.getElementById('changeDifficultyQuizBtn')) {
+    document.getElementById('changeDifficultyQuizBtn').addEventListener('click', function() {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+      `;
+      
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: transparent;
+        border: 2px solid rgba(76,144,255,0.6);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        backdrop-filter: blur(20px);
+      `;
+      
+      content.innerHTML = `
+        <h3 style="color: #4c90ff; font-family: 'Orbitron', monospace; margin-bottom: 20px; font-size: 20px;">Cambiar Dificultad</h3>
+        <select id="tempQuizDifficultySelect" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(76,144,255,0.5); background: transparent; color: #e8eaff; margin-bottom: 20px;">
+          <option value="facil">Fácil (+10 XP)</option>
+          <option value="normal">Normal (+25 XP)</option>
+          <option value="dificil">Difícil (+50 XP)</option>
+          <option value="experto">Extremo (+100 XP)</option>
+        </select>
+        <div style="display: flex; gap: 10px;">
+          <button id="confirmQuizDiffBtn" style="flex:1; padding: 12px; background: linear-gradient(135deg, #4c90ff, #9b59ff); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Confirmar</button>
+          <button id="cancelQuizDiffBtn" style="flex:1; padding: 12px; background: transparent; border: 2px solid rgba(255,77,109,0.5); color: #ff4d6d; border-radius: 8px; cursor: pointer; font-weight: bold;">Cancelar</button>
+        </div>
+      `;
+      
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      const tempSelect = document.getElementById('tempQuizDifficultySelect');
+      tempSelect.value = currentQuizDifficulty;
+      
+      document.getElementById('confirmQuizDiffBtn').onclick = function() {
+        const newDiff = tempSelect.value;
+        currentQuizDifficulty = newDiff;
+        document.getElementById('quizDifficulty').value = newDiff;
+        quizStreak = 0;
+        showQuizQuestion(newDiff);
+        updateQuizStreak();
+        modal.remove();
+      };
+      
+      document.getElementById('cancelQuizDiffBtn').onclick = function() {
+        modal.remove();
+      };
+    });
+  }
 // --- QUIZ CON DIFICULTAD SELECCIONABLE ---
 window.showQuizQuestion = (diff) => {
   currentQuizDifficulty = diff;
