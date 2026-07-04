@@ -338,6 +338,7 @@ window.showQuizQuestion = (diff) => {
   currentProblem = generateProblem(diff);
   document.getElementById('questionText').innerHTML = currentProblem.q;
   document.getElementById('quizAnsInput').value = '';
+  document.getElementById('quizAnsInput').focus();
   updateQuizStreak();
 };
 
