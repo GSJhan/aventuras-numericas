@@ -338,7 +338,6 @@ window.showQuizQuestion = (diff) => {
   currentProblem = generateProblem(diff);
   document.getElementById('questionText').innerHTML = currentProblem.q;
   document.getElementById('quizAnsInput').value = '';
-  document.getElementById('quizAnsInput').focus();
   updateQuizStreak();
 };
 
@@ -363,9 +362,10 @@ window.checkQuizAnswer = async () => {
       feedbackEl.style.display = 'block';
     }
     
-    await saveUser();
-    updateXPDisplay();
-    setTimeout(() => window.showQuizQuestion(currentQuizDifficulty), 800);
+await saveUser();
+updateXPDisplay();
+document.getElementById('quizAnsInput').value = ''; // ← Agregar esta línea
+setTimeout(() => window.showQuizQuestion(currentQuizDifficulty), 800);
   } else {
     quizStreak = 0;
     
