@@ -256,7 +256,7 @@ function initGame() {
     document.getElementById('calcResult').innerHTML = formatSolution(result);
   };
   
-  // Cambiar dificultad durante el juego
+  // Cambiar dificultad durante el juego con el selector
   document.getElementById('quizDifficultyGame').addEventListener('change', function() {
     if (document.getElementById('quizGame').style.display !== 'none') {
       currentQuizDifficulty = this.value;
@@ -265,6 +265,70 @@ function initGame() {
       updateQuizStreak();
     }
   });
+
+  // Botón para cambiar dificultad directamente
+  if (document.getElementById('changeDifficultyBtn')) {
+    document.getElementById('changeDifficultyBtn').addEventListener('click', function() {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+      `;
+      
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: transparent;
+        border: 2px solid rgba(76,144,255,0.6);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+      `;
+      
+      content.innerHTML = `
+        <h3 style="color: #4c90ff; font-family: 'Orbitron', monospace; margin-bottom: 20px; font-size: 20px;">Cambiar Dificultad</h3>
+        <select id="tempDifficultySelect" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 2px solid rgba(76,144,255,0.5); background: transparent; color: #e8eaff; margin-bottom: 20px; font-family: 'Rajdhani', sans-serif;">
+          <option value="facil">Fácil (+10 XP)</option>
+          <option value="normal">Normal (+25 XP)</option>
+          <option value="dificil">Difícil (+50 XP)</option>
+          <option value="experto">Extremo (+100 XP)</option>
+        </select>
+        <div style="display: flex; gap: 10px;">
+          <button id="confirmDiffBtn" style="flex:1; padding: 12px; background: linear-gradient(135deg, #4c90ff, #9b59ff); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-family: 'Rajdhani', sans-serif;">Confirmar</button>
+          <button id="cancelDiffBtn" style="flex:1; padding: 12px; background: transparent; border: 2px solid rgba(255,77,109,0.5); color: #ff4d6d; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-family: 'Rajdhani', sans-serif;">Cancelar</button>
+        </div>
+      `;
+      
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      
+      const tempSelect = document.getElementById('tempDifficultySelect');
+      tempSelect.value = currentQuizDifficulty;
+      
+      document.getElementById('confirmDiffBtn').onclick = function() {
+        const newDiff = tempSelect.value;
+        currentQuizDifficulty = newDiff;
+        document.getElementById('quizDifficultyGame').value = newDiff;
+        quizStreak = 0;
+        showQuizQuestion(newDiff);
+        updateQuizStreak();
+        modal.remove();
+      };
+      
+      document.getElementById('cancelDiffBtn').onclick = function() {
+        modal.remove();
+      };
+    });
+  }
 }
 
 // --- QUIZ CON DIFICULTAD SELECCIONABLE ---
@@ -301,7 +365,7 @@ window.checkQuizAnswer = async () => {
     await saveUser();
     updateXPDisplay();
     setTimeout(() => window.showQuizQuestion(currentQuizDifficulty), 800);
-    } else {
+  } else {
     quizStreak = 0;
     
     const feedbackEl = document.getElementById('quizFeedback');
@@ -314,12 +378,13 @@ window.checkQuizAnswer = async () => {
     document.getElementById('quizAnsInput').value = '';
     updateQuizStreak();
     
-    // NUEVO: Cambiar el problema después de 1.5 segundos cuando falla
+    // Cambiar el problema después de 1.5 segundos cuando falla
     setTimeout(() => {
       window.showQuizQuestion(currentQuizDifficulty);
       if (feedbackEl) feedbackEl.style.display = 'none';
     }, 1500);
   }
+};
 
 function updateQuizStreak() {
   document.getElementById('currentStreakDisplay').textContent = `🔥 Racha: ${quizStreak}`;
@@ -367,7 +432,7 @@ window.checkInfinityAnswer = async () => {
   } else {
     infinityStreak = 0;
     
-    // NUEVO: Cambiar el problema inmediatamente cuando falla en infinito
+    // Cambiar el problema inmediatamente cuando falla en infinito
     window.showInfinityQuestion();
     
     document.getElementById('infinityAnsInput').value = '';
