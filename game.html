@@ -9,47 +9,70 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4c90ff">
   <style>
-    /* Animated Back Button */
-    .back-btn-animated {
-      background: var(--accent) !important;
+    /* Animated Back Button - Elegant Design */
+    .back-btn-elegant {
+      background: white;
       text-align: center;
-      width: 48px;
-      rounded: 16px;
+      width: 56px;
       height: 56px;
-      relative: true;
+      position: relative;
+      text-black;
       font-size: 16px;
       font-weight: 600;
-      group: true;
-      border: none !important;
+      border: none;
       padding: 0;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.5s ease;
+      group: true;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
       box-shadow: 0 4px 15px rgba(76,144,255,0.3);
+      cursor: pointer;
+      overflow: hidden;
     }
     
-    .back-btn-animated:hover {
-      width: 180px;
+    .back-btn-elegant:hover {
+      width: 184px;
       box-shadow: 0 4px 25px rgba(76,144,255,0.6);
     }
     
-    .back-btn-animated svg {
-      width: 25px;
-      height: 25px;
-      transition: all 0.5s ease;
+    .back-btn-elegant .icon-wrapper {
+      background: var(--accent);
+      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      left: 4px;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
       flex-shrink: 0;
+      z-index: 2;
     }
     
-    .back-btn-animated p {
+    .back-btn-elegant:hover .icon-wrapper {
+      width: calc(100% - 8px);
+    }
+    
+    .back-btn-elegant svg {
+      width: 25px;
+      height: 25px;
+    }
+    
+    .back-btn-elegant p {
       margin: 0;
-      margin-left: 10px;
+      margin-left: 8px;
       opacity: 0;
       transition: opacity 0.5s ease;
       white-space: nowrap;
+      position: absolute;
+      z-index: 1;
+      color: black;
     }
     
-    .back-btn-animated:hover p {
+    .back-btn-elegant:hover p {
       opacity: 1;
     }
   </style>
@@ -57,11 +80,13 @@
 <body>
   <div class="container">
     <div class="header">
-      <button id="mainBackBtn" class="back-btn-animated">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
-          <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
-          <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
-        </svg>
+      <button id="mainBackBtn" class="back-btn-elegant">
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" height="25px" width="25px" fill="white">
+            <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+            <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+          </svg>
+        </div>
         <p>Atrás</p>
       </button>
       <div class="user-info">
@@ -87,11 +112,13 @@
 
     <!-- CALCULADORA -->
     <div id="calculatorSection" class="section hidden">
-      <button class="back-btn-animated" onclick="window.goBackToChoice()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
-          <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
-          <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
-        </svg>
+      <button class="back-btn-elegant" onclick="window.goBackToChoice()">
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" height="25px" width="25px" fill="white">
+            <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+            <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+          </svg>
+        </div>
         <p>Atrás</p>
       </button>
       <h2>🧮 Calculadora de Ecuaciones</h2>
@@ -103,11 +130,13 @@
 
 <!-- QUIZ -->
 <div id="quizSection" class="section hidden">
-  <button class="back-btn-animated" onclick="window.goBackToChoice()">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
-      <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
-      <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
-    </svg>
+  <button class="back-btn-elegant" onclick="window.goBackToChoice()">
+    <div class="icon-wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" height="25px" width="25px" fill="white">
+        <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+        <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+      </svg>
+    </div>
     <p>Atrás</p>
   </button>
   <h2>🎯 Desafío de Preguntas</h2>
@@ -147,11 +176,13 @@
 
     <!-- MODO INFINITO -->
     <div id="infinitySection" class="section hidden">
-      <button class="back-btn-animated" onclick="window.goBackToChoice()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
-          <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
-          <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
-        </svg>
+      <button class="back-btn-elegant" onclick="window.goBackToChoice()">
+        <div class="icon-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" height="25px" width="25px" fill="white">
+            <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+            <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+          </svg>
+        </div>
         <p>Atrás</p>
       </button>
       <h2>♾️ Modo Infinito</h2>
