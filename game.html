@@ -8,11 +8,62 @@
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4c90ff">
+  <style>
+    /* Animated Back Button */
+    .back-btn-animated {
+      background: var(--accent) !important;
+      text-align: center;
+      width: 48px;
+      rounded: 16px;
+      height: 56px;
+      relative: true;
+      font-size: 16px;
+      font-weight: 600;
+      group: true;
+      border: none !important;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s ease;
+      box-shadow: 0 4px 15px rgba(76,144,255,0.3);
+    }
+    
+    .back-btn-animated:hover {
+      width: 180px;
+      box-shadow: 0 4px 25px rgba(76,144,255,0.6);
+    }
+    
+    .back-btn-animated svg {
+      width: 25px;
+      height: 25px;
+      transition: all 0.5s ease;
+      flex-shrink: 0;
+    }
+    
+    .back-btn-animated p {
+      margin: 0;
+      margin-left: 10px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      white-space: nowrap;
+    }
+    
+    .back-btn-animated:hover p {
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <button id="mainBackBtn" class="back-btn">← Volver</button>
+      <button id="mainBackBtn" class="back-btn-animated">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
+          <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+          <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+        </svg>
+        <p>Atrás</p>
+      </button>
       <div class="user-info">
         <span class="coins-badge" id="displayCoins">💰 0</span>
         <span class="xp-badge" id="displayXP">⭐ 0 XP</span>
@@ -36,7 +87,13 @@
 
     <!-- CALCULADORA -->
     <div id="calculatorSection" class="section hidden">
-      <button class="back-btn-small" onclick="window.goBackToChoice()">← Atrás</button>
+      <button class="back-btn-animated" onclick="window.goBackToChoice()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
+          <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+          <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+        </svg>
+        <p>Atrás</p>
+      </button>
       <h2>🧮 Calculadora de Ecuaciones</h2>
       <p style="opacity:0.7;margin-bottom:12px">Ejemplo: x^2-5x+6=0 o 2x+4=0</p>
       <input id="eqInput" placeholder="Escribe tu ecuación aquí..." />
@@ -46,7 +103,13 @@
 
 <!-- QUIZ -->
 <div id="quizSection" class="section hidden">
-  <button class="back-btn-small" onclick="window.goBackToChoice()">← Atrás</button>
+  <button class="back-btn-animated" onclick="window.goBackToChoice()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
+      <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+      <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+    </svg>
+    <p>Atrás</p>
+  </button>
   <h2>🎯 Desafío de Preguntas</h2>
   <div id="quizSetup">
     <select id="quizDifficulty">
@@ -84,7 +147,13 @@
 
     <!-- MODO INFINITO -->
     <div id="infinitySection" class="section hidden">
-      <button class="back-btn-small" onclick="window.goBackToChoice()">← Atrás</button>
+      <button class="back-btn-animated" onclick="window.goBackToChoice()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="white">
+          <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"></path>
+          <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"></path>
+        </svg>
+        <p>Atrás</p>
+      </button>
       <h2>♾️ Modo Infinito</h2>
       <div id="infinitySetup">
         <p style="text-align:center; margin-bottom:20px; opacity:0.8;">Resuelve preguntas de dificultad aleatoria sin límite. ¡Mantén tu racha!</p>
