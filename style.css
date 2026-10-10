@@ -419,7 +419,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 /* CLASH */
 .duel-clash-ui { padding: 10px; }
 .duel-invites-alert { margin-bottom: 20px; }
-.invite-card { background: linear-gradient(135deg, #ff9500, #ff5e00); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 3px solid #ffa500; }
+.invite-card { background: linear-gradient(135deg, #ff9500, #ff5e00); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 3px solid #ff9500; }
 .invite-btns button { padding: 8px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-left: 5px; }
 .accept-btn { background: #4cff90; color: #000; }
 .decline-btn { background: #ff4d6d; color: #fff; }
@@ -607,6 +607,73 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 .music-btn.off {
   background: linear-gradient(135deg, #666, #444);
   box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* BOTÓN ATRÁS ELEGANTE */
+.back-btn-elegant {
+  background: rgba(255,255,255,0.95) !important;
+  text-align: center;
+  width: 56px;
+  height: 56px;
+  position: relative;
+  text-black;
+  font-size: 16px;
+  font-weight: 600;
+  border: none !important;
+  padding: 0;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 15px rgba(76,144,255,0.3);
+  cursor: pointer;
+  overflow: hidden;
+  margin: 0 !important;
+}
+
+.back-btn-elegant:hover {
+  width: 184px;
+  box-shadow: 0 4px 25px rgba(76,144,255,0.6);
+}
+
+.back-btn-elegant .icon-wrapper {
+  background: var(--accent);
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 4px;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.back-btn-elegant:hover .icon-wrapper {
+  width: calc(100% - 8px);
+}
+
+.back-btn-elegant svg {
+  width: 25px;
+  height: 25px;
+}
+
+.back-btn-elegant p {
+  margin: 0;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  white-space: nowrap;
+  position: absolute;
+  z-index: 1;
+  color: #000;
+}
+
+.back-btn-elegant:hover p {
+  opacity: 1;
 }
 
 /* UTILIDADES */
