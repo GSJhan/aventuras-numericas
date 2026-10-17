@@ -1,334 +1,184 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aventuras Numéricas - Acceso</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aventuras Numéricas — Acceso</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #080c1a;
-      --accent: #4c90ff;
-      --accent2: #9b59ff;
-      --text: #e8eaff;
-      --green: #4cff90;
-      --red: #ff4d6d;
+    :root{
+      --bg-1:#0b0f1a;
+      --bg-2:#071026;
+      --card:#0b0b0b;
+      --border:#ffffff;
+      --muted:rgba(255,255,255,0.65);
+      --accent:rgba(255,255,255,0.06);
     }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Rajdhani',sans-serif;background:linear-gradient(180deg,var(--bg-2),var(--bg-1));color:var(--border)}
 
-    * { box-sizing: border-box; }
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: 'Rajdhani', sans-serif;
-      background: radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.08), transparent 8%),
-                  radial-gradient(1000px 500px at 85% 85%, rgba(255,107,107,0.06), transparent 8%),
-                  linear-gradient(180deg, #071133 0%, #06071a 100%);
-      color: var(--text);
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-    }
+    .auth-outer{position:relative;text-align:center}
+    .brand{margin-bottom:18px}
+    .brand h1{margin:0;font-family:'Orbitron',monospace;font-size:28px}
 
-    .bg-blob {
-      position: fixed;
-      pointer-events: none;
-      filter: blur(50px);
-      opacity: 0.7;
-      mix-blend-mode: screen;
-      z-index: 0;
-    }
+    /* toggle */
+    .toggle-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px}
+    .toggle-label{font-size:14px;color:var(--muted)}
+    .switch{width:54px;height:28px;border-radius:16px;border:2px solid var(--border);display:inline-block;position:relative;cursor:pointer;background:transparent}
+    .knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--border);transition:left .18s}
+    .switch.on{background:rgba(255,255,255,0.03)}
+    .switch.on .knob{left:29px}
 
-    .bg-blob.one {
-      width: 420px; height: 420px; left: -60px; top: -80px;
-      background: radial-gradient(circle at 20% 20%, #7c5cff, transparent 40%);
-      animation: float1 10s ease-in-out infinite;
-    }
-    .bg-blob.two {
-      width: 380px; height: 380px; right: -80px; bottom: -80px;
-      background: radial-gradient(circle at 80% 80%, #ff6b6b, transparent 40%);
-      animation: float2 12s ease-in-out infinite;
-    }
-    .bg-blob.three {
-      width: 300px; height: 300px; left: 40%; top: 18%;
-      background: radial-gradient(circle at 60% 40%, #ffd166, transparent 40%);
-      animation: float3 14s ease-in-out infinite;
-    }
+    /* card */
+    .card{width:340px;max-width:92vw;margin:0 auto;background:transparent;padding:18px;border-radius:6px;border:3px solid var(--border);}
+    .card-inner{background:rgba(0,0,0,0.6);padding:18px;border-radius:6px}
+    .card h2{margin:0 0 14px 0;font-family:'Orbitron',monospace;font-size:20px}
 
-    @keyframes float1 { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(18px) rotate(6deg); } 100% { transform: translateY(0) rotate(0deg); } }
-    @keyframes float2 { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-16px) rotate(-4deg); } 100% { transform: translateY(0) rotate(0deg); } }
-    @keyframes float3 { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(12px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
+    .field{margin-bottom:12px}
+    .input{width:100%;padding:12px 14px;border-radius:8px;background:transparent;border:2px solid var(--border);color:var(--border);font-weight:600;outline:none}
+    .input::placeholder{color:var(--muted)}
 
-    #react-auth-root {
-      position: relative;
-      z-index: 1;
-    }
+    .btn{display:block;margin:12px auto 0 auto;padding:10px 20px;border-radius:8px;background:transparent;border:2px solid var(--border);color:var(--border);font-weight:800;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .msg{margin-top:12px;font-weight:700}
+    .msg.ok{color:#6fffb0}
+    .msg.err{color:#ff7b7b}
+
+    .switch-link{margin-top:14px;color:var(--muted);font-size:14px}
+    .switch-link a{color:var(--border);text-decoration:underline;cursor:pointer}
+
+    @media(max-width:400px){.card{width:92vw}}
   </style>
 </head>
 <body>
-  <div class="bg-blob one"></div>
-  <div class="bg-blob two"></div>
-  <div class="bg-blob three"></div>
+  <div class="wrap">
+    <div class="auth-outer">
+      <div class="brand">
+        <h1>Aventuras<br>Numéricas</h1>
+      </div>
 
-  <div id="react-auth-root"></div>
+      <div class="toggle-row">
+        <div class="toggle-label">Acceso</div>
+        <div id="modeSwitch" class="switch" role="button" aria-pressed="false" tabindex="0">
+          <div class="knob"></div>
+        </div>
+        <div class="toggle-label">Registro</div>
+      </div>
+
+      <div class="card" aria-live="polite">
+        <div class="card-inner">
+          <h2 id="cardTitle">Acceso</h2>
+
+          <form id="accessForm">
+            <div class="field"><input id="accessUser" class="input" placeholder="Nombre de usuario" autocomplete="username" /></div>
+            <div class="field"><input id="accessPass" type="password" class="input" placeholder="Contraseña" autocomplete="current-password" /></div>
+            <button id="accessBtn" class="btn" type="submit">Acceder</button>
+          </form>
+
+          <form id="registerForm" style="display:none;">
+            <div class="field"><input id="regUser" class="input" placeholder="Nombre de usuario" autocomplete="username" /></div>
+            <div class="field"><input id="regPass" type="password" class="input" placeholder="Contraseña" autocomplete="new-password" /></div>
+            <button id="regBtn" class="btn" type="submit">Crear Cuenta</button>
+          </form>
+
+          <div id="message" class="msg" role="status" aria-live="polite"></div>
+
+          <div class="switch-link">
+            <span id="switchHintAccess">¿No tienes cuenta? <a id="toRegister">Crear cuenta</a></span>
+            <span id="switchHintRegister" style="display:none;">¿Ya tienes cuenta? <a id="toAccess">Inicia aquí</a></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <script type="module">
     import { onLogin, onRegister } from './src/firebase-adapter.js';
 
-    const { useState } = React;
+    const modeSwitch = document.getElementById('modeSwitch');
+    const cardTitle = document.getElementById('cardTitle');
+    const accessForm = document.getElementById('accessForm');
+    const registerForm = document.getElementById('registerForm');
+    const accessUser = document.getElementById('accessUser');
+    const accessPass = document.getElementById('accessPass');
+    const regUser = document.getElementById('regUser');
+    const regPass = document.getElementById('regPass');
+    const messageEl = document.getElementById('message');
+    const toRegister = document.getElementById('toRegister');
+    const toAccess = document.getElementById('toAccess');
+    const switchHintAccess = document.getElementById('switchHintAccess');
+    const switchHintRegister = document.getElementById('switchHintRegister');
 
-    function Form({ onLogin, onRegister, onSuccess }) {
-      const [toggleChecked, setToggleChecked] = useState(false);
-      const [loginUser, setLoginUser] = useState('');
-      const [loginPass, setLoginPass] = useState('');
-      const [regUser, setRegUser] = useState('');
-      const [regPass, setRegPass] = useState('');
-      const [message, setMessage] = useState(null);
-      const [loading, setLoading] = useState(false);
+    let mode = 'access'; // default access
 
-      const safeCall = async (fn, args) => {
-        try {
-          if (!fn) return { success: false, message: 'No handler provided' };
-          return await fn(args);
-        } catch (e) {
-          return { success: false, message: e?.message || 'Error inesperado' };
-        }
-      };
-
-      const handleLogin = async (e) => {
-        e.preventDefault();
-        setMessage(null);
-        if (!loginUser || !loginPass) {
-          setMessage({ type: 'error', text: 'Completa usuario y contraseña' });
-          return;
-        }
-        setLoading(true);
-        const res = await safeCall(onLogin, { username: loginUser.trim(), password: loginPass });
-        setLoading(false);
-        if (res && res.success) {
-          setMessage({ type: 'ok', text: res.message || 'Sesión iniciada' });
-          if (onSuccess) onSuccess();
-        } else {
-          setMessage({ type: 'error', text: res?.message || 'Usuario o contraseña incorrectos' });
-        }
-      };
-
-      const handleRegister = async (e) => {
-        e.preventDefault();
-        setMessage(null);
-        if (!regUser || !regPass) {
-          setMessage({ type: 'error', text: 'Completa usuario y contraseña para registrarte' });
-          return;
-        }
-        setLoading(true);
-        const res = await safeCall(onRegister, { username: regUser.trim(), password: regPass });
-        setLoading(false);
-        if (res && res.success) {
-          setToggleChecked(false);
-          setMessage({ type: 'ok', text: res.message || 'Cuenta creada. Ahora inicia sesión.' });
-          setLoginUser(regUser.trim());
-          setLoginPass('');
-          setRegUser('');
-          setRegPass('');
-        } else {
-          setMessage({ type: 'error', text: res?.message || 'No se pudo crear la cuenta' });
-        }
-      };
-
-      const styles = `
-        .wrapper {
-          --input-focus: var(--accent, #2d8cf0);
-          --font-color: var(--text, #fefefe);
-          --font-color-sub: rgba(255,255,255,0.6);
-          --bg-color: var(--bg, #111);
-          --main-color: var(--text, #fefefe);
-          display:flex; justify-content:center; align-items:center; padding: 24px;
-        }
-        .switch {
-          transform: translateY(0);
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          gap: 18px;
-          width: 50px;
-          height: 20px;
-        }
-        .card-side::before {
-          position: absolute;
-          content: 'Acceso';
-          left: -90px;
-          top: -6px;
-          width: 120px;
-          text-decoration: underline;
-          color: var(--font-color);
-          font-weight: 600;
-          text-transform: capitalize;
-        }
-        .card-side::after {
-          position: absolute;
-          content: 'Registro';
-          left: 70px;
-          top: -6px;
-          width: 120px;
-          text-decoration: none;
-          color: var(--font-color);
-          font-weight: 600;
-          text-transform: capitalize;
-        }
-        .toggle { opacity: 0; width: 0; height: 0; }
-        .slider {
-          box-sizing: border-box;
-          border-radius: 6px;
-          border: 2px solid var(--main-color);
-          box-shadow: 4px 4px var(--main-color);
-          position: absolute;
-          cursor: pointer;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: var(--bg-color);
-          transition: 0.3s;
-        }
-        .slider:before {
-          box-sizing: border-box;
-          position: absolute;
-          content: "";
-          height: 20px; width: 20px;
-          border: 2px solid var(--main-color);
-          border-radius: 6px;
-          left: -2px; bottom: 2px;
-          background-color: var(--bg-color);
-          box-shadow: 0 3px 0 var(--main-color);
-          transition: 0.3s;
-        }
-        .toggle:checked + .slider { background-color: var(--input-focus); }
-        .toggle:checked + .slider:before { transform: translateX(30px); }
-        .toggle:checked ~ .card-side:before { text-decoration: none; }
-        .toggle:checked ~ .card-side:after { text-decoration: underline; }
-        .flip-card__inner {
-          width: 320px; max-width: 92vw;
-          height: 380px;
-          position: relative; background-color: transparent;
-          perspective: 1000px; text-align: center;
-          transition: transform 0.8s; transform-style: preserve-3d;
-          margin-top: 12px;
-        }
-        .toggle:checked ~ .flip-card__inner { transform: rotateY(180deg); }
-        .toggle:checked ~ .flip-card__front { box-shadow: none; }
-        .flip-card__front, .flip-card__back {
-          padding: 20px; position: absolute; display: flex; flex-direction: column; justify-content: center;
-          -webkit-backface-visibility: hidden; backface-visibility: hidden;
-          background: var(--bg-color);
-          gap: 20px; border-radius: 8px; border: 2px solid var(--main-color);
-          box-shadow: 6px 6px 0 var(--main-color);
-          left: 0; top: 0; right: 0; bottom: 0;
-        }
-        .flip-card__back { transform: rotateY(180deg); }
-        .flip-card__form { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        .title { margin: 10px 0 0 0; font-size: 22px; font-weight: 900; color: var(--main-color); }
-        .flip-card__input {
-          width: 260px; max-width: 88%; height: 42px; border-radius: 6px;
-          border: 2px solid var(--main-color); background-color: var(--bg-color);
-          box-shadow: 4px 4px 0 var(--main-color); font-size: 15px; font-weight: 600; color: var(--font-color);
-          padding: 6px 10px; outline: none;
-        }
-        .flip-card__input::placeholder { color: var(--font-color-sub); opacity: 0.9; }
-        .flip-card__input:focus { border: 2px solid var(--input-focus); }
-        .flip-card__btn { margin: 8px 0 0 0; width: 140px; height: 42px; border-radius: 6px; border: 2px solid var(--main-color); background-color: var(--bg-color); box-shadow: 4px 4px 0 var(--main-color); font-size: 15px; font-weight: 700; color: var(--font-color); cursor: pointer; }
-        .flip-card__btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        .form-message { margin-top: 14px; text-align: center; font-weight: 700; }
-        .form-message.ok { color: var(--green, #4cff90); }
-        .form-message.error { color: var(--red, #ff4d6d); }
-        @media (max-width: 480px) {
-          .flip-card__input { width: 220px; }
-          .flip-card__inner { height: 420px; }
-        }
-      `;
-
-      return React.createElement(
-        'div',
-        null,
-        React.createElement('style', null, styles),
-        React.createElement('div', { className: 'wrapper' },
-          React.createElement('div', { className: 'card-switch' },
-            React.createElement('label', { className: 'switch' },
-              React.createElement('input', {
-                className: 'toggle',
-                type: 'checkbox',
-                checked: toggleChecked,
-                onChange: (e) => { setToggleChecked(e.target.checked); setMessage(null); }
-              }),
-              React.createElement('span', { className: 'slider' }),
-              React.createElement('span', { className: 'card-side' }),
-              React.createElement('div', { className: 'flip-card__inner' },
-                React.createElement('div', { className: 'flip-card__front' },
-                  React.createElement('div', { className: 'title' }, 'Acceso'),
-                  React.createElement('form', { onSubmit: handleLogin, className: 'flip-card__form' },
-                    React.createElement('input', {
-                      value: loginUser,
-                      onChange: (e) => setLoginUser(e.target.value),
-                      type: 'text',
-                      placeholder: 'Nombre de usuario',
-                      name: 'nombre',
-                      className: 'flip-card__input',
-                      autoComplete: 'username'
-                    }),
-                    React.createElement('input', {
-                      value: loginPass,
-                      onChange: (e) => setLoginPass(e.target.value),
-                      type: 'password',
-                      placeholder: 'Contraseña',
-                      name: 'contrasena',
-                      className: 'flip-card__input',
-                      autoComplete: 'current-password'
-                    }),
-                    React.createElement('button', { type: 'submit', className: 'flip-card__btn', disabled: loading }, loading ? 'Cargando...' : 'Acceder')
-                  )
-                ),
-                React.createElement('div', { className: 'flip-card__back' },
-                  React.createElement('div', { className: 'title' }, 'Registro'),
-                  React.createElement('form', { onSubmit: handleRegister, className: 'flip-card__form' },
-                    React.createElement('input', {
-                      value: regUser,
-                      onChange: (e) => setRegUser(e.target.value),
-                      type: 'text',
-                      placeholder: 'Nombre de usuario',
-                      name: 'nombre',
-                      className: 'flip-card__input',
-                      autoComplete: 'username'
-                    }),
-                    React.createElement('input', {
-                      value: regPass,
-                      onChange: (e) => setRegPass(e.target.value),
-                      type: 'password',
-                      placeholder: 'Contraseña',
-                      name: 'contrasena',
-                      className: 'flip-card__input',
-                      autoComplete: 'new-password'
-                    }),
-                    React.createElement('button', { type: 'submit', className: 'flip-card__btn', disabled: loading }, loading ? 'Creando...' : 'Registrarse')
-                  )
-                )
-              )
-            ),
-            message && React.createElement('div', { className: `form-message ${message.type === 'ok' ? 'ok' : 'error'}` }, message.text)
-          )
-        )
-      );
+    function setMode(m) {
+      mode = m;
+      const isReg = m === 'register';
+      if (isReg) {
+        modeSwitch.classList.add('on');
+        modeSwitch.setAttribute('aria-pressed','true');
+        registerForm.style.display = '';
+        accessForm.style.display = 'none';
+        cardTitle.textContent = 'Registro';
+        switchHintAccess.style.display = 'none';
+        switchHintRegister.style.display = '';
+        messageEl.textContent = '';
+      } else {
+        modeSwitch.classList.remove('on');
+        modeSwitch.setAttribute('aria-pressed','false');
+        registerForm.style.display = 'none';
+        accessForm.style.display = '';
+        cardTitle.textContent = 'Acceso';
+        switchHintAccess.style.display = '';
+        switchHintRegister.style.display = 'none';
+        messageEl.textContent = '';
+      }
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('react-auth-root'));
-    root.render(
-      React.createElement(Form, {
-        onLogin,
-        onRegister,
-        onSuccess: () => {
-          window.location.href = 'menu.html';
-        }
-      })
-    );
+    modeSwitch.addEventListener('click', ()=>{ setMode(mode==='access'?'register':'access'); });
+    modeSwitch.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode(mode==='access'?'register':'access'); } });
+    toRegister.addEventListener('click', ()=> setMode('register'));
+    toAccess.addEventListener('click', ()=> setMode('access'));
+
+    function showMessage(text, ok){ messageEl.textContent = text; messageEl.className = 'msg ' + (ok? 'ok' : 'err'); }
+
+    accessForm.addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      showMessage('');
+      const u = accessUser.value.trim();
+      const p = accessPass.value.trim();
+      if(!u || !p){ showMessage('Completa usuario y contraseña', false); return; }
+      // call adapter
+      showMessage('Verificando...', true);
+      const res = await onLogin({ username: u, password: p });
+      if(res.success){ showMessage(res.message || 'Acceso correcto', true); // set currentUser already in adapter
+        setTimeout(()=>{ window.location.href = 'menu.html'; }, 700);
+      } else {
+        showMessage(res.message || 'Usuario o contraseña incorrectos', false);
+      }
+    });
+
+    registerForm.addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      showMessage('');
+      const u = regUser.value.trim();
+      const p = regPass.value.trim();
+      if(!u || !p){ showMessage('Completa usuario y contraseña', false); return; }
+      showMessage('Creando cuenta...', true);
+      const res = await onRegister({ username: u, password: p });
+      if(res.success){ showMessage('Cuenta creada. Ahora inicia sesión.', true);
+        // switch to access and prefill username
+        setMode('access'); accessUser.value = u; accessPass.value = '';
+      } else {
+        showMessage(res.message || 'No se pudo crear la cuenta', false);
+      }
+    });
+
+    // initialize default
+    setMode('access');
   </script>
 </body>
 </html>
