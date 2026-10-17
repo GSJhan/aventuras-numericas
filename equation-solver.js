@@ -24,7 +24,7 @@ export function solveEquation(equation) {
     return solveLinear(linearMatch);
   }
 
-  // Si no coincide con los formatos anteriores, usar solucionador general numérico/simbólico
+  // Si no coincide con los formatos anteriores, usar solucionador general seguro y numérico
   return solveGeneralEquation(equation);
 }
 
@@ -57,7 +57,7 @@ function solveQuadratic(match) {
     steps.push(`<strong style="color: #4cff90;">Verificación: ${aspaSolution.p1}x + ${aspaSolution.p2}x = ${aspaSolution.p1 + aspaSolution.p2}x ✓</strong>`);
     steps.push(`<br><strong>Factorización:</strong> (${aspaSolution.factor1})(${aspaSolution.factor2}) = 0`);
     steps.push(`<br><strong>Soluciones:</strong>`);
-    // Mostrar como x₁ y x₂ en pasos intermedios (subíndice pequeño)
+    // Mostrar como x₁ y x₂ en pasos intermedios
     steps.push(`${aspaSolution.factor1} = 0 → x<sub>1</sub> = ${formatNumber(aspaSolution.x1)}`);
     steps.push(`${aspaSolution.factor2} = 0 → x<sub>2</sub> = ${formatNumber(aspaSolution.x2)}`);
     
@@ -249,81 +249,149 @@ function solveLinear(match) {
   };
 }
 
-// SOLUCIONADOR GENERAL (numérico) para ecuaciones arbitrarias en x
+// ------------------------------------------------------------------------------
+// Solucionador general seguro para ecuaciones con fracciones y expresiones.
+// Capa B: input parser seguro + búsqueda numérica con detección de dominio.
+// ------------------------------------------------------------------------------
+function normalizeExpression(raw) {
+  let expr = String(raw)
+    .replace(/−/g, '-')
+    .replace(/–/g, '-')
+    .replace(/—/g, '-')
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/π/g, 'PI')
+    .replace(/\^/g, '**')
+    .replace(/\s+/g, '');
+
+  // Multiplicación implícita: 2x, x(…), (x+1)x, etc.
+  expr = expr.replace(/(\d|\)|x|PI)(?=x|\()/gi, '$1*');
+  expr = expr.replace(/(?<=\))(?=\d)/g, '*');
+  expr = expr.replace(/(?<=x)(?=\d)/gi, '*');
+  expr = expr.replace(/(?<=\d)(?=x)/gi, '*');
+
+  return expr;
+}
+
+function compileSafeFunction(expression) {
+  const expr = normalizeExpression(expression);
+  // Permitir solo caracteres matemáticos y literales seguros.
+  const allowedPattern = /^[0-9xX\+\-\*\/\(\)\.,\^\sA-Za-z_]+$/;
+  if (!allowedPattern.test(expr)) {
+    throw new Error('Expresión no segura o no soportada.');
+  }
+
+  const fn = new Function(
+    'x',
+    `
+      const { abs, sin, cos, tan, asin, acos, atan, sqrt, log, exp, min, max, pow, PI, E } = Math;
+      const X = x;
+      return (${expr});
+    `
+  );
+
+  return fn;
+}
+
+function safeEvalExpression(fn, x) {
+  try {
+    const val = fn(x);
+    if (!Number.isFinite(val)) return null;
+    return val;
+  } catch (e) {
+    return null;
+  }
+}
+
+function findGeneralRoot(fn, left, right, tol = 1e-8, maxIter = 80) {
+  // Bisección en un rango; si no cambia de signo, intenta por cercanía a cero
+  let a = left;
+  let b = right;
+  const fa = safeEvalExpression(fn, a);
+  const fb = safeEvalExpression(fn, b);
+
+  if (fa === null || fb === null) return null;
+  if (Math.abs(fa) < tol) return a;
+  if (Math.abs(fb) < tol) return b;
+  if (Math.sign(fa) === Math.sign(fb)) return null;
+
+  let c = a;
+  let fc = fa;
+  for (let i = 0; i < maxIter; i++) {
+    c = (a + b) / 2;
+    const fC = safeEvalExpression(fn, c);
+    if (fC === null) return null;
+    if (Math.abs(fC) < tol) return c;
+    if (Math.sign(fa) === Math.sign(fC)) {
+      a = c;
+      fa = fC;
+    } else {
+      b = c;
+      fb = fC;
+    }
+    if (Math.abs(b - a) < tol) return c;
+  }
+  return c;
+}
+
 function solveGeneralEquation(equation) {
-  // Espera ecuación con '='. Convertir a f(x) = left - right
+  if (!equation || !equation.includes('=')) {
+    return {
+      error: true,
+      message: 'Formato no reconocido. Usa una ecuación con =, por ejemplo: x^2-3x+2=0 o (x+1)/(x-2)=3.'
+    };
+  }
+
   const parts = equation.split('=');
   if (parts.length !== 2) {
-    return { error: true, message: 'Formato no reconocido para solucionador general. Asegúrate de usar = en la ecuación.' };
+    return {
+      error: true,
+      message: 'La ecuación general debe tener exactamente un signo igual.'
+    };
   }
+
   const left = parts[0];
   const right = parts[1];
-  // Preparar expresión JS: reemplazar ^ por **, funciones trigonométricas con Math si es necesario
-  const expr = (`(${left}) - (${right})`).replace(/\^/g, '**');
 
-  // Crear evaluador seguro relativo (usa Math)
-  let f;
-  try {
-    // eslint-disable-next-line no-new-func
-    f = new Function('x', 'with (Math) { return ' + expr + '; }');
-    // prueba rápida
-    f(0);
-  } catch (e) {
-    return { error: true, message: 'No pude interpretar la ecuación para el solucionador general.' };
-  }
+  const expr = `(${normalizeExpression(left)})-(${normalizeExpression(right)})`;
+  const fn = compileSafeFunction(expr);
 
   const steps = [];
-  steps.push(`<strong>Solución general (numérica):</strong> Se buscarán raíces reales de f(x) = ${escapeHtml(expr)}`);
-  steps.push(`<br><strong>Nota:</strong> El solucionador numérico busca raíces reales dentro de un rango y evita puntos de discontinuidad.`);
+  steps.push(`<strong>Solución general (segura):</strong> Se evaluará la ecuación como f(x) = ${escapeHtml(expr)}.`);
+  steps.push(`<br><strong>Nota:</strong> Este modo resuelve raíces reales numéricamente y evita valores donde hay división por cero o resultados no finitos.`);
 
-  // Escaneo para bracketing
   const solutions = [];
-  const minX = -100, maxX = 100;
-  const initialSteps = 2000; // malla fina para detectar cambios de signo
-  const dx = (maxX - minX) / initialSteps;
+  const minX = -100;
+  const maxX = 100;
+  const step = 0.25;
 
-  function safeEval(x) {
-    try {
-      const y = f(x);
-      if (!isFinite(y)) return null;
-      if (Number.isNaN(y)) return null;
-      return y;
-    } catch (e) {
-      return null;
-    }
-  }
+  // 1) Buscar cambios de signo para obtener intervalos con raíces reales
+  for (let x = minX; x <= maxX; x += step) {
+    const aVal = safeEvalExpression(fn, x);
+    const bVal = safeEvalExpression(fn, x + step);
+    if (aVal === null || bVal === null) continue;
 
-  let prevX = minX;
-  let prevY = safeEval(prevX);
-  for (let i = 1; i <= initialSteps; i++) {
-    const curX = minX + i * dx;
-    const curY = safeEval(curX);
-    if (curY === null || prevY === null) {
-      prevX = curX; prevY = curY; continue; // salto sobre discontinuidades
+    if (Math.abs(aVal) < 1e-7) {
+      if (!solutions.some(s => Math.abs(s - x) < 1e-6)) solutions.push(x);
+      continue;
     }
-    // Cambio de signo -> posible raíz
-    if (prevY === 0 || Math.sign(prevY) !== Math.sign(curY)) {
-      const root = bisect(f, prevX, curX, 1e-9, 60);
-      if (root !== null) {
-        // evitar duplicados
-        if (!solutions.some(s => Math.abs(s - root) < 1e-7)) {
-          solutions.push(root);
-        }
+
+    if (aVal === 0 || Math.sign(aVal) !== Math.sign(bVal)) {
+      const root = findGeneralRoot(fn, x, x + step, 1e-9, 80);
+      if (root !== null && !solutions.some(s => Math.abs(s - root) < 1e-6)) {
+        solutions.push(root);
       }
     }
-    // También detectar toques (mínimos locales cerca de cero)
-    prevX = curX; prevY = curY;
   }
 
+  // 2) Búsqueda local adicional para raíces con tangencia o pasos pequeños
   if (solutions.length === 0) {
-    // intentar búsqueda de mínimos donde |f| pequeño
-    for (let x = -50; x <= 50; x += 0.5) {
-      const y = safeEval(x);
-      if (y === null) continue;
-      if (Math.abs(y) < 1e-4) {
-        // afinar
-        const root = refineRoot(f, x, 1e-9, 40);
-        if (root !== null && !solutions.some(s => Math.abs(s - root) < 1e-7)) {
+    for (let x = minX; x <= maxX; x += 0.05) {
+      const val = safeEvalExpression(fn, x);
+      if (val === null) continue;
+      if (Math.abs(val) < 1e-5) {
+        const root = findGeneralRoot(fn, x - 0.05, x + 0.05, 1e-9, 80);
+        if (root !== null && !solutions.some(s => Math.abs(s - root) < 1e-6)) {
           solutions.push(root);
         }
       }
@@ -335,12 +403,11 @@ function solveGeneralEquation(equation) {
     return { error: false, steps, solutions: null, type: 'general' };
   }
 
-  // ordenar por valor (x1 = soluciones[0], x2 = soluciones[1])
   solutions.sort((a, b) => a - b);
 
-  steps.push(`<br><strong>Soluciones encontradas (pasos intermedios muestran x₁/x₂):</strong>`);
+  steps.push(`<br><strong>Raíces reales encontradas:</strong>`);
   solutions.forEach((s, idx) => {
-    steps.push(`x<sub>${idx+1}</sub> = ${formatNumber(s)}`);
+    steps.push(`x<sub>${idx + 1}</sub> = ${formatNumber(s)}`);
   });
 
   return {
@@ -351,43 +418,9 @@ function solveGeneralEquation(equation) {
   };
 }
 
-// Métodos numéricos auxiliares
-function bisect(f, a, b, tol = 1e-9, maxIter = 60) {
-  let fa, fb;
-  try { fa = f(a); fb = f(b); } catch (e) { return null; }
-  if (fa === null || fb === null) return null;
-  if (fa === 0) return a;
-  if (fb === 0) return b;
-  if (Math.sign(fa) === Math.sign(fb)) return null;
-  let left = a, right = b, mid, fmid;
-  for (let i = 0; i < maxIter; i++) {
-    mid = (left + right) / 2;
-    try { fmid = f(mid); } catch (e) { return null; }
-    if (fmid === null) return null;
-    if (Math.abs(fmid) < tol) return mid;
-    if (Math.sign(fmid) === Math.sign(fa)) { left = mid; fa = fmid; } else { right = mid; fb = fmid; }
-  }
-  return mid;
-}
-
-function refineRoot(f, x0, tol = 1e-9, maxIter = 40) {
-  // Newton-like with numerical derivative
-  let x = x0;
-  for (let i = 0; i < maxIter; i++) {
-    let fx;
-    try { fx = f(x); } catch (e) { return null; }
-    if (!isFinite(fx)) return null;
-    const h = 1e-6;
-    const fpx = (f(x + h) - f(x - h)) / (2 * h);
-    if (Math.abs(fpx) < 1e-12) break;
-    const dx = fx / fpx;
-    x = x - dx;
-    if (Math.abs(dx) < tol) return x;
-  }
-  return null;
-}
-
+// ------------------------------------------------------------------------------
 // Formatear y salida
+// ------------------------------------------------------------------------------
 export function formatSolution(result) {
   if (result.error) {
     return `<div style="color: #ff4d6d; font-size: 16px; line-height: 1.6; font-weight: 500;">${result.message}</div>`;
@@ -402,11 +435,9 @@ export function formatSolution(result) {
   if (result.solutions) {
     html += `<div style="margin-top: 20px; padding: 18px; background: linear-gradient(135deg, rgba(76,255,144,0.06), rgba(76,144,255,0.04)); border: 1px solid rgba(76,255,144,0.08); border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.5);">`;
     html += `<strong style="color: #4cff90; font-size: 18px;">✓ SOLUCIONES FINALES:</strong><br>`;
-    // Mostrar x₁ y x₂ en la salida final (intermedio)
     if (result.solutions.length >= 2) {
       html += `<div style="margin-top: 8px;">x<sub>1</sub> = <strong style="color: #ffd700; font-size: 18px;">${formatNumber(result.solutions[0])}</strong></div>`;
       html += `<div style="margin-top: 4px;">x<sub>2</sub> = <strong style="color: #ffd700; font-size: 18px;">${formatNumber(result.solutions[1])}</strong></div>`;
-      // Resolución final según tu pedido: x = x1, y = x2
       html += `<hr style="opacity:0.08;margin:10px 0;">`;
       html += `<div style="margin-top: 8px; font-size:16px;">Resolución final:</div>`;
       html += `<div style="margin-top:6px;">x = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}</strong></div>`;
@@ -435,26 +466,21 @@ export function formatSolution(result) {
     // Inyectar script para dibujar el gráfico y habilitar zoom/pan
     setTimeout(() => {
         const canvas = document.getElementById('equationGraph');
-        const container = document.getElementById('equationGraphContainer');
         if (!canvas) return;
 
-        // Estado interactivo
         let state = {
           scale: 1,
           translateX: 0,
           translateY: 0
         };
 
-        // Obtener soluciones y coeficientes de result
         const sols = result.solutions || [];
         const a = result.a; const b = result.b; const c = result.c;
 
-        // función para evaluar y dibujar
         const redraw = () => {
           drawGraphInteractive(canvas, a, b, c, sols, state);
         };
 
-        // Zoom controls
         const zoomRange = document.getElementById('zoomRange');
         const zoomInBtn = document.getElementById('zoomInBtn');
         const zoomOutBtn = document.getElementById('zoomOutBtn');
@@ -465,7 +491,6 @@ export function formatSolution(result) {
         zoomOutBtn.addEventListener('click', () => { state.scale = Math.max(0.5, state.scale - 0.1); zoomRange.value = state.scale; redraw(); });
         resetViewBtn.addEventListener('click', () => { state = { scale: 1, translateX: 0, translateY: 0 }; zoomRange.value = 1; redraw(); });
 
-        // Wheel zoom
         canvas.addEventListener('wheel', (ev) => {
           ev.preventDefault();
           const delta = ev.deltaY > 0 ? -0.05 : 0.05;
@@ -474,7 +499,6 @@ export function formatSolution(result) {
           redraw();
         });
 
-        // Drag to pan
         let dragging = false;
         let last = null;
         canvas.addEventListener('pointerdown', (e) => { dragging = true; last = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
@@ -487,7 +511,6 @@ export function formatSolution(result) {
         canvas.addEventListener('pointerup', (e) => { dragging = false; last = null; canvas.releasePointerCapture(e.pointerId); });
         canvas.addEventListener('pointercancel', () => { dragging = false; last = null; });
 
-        // Initial draw
         redraw();
     }, 120);
   }
@@ -506,7 +529,6 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
 
     ctx.clearRect(0, 0, w, h);
 
-    // transform for pan/zoom
     ctx.save();
     ctx.translate(state.translateX * DPR, state.translateY * DPR);
     ctx.scale(state.scale, state.scale);
@@ -515,7 +537,6 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
     const centerX = w / 2;
     const centerY = h / 2;
 
-    // Determine x range from solutions or default
     let minX = -10, maxX = 10;
     if (solutions && solutions.length > 0) {
         const solMin = Math.min(...solutions);
@@ -525,10 +546,8 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
     }
 
     const scaleX = (w - 2 * margin) / (maxX - minX);
-    const rangeY = 20;
-    const scaleY = (h - 2 * margin) / rangeY;
+    const scaleY = (h - 2 * margin) / 20;
 
-    // Grid
     ctx.strokeStyle = 'rgba(76,144,255,0.08)';
     ctx.lineWidth = 1 * DPR;
     for (let i = Math.ceil(minX); i <= Math.floor(maxX); i++) {
@@ -540,16 +559,12 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
         ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(w - margin, y); ctx.stroke();
     }
 
-    // Axes
     ctx.strokeStyle = 'rgba(76, 144, 255, 0.36)';
     ctx.lineWidth = 2 * DPR;
-    const axisY = margin + (-minX) * scaleX; // x=0 line
-    // X axis
+    const axisY = margin + (-minX) * scaleX;
     ctx.beginPath(); ctx.moveTo(margin, centerY); ctx.lineTo(w - margin, centerY); ctx.stroke();
-    // Y axis
     ctx.beginPath(); ctx.moveTo(axisY, margin); ctx.lineTo(axisY, h - margin); ctx.stroke();
 
-    // Ticks & labels
     ctx.fillStyle = 'rgba(232,234,255,0.8)';
     ctx.font = `${12 * DPR}px Orbitron`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
@@ -560,12 +575,10 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
 
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     for (let i = -8; i <= 8; i += 2) {
-        const yVal = i;
         const y = centerY - i * scaleY;
-        ctx.fillText(yVal.toString(), axisY + 6 * DPR, y);
+        ctx.fillText(i.toString(), axisY + 6 * DPR, y);
     }
 
-    // Draw function curve
     const gradient = ctx.createLinearGradient(margin, 0, w - margin, 0);
     gradient.addColorStop(0, '#4c90ff');
     gradient.addColorStop(0.5, '#4cff90');
@@ -578,14 +591,10 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
 
     const fn = (x) => {
         if (a !== undefined && b !== undefined && c !== undefined) return a * x * x + b * x + c;
-        // else rely on global function parser (not provided here) - fallback 0
-        try {
-          // nothing - the general case uses drawGraphInteractive only for visualization of roots
-          return 0;
-        } catch (e) { return 0; }
+        return 0;
     };
 
-    const step = (maxX - minX) / 2000; // smooth
+    const step = (maxX - minX) / 2000;
     let started = false;
     for (let x = minX; x <= maxX; x += step) {
         const yVal = fn(x);
@@ -595,7 +604,6 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
     }
     ctx.stroke();
 
-    // Fill under curve subtle
     ctx.globalAlpha = 0.04;
     ctx.fillStyle = '#4c90ff';
     ctx.beginPath();
@@ -609,14 +617,12 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
     ctx.lineTo(w - margin, centerY); ctx.lineTo(margin, centerY); ctx.closePath(); ctx.fill();
     ctx.globalAlpha = 1;
 
-    // Roots markers
     if (solutions && solutions.length) {
         const markerXs = solutions.map(s => margin + (s - minX) * scaleX);
         markerXs.forEach((mx, idx) => {
             ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(mx, centerY, 8 * DPR, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = `${11 * DPR}px Rajdhani`; ctx.textAlign = 'center'; ctx.fillText(`x\u208${idx+1}`, mx, centerY - 18 * DPR);
+            ctx.fillStyle = '#fff'; ctx.font = `${11 * DPR}px Rajdhani`; ctx.textAlign = 'center'; ctx.fillText(`x\u208${idx + 1}`, mx, centerY - 18 * DPR);
         });
-        // Mostrar etiqueta con valores separados (x = ..., y = ...) entre las dos raíces
         if (solutions.length >= 2) {
             const midX = (markerXs[0] + markerXs[1]) / 2;
             ctx.fillStyle = '#fff'; ctx.font = `${13 * DPR}px Rajdhani`;
@@ -626,7 +632,6 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
         }
     }
 
-    // Axis labels
     ctx.fillStyle = 'rgba(232,234,255,0.9)';
     ctx.font = `${13 * DPR}px Orbitron`;
     ctx.fillText('X', w - margin - 8 * DPR, centerY + 16 * DPR);
@@ -639,10 +644,8 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
 function formatNumber(num) {
   if (num === null || num === undefined) return String(num);
   if (!isFinite(num)) return String(num);
-  // tratar valores cercanos a entero
   const rounded = Math.round(num);
   if (Math.abs(num - rounded) < 1e-9) return String(rounded);
-  // Mostrar hasta 8 decimales, quitando ceros finales
   let s = Number(num).toFixed(8).replace(/\.?0+$/, '');
   return s;
 }
