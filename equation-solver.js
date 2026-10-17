@@ -1,4 +1,4 @@
-// Módulo para resolver ecuaciones con procedimiento detallado - Método de Aspa Simple y Fórmula General
+// Módulo para resolver ecuaciones con procedimiento detallado - Método de Aspa Simple, Fórmula General y solución numérica general
 
 export function solveEquation(equation) {
   // Limpiar espacios
@@ -23,11 +23,9 @@ export function solveEquation(equation) {
   if (linearMatch) {
     return solveLinear(linearMatch);
   }
-  
-  return {
-    error: true,
-    message: 'No se pudo reconocer el formato. Usa: ax^2+bx+c=0 o ax+b=0'
-  };
+
+  // Si no coincide con los formatos anteriores, usar solucionador general numérico/simbólico
+  return solveGeneralEquation(equation);
 }
 
 function solveQuadratic(match) {
@@ -59,8 +57,9 @@ function solveQuadratic(match) {
     steps.push(`<strong style="color: #4cff90;">Verificación: ${aspaSolution.p1}x + ${aspaSolution.p2}x = ${aspaSolution.p1 + aspaSolution.p2}x ✓</strong>`);
     steps.push(`<br><strong>Factorización:</strong> (${aspaSolution.factor1})(${aspaSolution.factor2}) = 0`);
     steps.push(`<br><strong>Soluciones:</strong>`);
-    steps.push(`${aspaSolution.factor1} = 0 → X = ${formatNumber(aspaSolution.x1)}`);
-    steps.push(`${aspaSolution.factor2} = 0 → Y = ${formatNumber(aspaSolution.x2)}`);
+    // Mostrar como x1 y x2 en pasos intermedios
+    steps.push(`${aspaSolution.factor1} = 0 → x1 = ${formatNumber(aspaSolution.x1)}`);
+    steps.push(`${aspaSolution.factor2} = 0 → x2 = ${formatNumber(aspaSolution.x2)}`);
     
     return {
       error: false,
@@ -95,16 +94,17 @@ function solveQuadratic(match) {
   }
   
   steps.push(`<br><strong>Paso 3 - Calcular √Δ:</strong>`);
-  steps.push(`√${discriminant} = ${Math.sqrt(discriminant).toFixed(4)}`);
+  steps.push(`√${discriminant} = ${Math.sqrt(discriminant).toFixed(6)}`);
   steps.push(`<br><strong>Paso 4 - Aplicar la fórmula:</strong>`);
-  steps.push(`x = (-${b} ± ${Math.sqrt(discriminant).toFixed(4)}) / ${2 * a}`);
+  steps.push(`x = (-${b} ± ${Math.sqrt(discriminant).toFixed(6)}) / ${2 * a}`);
   
   const sqrtDiscriminant = Math.sqrt(discriminant);
   const x1 = (-b + sqrtDiscriminant) / (2 * a);
   const x2 = (-b - sqrtDiscriminant) / (2 * a);
   
-  steps.push(`<strong style="color: #4cff90;">X = ${formatNumber(x1)}</strong>`);
-  steps.push(`<strong style="color: #4cff90;">Y = ${formatNumber(x2)}</strong>`);
+  // Mostrar como x1 y x2 en pasos intermedios
+  steps.push(`<strong style="color: #4cff90;">x1 = ${formatNumber(x1)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x2 = ${formatNumber(x2)}</strong>`);
   
   return {
     error: false,
@@ -140,8 +140,9 @@ function solveQuadraticNoX(match) {
   steps.push(`${a}x² = ${-c}`);
   steps.push(`x² = ${-c / a}`);
   steps.push(`x = ±√${-c / a}`);
-  steps.push(`<strong style="color: #4cff90;">X = ${formatNumber(x1)}</strong>`);
-  steps.push(`<strong style="color: #4cff90;">Y = ${formatNumber(x2)}</strong>`);
+  // intermedio: x1/x2
+  steps.push(`<strong style="color: #4cff90;">x1 = ${formatNumber(x1)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x2 = ${formatNumber(x2)}</strong>`);
   
   return {
     error: false,
@@ -201,9 +202,9 @@ function tryAspaSolution(a, b, c) {
 
 function createAspaDiagram(a, b, c, p1, p2, r, s, m, n) {
   return `
-    <div style="background: rgba(76,144,255,0.1); border: 2px solid rgba(76,144,255,0.3); border-radius: 8px; padding: 20px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px[...]
-      <div style="text-align: center; margin-bottom: 15px;"><strong style="font-size: 14px;">ASPA SIMPLE</strong></div>
-      <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px;">
+    <div style="background: rgba(76,144,255,0.06); border: 1px solid rgba(76,144,255,0.18); border-radius: 8px; padding: 14px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 13px; color: #e8eaff;">
+      <div style="text-align: center; margin-bottom: 8px;"><strong style="font-size: 13px;">ASPA SIMPLE</strong></div>
+      <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 8px;">
         <div style="text-align: right;">
             <div>${m}x</div>
             <div>${n}x</div>
@@ -213,7 +214,7 @@ function createAspaDiagram(a, b, c, p1, p2, r, s, m, n) {
             <div>${r}</div>
             <div>${s}</div>
         </div>
-        <div style="border-left: 1px solid #444; padding-left: 10px;">
+        <div style="border-left: 1px solid rgba(255,255,255,0.06); padding-left: 10px;">
             <div>= ${p1}x</div>
             <div>= ${p2}x</div>
             <div style="border-top: 1px solid #4cff90; margin-top: 5px; color: #ffd700;">${p1+p2}x</div>
@@ -238,7 +239,7 @@ function solveLinear(match) {
   steps.push(`${a}x + ${b} = 0`);
   steps.push(`${a}x = ${-b}`);
   steps.push(`x = ${-b} / ${a}`);
-  steps.push(`<strong style="color: #4cff90;">x = ${formatNumber(x)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x1 = ${formatNumber(x)}</strong>`);
   
   return {
     error: false,
@@ -248,6 +249,145 @@ function solveLinear(match) {
   };
 }
 
+// SOLUCIONADOR GENERAL (numérico) para ecuaciones arbitrarias en x
+function solveGeneralEquation(equation) {
+  // Espera ecuación con '='. Convertir a f(x) = left - right
+  const parts = equation.split('=');
+  if (parts.length !== 2) {
+    return { error: true, message: 'Formato no reconocido para solucionador general. Asegúrate de usar = en la ecuación.' };
+  }
+  const left = parts[0];
+  const right = parts[1];
+  // Preparar expresión JS: reemplazar ^ por **, funciones trigonométricas con Math si es necesario
+  const expr = (`(${left}) - (${right})`).replace(/\^/g, '**');
+
+  // Crear evaluador seguro relativo (usa Math)
+  let f;
+  try {
+    // eslint-disable-next-line no-new-func
+    f = new Function('x', 'with (Math) { return ' + expr + '; }');
+    // prueba rápida
+    f(0);
+  } catch (e) {
+    return { error: true, message: 'No pude interpretar la ecuación para el solucionador general.' };
+  }
+
+  const steps = [];
+  steps.push(`<strong>Solución general (numérica):</strong> Se buscarán raíces reales de f(x) = ${escapeHtml(expr)}`);
+  steps.push(`<br><strong>Nota:</strong> El solucionador numérico busca raíces reales dentro de un rango y evita puntos de discontinuidad.`);
+
+  // Escaneo para bracketing
+  const solutions = [];
+  const minX = -100, maxX = 100;
+  const initialSteps = 2000; // malla fina para detectar cambios de signo
+  const dx = (maxX - minX) / initialSteps;
+
+  function safeEval(x) {
+    try {
+      const y = f(x);
+      if (!isFinite(y)) return null;
+      if (Number.isNaN(y)) return null;
+      return y;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  let prevX = minX;
+  let prevY = safeEval(prevX);
+  for (let i = 1; i <= initialSteps; i++) {
+    const curX = minX + i * dx;
+    const curY = safeEval(curX);
+    if (curY === null || prevY === null) {
+      prevX = curX; prevY = curY; continue; // salto sobre discontinuidades
+    }
+    // Cambio de signo -> posible raíz
+    if (prevY === 0 || Math.sign(prevY) !== Math.sign(curY)) {
+      const root = bisect(f, prevX, curX, 1e-9, 60);
+      if (root !== null) {
+        // evitar duplicados
+        if (!solutions.some(s => Math.abs(s - root) < 1e-7)) {
+          solutions.push(root);
+        }
+      }
+    }
+    // También detectar toques (mínimos locales cerca de cero)
+    prevX = curX; prevY = curY;
+  }
+
+  if (solutions.length === 0) {
+    // intentar búsqueda de mínimos donde |f| pequeño
+    for (let x = -50; x <= 50; x += 0.5) {
+      const y = safeEval(x);
+      if (y === null) continue;
+      if (Math.abs(y) < 1e-4) {
+        // afinar
+        const root = refineRoot(f, x, 1e-9, 40);
+        if (root !== null && !solutions.some(s => Math.abs(s - root) < 1e-7)) {
+          solutions.push(root);
+        }
+      }
+    }
+  }
+
+  if (solutions.length === 0) {
+    steps.push(`<br><span style="color: #ff4d6d;"><strong>No se encontraron raíces reales en el rango [-100,100].</strong></span>`);
+    return { error: false, steps, solutions: null, type: 'general' };
+  }
+
+  // ordenar por valor (x1 = soluciones[0], x2 = soluciones[1])
+  solutions.sort((a, b) => a - b);
+
+  steps.push(`<br><strong>Soluciones encontradas (pasos intermedios muestran x1/x2):</strong>`);
+  solutions.forEach((s, idx) => {
+    steps.push(`x${idx+1} = ${formatNumber(s)}`);
+  });
+
+  return {
+    error: false,
+    steps,
+    solutions,
+    type: 'general'
+  };
+}
+
+// Métodos numéricos auxiliares
+function bisect(f, a, b, tol = 1e-9, maxIter = 60) {
+  let fa, fb;
+  try { fa = f(a); fb = f(b); } catch (e) { return null; }
+  if (fa === null || fb === null) return null;
+  if (fa === 0) return a;
+  if (fb === 0) return b;
+  if (Math.sign(fa) === Math.sign(fb)) return null;
+  let left = a, right = b, mid, fmid;
+  for (let i = 0; i < maxIter; i++) {
+    mid = (left + right) / 2;
+    try { fmid = f(mid); } catch (e) { return null; }
+    if (fmid === null) return null;
+    if (Math.abs(fmid) < tol) return mid;
+    if (Math.sign(fmid) === Math.sign(fa)) { left = mid; fa = fmid; } else { right = mid; fb = fmid; }
+  }
+  return mid;
+}
+
+function refineRoot(f, x0, tol = 1e-9, maxIter = 40) {
+  // Newton-like with numerical derivative
+  let x = x0;
+  for (let i = 0; i < maxIter; i++) {
+    let fx;
+    try { fx = f(x); } catch (e) { return null; }
+    if (!isFinite(fx)) return null;
+    const h = 1e-6;
+    const fpx = (f(x + h) - f(x - h)) / (2 * h);
+    if (Math.abs(fpx) < 1e-12) break;
+    const dx = fx / fpx;
+    x = x - dx;
+    if (Math.abs(dx) < tol) return x;
+  }
+  return null;
+}
+
+// Formatear y salida
 export function formatSolution(result) {
   if (result.error) {
     return `<div style="color: #ff4d6d; font-size: 16px; line-height: 1.6; font-weight: 500;">${result.message}</div>`;
@@ -260,177 +400,244 @@ export function formatSolution(result) {
   });
   
   if (result.solutions) {
-    html += `<div style="margin-top: 20px; padding: 20px; background: rgba(76,255,144,0.15); border: 2px solid #4cff90; border-radius: 12px; box-shadow: 0 0 15px rgba(76,255,144,0.2);">`;
+    html += `<div style="margin-top: 20px; padding: 18px; background: linear-gradient(135deg, rgba(76,255,144,0.06), rgba(76,144,255,0.04)); border: 1px solid rgba(76,255,144,0.08); border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.5);">`;
     html += `<strong style="color: #4cff90; font-size: 18px;">✓ SOLUCIONES FINALES:</strong><br>`;
-    // Mostrar como X;Y respetando el orden (x1 -> X, x2 -> Y)
+    // Mostrar como x/y (minúsculas) respetando el orden (x1 -> x, x2 -> y)
     if (result.solutions.length >= 2) {
-      html += `<div style="margin-top: 5px;">X;Y = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])};${formatNumber(result.solutions[1])}</strong></div>`;
+      html += `<div style="margin-top: 8px;">x/y = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}/${formatNumber(result.solutions[1])}</strong></div>`;
     } else {
-      html += `<div style="margin-top: 5px;">X = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}</strong></div>`;
+      html += `<div style="margin-top: 8px;">x = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}</strong></div>`;
     }
     html += `</div>`;
   }
 
-  // Si es cuadrática, añadir contenedor para el gráfico
-  if (result.type === 'quadratic' && result.a !== undefined) {
-    html += `<div style="margin-top: 25px; text-align: center;">`;
-    html += `<strong style="color: #4c90ff; display: block; margin-bottom: 10px;">GRÁFICO DE LA PARÁBOLA:</strong>`;
-    html += `<canvas id="equationGraph" width="400" height="300" style="background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(76,144,255,0.3); max-width: 100%;"></canvas>`;
+  // Si es cuadrática o general, añadir contenedor para el gráfico interactivo
+  if ((result.type === 'quadratic' || result.type === 'general') && result.a !== undefined || result.type === 'general') {
+    html += `<div style="margin-top: 20px; text-align: center;">`;
+    html += `<strong style="color: #4c90ff; display: block; margin-bottom: 10px;">GRÁFICO DE LA PARÁBOLA / FUNCIÓN:</strong>`;
+    html += `<div id="equationGraphContainer" style="display:inline-block; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 12px; border: 1px solid rgba(76,144,255,0.18);">`;
+    html += `<canvas id="equationGraph" width="640" height="360" style="max-width: 100%; display: block; border-radius: 8px;"></canvas>`;
+    html += `<div style="margin-top:8px; display:flex; gap:8px; justify-content:center; align-items:center;">`;
+    html += `<button id="zoomOutBtn" style="background:#122034;color:#fff;border:none;padding:6px 10px;border-radius:6px;">-</button>`;
+    html += `<input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1" style="width:160px;">`;
+    html += `<button id="zoomInBtn" style="background:#122034;color:#fff;border:none;padding:6px 10px;border-radius:6px;">+</button>`;
+    html += `<button id="resetViewBtn" style="background:#122034;color:#fff;border:none;padding:6px 10px;border-radius:6px;">Reset</button>`;
     html += `</div>`;
-    
-    // Inyectar script para dibujar el gráfico después de que el HTML se cargue
+    html += `</div>`;
+    html += `</div>`;
+
+    // Inyectar script para dibujar el gráfico y habilitar zoom/pan
     setTimeout(() => {
         const canvas = document.getElementById('equationGraph');
-        if (canvas) drawGraph(canvas, result.a, result.b, result.c, result.solutions);
-    }, 100);
+        const container = document.getElementById('equationGraphContainer');
+        if (!canvas) return;
+
+        // Estado interactivo
+        let state = {
+          scale: 1,
+          translateX: 0,
+          translateY: 0
+        };
+
+        // Obtener soluciones y coeficientes de result
+        const sols = result.solutions || [];
+        const a = result.a; const b = result.b; const c = result.c;
+
+        // función para evaluar y dibujar
+        const redraw = () => {
+          drawGraphInteractive(canvas, a, b, c, sols, state);
+        };
+
+        // Zoom controls
+        const zoomRange = document.getElementById('zoomRange');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const resetViewBtn = document.getElementById('resetViewBtn');
+
+        zoomRange.addEventListener('input', (e) => { state.scale = parseFloat(e.target.value); redraw(); });
+        zoomInBtn.addEventListener('click', () => { state.scale = Math.min(3, state.scale + 0.1); zoomRange.value = state.scale; redraw(); });
+        zoomOutBtn.addEventListener('click', () => { state.scale = Math.max(0.5, state.scale - 0.1); zoomRange.value = state.scale; redraw(); });
+        resetViewBtn.addEventListener('click', () => { state = { scale: 1, translateX: 0, translateY: 0 }; zoomRange.value = 1; redraw(); });
+
+        // Wheel zoom
+        canvas.addEventListener('wheel', (ev) => {
+          ev.preventDefault();
+          const delta = ev.deltaY > 0 ? -0.05 : 0.05;
+          state.scale = Math.max(0.5, Math.min(3, state.scale + delta));
+          zoomRange.value = state.scale;
+          redraw();
+        });
+
+        // Drag to pan
+        let dragging = false;
+        let last = null;
+        canvas.addEventListener('pointerdown', (e) => { dragging = true; last = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+        canvas.addEventListener('pointermove', (e) => {
+          if (!dragging || !last) return;
+          const dx = e.clientX - last.x; const dy = e.clientY - last.y;
+          last = { x: e.clientX, y: e.clientY };
+          state.translateX += dx; state.translateY += dy; redraw();
+        });
+        canvas.addEventListener('pointerup', (e) => { dragging = false; last = null; canvas.releasePointerCapture(e.pointerId); });
+        canvas.addEventListener('pointercancel', () => { dragging = false; last = null; });
+
+        // Initial draw
+        redraw();
+    }, 120);
   }
   
   html += `</div>`;
   return html;
 }
 
-// Formatea números: no muestra decimales innecesarios (3.0000 -> 3), pero mantiene decimales significativos
-function formatNumber(num) {
-  if (num === null || num === undefined) return String(num);
-  if (!isFinite(num)) return String(num);
-  const rounded = Math.round(num);
-  if (Math.abs(num - rounded) < 1e-9) return String(rounded);
-  // Mostrar hasta 6 decimales, quitando ceros finales
-  let s = Number(num).toFixed(6).replace(/\.?0+$/, '');
-  return s;
-}
-
-function drawGraph(canvas, a, b, c, solutions) {
+// Dibuja la función/parábola en canvas con estética mejorada y respetando zoom/pan
+function drawGraphInteractive(canvas, a, b, c, solutions, state) {
     const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
-    
+    const DPR = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth * DPR;
+    const h = canvas.clientHeight * DPR;
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+
     ctx.clearRect(0, 0, w, h);
-    
-    const margin = 40;
+
+    // transform for pan/zoom
+    ctx.save();
+    ctx.translate(state.translateX * DPR, state.translateY * DPR);
+    ctx.scale(state.scale, state.scale);
+
+    const margin = 50 * DPR;
     const centerX = w / 2;
     const centerY = h / 2;
-    
+
+    // Determine x range from solutions or default
     let minX = -10, maxX = 10;
     if (solutions && solutions.length > 0) {
         const solMin = Math.min(...solutions);
         const solMax = Math.max(...solutions);
-        minX = Math.floor(solMin - 3);
-        maxX = Math.ceil(solMax + 3);
+        minX = Math.floor(solMin - 4);
+        maxX = Math.ceil(solMax + 4);
     }
-    
+
     const scaleX = (w - 2 * margin) / (maxX - minX);
-    const rangeY = 20; 
+    const rangeY = 20;
     const scaleY = (h - 2 * margin) / rangeY;
-    
-    // Cuadrícula sutil
-    ctx.strokeStyle = 'rgba(76, 144, 255, 0.1)';
-    ctx.lineWidth = 1;
-    for (let i = minX; i <= maxX; i++) {
-        const x = centerX + i * scaleX;
-        ctx.beginPath();
-        ctx.moveTo(x, margin);
-        ctx.lineTo(x, h - margin);
-        ctx.stroke();
+
+    // Grid
+    ctx.strokeStyle = 'rgba(76,144,255,0.08)';
+    ctx.lineWidth = 1 * DPR;
+    for (let i = Math.ceil(minX); i <= Math.floor(maxX); i++) {
+        const x = margin + (i - minX) * scaleX;
+        ctx.beginPath(); ctx.moveTo(x, margin); ctx.lineTo(x, h - margin); ctx.stroke();
     }
     for (let i = -10; i <= 10; i++) {
         const y = centerY - i * scaleY;
-        ctx.beginPath();
-        ctx.moveTo(margin, y);
-        ctx.lineTo(w - margin, y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(w - margin, y); ctx.stroke();
     }
 
-    // Ejes con brillo
-    ctx.strokeStyle = 'rgba(76, 144, 255, 0.5)';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#4c90ff';
-    ctx.lineWidth = 2;
-    
-    ctx.beginPath();
-    ctx.moveTo(margin, centerY);
-    ctx.lineTo(w - margin, centerY);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX, margin);
-    ctx.lineTo(centerX, h - margin);
-    ctx.stroke();
-    
-    ctx.shadowBlur = 0;
+    // Axes
+    ctx.strokeStyle = 'rgba(76, 144, 255, 0.36)';
+    ctx.lineWidth = 2 * DPR;
+    const axisY = margin + (-minX) * scaleX; // x=0 line
+    // X axis
+    ctx.beginPath(); ctx.moveTo(margin, centerY); ctx.lineTo(w - margin, centerY); ctx.stroke();
+    // Y axis
+    ctx.beginPath(); ctx.moveTo(axisY, margin); ctx.lineTo(axisY, h - margin); ctx.stroke();
 
-    // Parábola con degradado neón
-    const gradient = ctx.createLinearGradient(0, 0, w, 0);
+    // Ticks & labels
+    ctx.fillStyle = 'rgba(232,234,255,0.8)';
+    ctx.font = `${12 * DPR}px Orbitron`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let i = Math.ceil(minX); i <= Math.floor(maxX); i++) {
+        const x = margin + (i - minX) * scaleX;
+        ctx.fillText(i.toString(), x, centerY + 6 * DPR);
+    }
+
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    for (let i = -8; i <= 8; i += 2) {
+        const yVal = i;
+        const y = centerY - i * scaleY;
+        ctx.fillText(yVal.toString(), axisY + 6 * DPR, y);
+    }
+
+    // Draw function curve
+    const gradient = ctx.createLinearGradient(margin, 0, w - margin, 0);
     gradient.addColorStop(0, '#4c90ff');
     gradient.addColorStop(0.5, '#4cff90');
     gradient.addColorStop(1, '#4c90ff');
-    
+
     ctx.strokeStyle = gradient;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3 * DPR;
     ctx.lineJoin = 'round';
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = 'rgba(76, 144, 255, 0.6)';
     ctx.beginPath();
-    
-    let first = true;
-    for (let x = minX; x <= maxX; x += 0.05) {
-        const y = a * x * x + b * x + c;
-        const canvasX = centerX + x * scaleX;
-        const canvasY = centerY - y * scaleY;
-        
-        if (canvasY >= margin - 20 && canvasY <= h - margin + 20) {
-            if (first) {
-                ctx.moveTo(canvasX, canvasY);
-                first = false;
-            } else {
-                ctx.lineTo(canvasX, canvasY);
-            }
-        }
+
+    const fn = (x) => {
+        if (a !== undefined && b !== undefined && c !== undefined) return a * x * x + b * x + c;
+        // else rely on global function parser (not provided here) - fallback 0
+        try {
+          // nothing - the general case uses drawGraphInteractive only for visualization of roots
+          return 0;
+        } catch (e) { return 0; }
+    };
+
+    const step = (maxX - minX) / 2000; // smooth
+    let started = false;
+    for (let x = minX; x <= maxX; x += step) {
+        const yVal = fn(x);
+        const canvasX = margin + (x - minX) * scaleX;
+        const canvasY = centerY - yVal * scaleY;
+        if (!started) { ctx.moveTo(canvasX, canvasY); started = true; } else { ctx.lineTo(canvasX, canvasY); }
     }
     ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    // Raíces con efecto de pulso (puntos rojos brillantes)
-    if (solutions) {
-        const canvasXs = [];
-        solutions.forEach((sol, idx) => {
-            const canvasX = centerX + sol * scaleX;
-            canvasXs.push(canvasX);
-            
-            ctx.fillStyle = '#ff4d6d';
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#ff4d6d';
-            ctx.beginPath();
-            ctx.arc(canvasX, centerY, 6, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Rajdhani';
-            ctx.textAlign = 'center';
-            // Antes mostrábamos x1/x2; ahora mostramos combinado X;Y respetando el orden
-        });
 
+    // Fill under curve subtle
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = '#4c90ff';
+    ctx.beginPath();
+    let firstPoint = true;
+    for (let x = minX; x <= maxX; x += step) {
+        const yVal = fn(x);
+        const canvasX = margin + (x - minX) * scaleX;
+        const canvasY = centerY - yVal * scaleY;
+        if (firstPoint) { ctx.moveTo(canvasX, canvasY); firstPoint = false; } else { ctx.lineTo(canvasX, canvasY); }
+    }
+    ctx.lineTo(w - margin, centerY); ctx.lineTo(margin, centerY); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Roots markers
+    if (solutions && solutions.length) {
+        const markerXs = solutions.map(s => margin + (s - minX) * scaleX);
+        markerXs.forEach((mx, idx) => {
+            ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(mx, centerY, 8 * DPR, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = `${11 * DPR}px Rajdhani`; ctx.textAlign = 'center'; ctx.fillText(`x${idx+1}`, mx, centerY - 18 * DPR);
+        });
+        // combined label x/y centered between first two
         if (solutions.length >= 2) {
-            // Mostrar etiqueta combinada entre las dos raíces: X;Y donde X = x1 y Y = x2
-            const midX = (canvasXs[0] + canvasXs[1]) / 2;
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Rajdhani';
-            ctx.textAlign = 'center';
-            const label = `${formatNumber(solutions[0])};${formatNumber(solutions[1])}`;
-            ctx.fillText(label, midX, centerY - 15);
-        } else if (solutions.length === 1) {
-            const canvasX = canvasXs[0];
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Rajdhani';
-            ctx.textAlign = 'center';
-            ctx.fillText(formatNumber(solutions[0]), canvasX, centerY - 15);
+            const midX = (markerXs[0] + markerXs[1]) / 2;
+            ctx.fillStyle = '#fff'; ctx.font = `${13 * DPR}px Rajdhani`; ctx.fillText(`${formatNumber(solutions[0])}/${formatNumber(solutions[1])}`, midX, centerY - 32 * DPR);
         }
     }
 
-    // Etiquetas de ejes
-    ctx.fillStyle = 'rgba(232, 234, 255, 0.6)';
-    ctx.font = '10px Orbitron';
-    ctx.fillText('X', w - margin + 10, centerY + 5);
-    ctx.fillText('Y', centerX + 10, margin - 5);
+    // Axis labels
+    ctx.fillStyle = 'rgba(232,234,255,0.9)';
+    ctx.font = `${13 * DPR}px Orbitron`;
+    ctx.fillText('X', w - margin - 8 * DPR, centerY + 16 * DPR);
+    ctx.fillText('Y', axisY + 8 * DPR, margin + 6 * DPR);
+
+    ctx.restore();
+}
+
+// Formatea números: no muestra decimales innecesarios (3.0000 -> 3), pero mantiene decimales significativos
+function formatNumber(num) {
+  if (num === null || num === undefined) return String(num);
+  if (!isFinite(num)) return String(num);
+  // tratar valores cercanos a entero
+  const rounded = Math.round(num);
+  if (Math.abs(num - rounded) < 1e-9) return String(rounded);
+  // Mostrar hasta 8 decimales, quitando ceros finales
+  let s = Number(num).toFixed(8).replace(/\.?0+$/, '');
+  return s;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]; });
 }
