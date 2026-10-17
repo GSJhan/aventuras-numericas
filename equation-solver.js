@@ -264,18 +264,16 @@ function normalizeExpression(raw) {
     .replace(/\^/g, '**')
     .replace(/\s+/g, '');
 
-  // Multiplicación implícita: 2x, x(…), (x+1)x, etc.
-  expr = expr.replace(/(\d|\)|x|PI)(?=x|\()/gi, '$1*');
-  expr = expr.replace(/(?<=\))(?=\d)/g, '*');
-  expr = expr.replace(/(?<=x)(?=\d)/gi, '*');
-  expr = expr.replace(/(?<=\d)(?=x)/gi, '*');
+  // Multiplicación implícita.
+  expr = expr.replace(/(\d|\)|x|X|PI)(?=x|X|\()/gi, '$1*');
+  expr = expr.replace(/(\d)(x|X)/gi, '$1*$2');
+  expr = expr.replace(/(x|X)(\d)/gi, '$1*$2');
 
   return expr;
 }
 
 function compileSafeFunction(expression) {
   const expr = normalizeExpression(expression);
-  // Permitir solo caracteres matemáticos y literales seguros.
   const allowedPattern = /^[0-9xX\+\-\*\/\(\)\.,\^\sA-Za-z_]+$/;
   if (!allowedPattern.test(expr)) {
     throw new Error('Expresión no segura o no soportada.');
@@ -304,7 +302,6 @@ function safeEvalExpression(fn, x) {
 }
 
 function findGeneralRoot(fn, left, right, tol = 1e-8, maxIter = 80) {
-  // Bisección en un rango; si no cambia de signo, intenta por cercanía a cero
   let a = left;
   let b = right;
   const fa = safeEvalExpression(fn, a);
