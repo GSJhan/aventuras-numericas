@@ -24,8 +24,33 @@ export function solveEquation(equation) {
     return solveLinear(linearMatch);
   }
 
-  // Si no coincide con los formatos anteriores, usar solucionador general seguro y numérico
-  return solveGeneralEquation(equation);
+  // Si no coincide con los formatos anteriores, usar solucionador general síncrono (legacy)
+  return solveGeneralEquationSync(equation);
+}
+
+// Nueva versión asíncrona pública — evita bloquear la UI en casos generales
+export async function solveEquationAsync(equation) {
+  // Limpiar espacios
+  equation = equation.replace(/\s/g, '');
+
+  // Manejar casos rápidos sin bloqueo
+  const quadraticMatch = equation.match(/([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)x([+-]\d*\.?\d*)=0/i);
+  if (quadraticMatch) {
+    const res = solveQuadratic(quadraticMatch);
+    res.coefficients = { a: res.a, b: res.b, c: res.c };
+    return res;
+  }
+  const quadraticNoXMatch = equation.match(/([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)=0/i);
+  if (quadraticNoXMatch) {
+    return solveQuadraticNoX(quadraticNoXMatch);
+  }
+  const linearMatch = equation.match(/([+-]?\d*\.?\d*)x([+-]\d*\.?\d*)=0/i);
+  if (linearMatch) {
+    return solveLinear(linearMatch);
+  }
+
+  // Para el caso general, usar la versión asíncrona que cede el loop con setTimeout
+  return await solveGeneralEquationAsync(equation);
 }
 
 function solveQuadratic(match) {
@@ -301,37 +326,8 @@ function safeEvalExpression(fn, x) {
   }
 }
 
-function findGeneralRoot(fn, left, right, tol = 1e-8, maxIter = 80) {
-  let a = left;
-  let b = right;
-  const fa = safeEvalExpression(fn, a);
-  const fb = safeEvalExpression(fn, b);
-
-  if (fa === null || fb === null) return null;
-  if (Math.abs(fa) < tol) return a;
-  if (Math.abs(fb) < tol) return b;
-  if (Math.sign(fa) === Math.sign(fb)) return null;
-
-  let c = a;
-  let fc = fa;
-  for (let i = 0; i < maxIter; i++) {
-    c = (a + b) / 2;
-    const fC = safeEvalExpression(fn, c);
-    if (fC === null) return null;
-    if (Math.abs(fC) < tol) return c;
-    if (Math.sign(fa) === Math.sign(fC)) {
-      a = c;
-      fa = fC;
-    } else {
-      b = c;
-      fb = fC;
-    }
-    if (Math.abs(b - a) < tol) return c;
-  }
-  return c;
-}
-
-function solveGeneralEquation(equation) {
+// Versión síncrona antigua (legacy) — la dejaremos para compatibilidad interna
+function solveGeneralEquationSync(equation) {
   if (!equation || !equation.includes('=')) {
     return {
       error: true,
@@ -413,6 +409,161 @@ function solveGeneralEquation(equation) {
     solutions,
     type: 'general'
   };
+}
+
+// Versión asíncrona que cede el control al event loop periódicamente para evitar bloquear la UI
+async function solveGeneralEquationAsync(equation) {
+  if (!equation || !equation.includes('=')) {
+    return {
+      error: true,
+      message: 'Formato no reconocido. Usa una ecuación con =, por ejemplo: x^2-3x+2=0 o (x+1)/(x-2)=3.'
+    };
+  }
+
+  const parts = equation.split('=');
+  if (parts.length !== 2) {
+    return {
+      error: true,
+      message: 'La ecuación general debe tener exactamente un signo igual.'
+    };
+  }
+
+  const left = parts[0];
+  const right = parts[1];
+
+  const expr = `(${normalizeExpression(left)})-(${normalizeExpression(right)})`;
+  const fn = compileSafeFunction(expr);
+
+  const steps = [];
+  steps.push(`<strong>Solución general (segura) — modo asíncrono:</strong> Se evaluará la ecuación como f(x) = ${escapeHtml(expr)}.`);
+  steps.push(`<br><strong>Nota:</strong> El cálculo se realiza en background y no bloqueará la interfaz.`);
+
+  const solutions = [];
+  const minX = -100;
+  const maxX = 100;
+  const step = 0.25;
+
+  // helper para ceder el event loop
+  async function yieldNow() { return new Promise(r => setTimeout(r, 0)); }
+
+  // 1) Buscar cambios de signo para obtener intervalos con raíces reales
+  let counter = 0;
+  for (let x = minX; x <= maxX; x += step) {
+    if ((counter++ & 127) === 0) await yieldNow();
+    const aVal = safeEvalExpression(fn, x);
+    const bVal = safeEvalExpression(fn, x + step);
+    if (aVal === null || bVal === null) continue;
+
+    if (Math.abs(aVal) < 1e-7) {
+      if (!solutions.some(s => Math.abs(s - x) < 1e-6)) solutions.push(x);
+      continue;
+    }
+
+    if (aVal === 0 || Math.sign(aVal) !== Math.sign(bVal)) {
+      const root = await findGeneralRootAsync(fn, x, x + step, 1e-9, 80);
+      if (root !== null && !solutions.some(s => Math.abs(s - root) < 1e-6)) {
+        solutions.push(root);
+      }
+    }
+  }
+
+  // 2) Búsqueda local adicional para raíces con tangencia o pasos pequeños
+  if (solutions.length === 0) {
+    counter = 0;
+    for (let x = minX; x <= maxX; x += 0.05) {
+      if ((counter++ & 127) === 0) await yieldNow();
+      const val = safeEvalExpression(fn, x);
+      if (val === null) continue;
+      if (Math.abs(val) < 1e-5) {
+        const root = await findGeneralRootAsync(fn, x - 0.05, x + 0.05, 1e-9, 80);
+        if (root !== null && !solutions.some(s => Math.abs(s - root) < 1e-6)) {
+          solutions.push(root);
+        }
+      }
+    }
+  }
+
+  if (solutions.length === 0) {
+    steps.push(`<br><span style="color: #ff4d6d;"><strong>No se encontraron raíces reales en el rango [-100,100].</strong></span>`);
+    return { error: false, steps, solutions: null, type: 'general' };
+  }
+
+  solutions.sort((a, b) => a - b);
+
+  steps.push(`<br><strong>Raíces reales encontradas:</strong>`);
+  solutions.forEach((s, idx) => {
+    steps.push(`x<sub>${idx + 1}</sub> = ${formatNumber(s)}`);
+  });
+
+  return {
+    error: false,
+    steps,
+    solutions,
+    type: 'general'
+  };
+}
+
+// Versión asíncrona del método de búsqueda de raíz (bisección) que cede el event loop en iteraciones largas
+async function findGeneralRootAsync(fn, left, right, tol = 1e-8, maxIter = 80) {
+  let a = left;
+  let b = right;
+  let fa = safeEvalExpression(fn, a);
+  let fb = safeEvalExpression(fn, b);
+
+  if (fa === null || fb === null) return null;
+  if (Math.abs(fa) < tol) return a;
+  if (Math.abs(fb) < tol) return b;
+  if (Math.sign(fa) === Math.sign(fb)) return null;
+
+  let c = a;
+  let fc = fa;
+  for (let i = 0; i < maxIter; i++) {
+    if ((i & 63) === 0) await new Promise(r => setTimeout(r, 0));
+    c = (a + b) / 2;
+    const fC = safeEvalExpression(fn, c);
+    if (fC === null) return null;
+    if (Math.abs(fC) < tol) return c;
+    if (Math.sign(fa) === Math.sign(fC)) {
+      a = c;
+      fa = fC;
+    } else {
+      b = c;
+      fb = fC;
+    }
+    if (Math.abs(b - a) < tol) return c;
+  }
+  return c;
+}
+
+// Mantener la versión síncrona de findGeneralRoot para compatibilidad
+function findGeneralRoot(fn, left, right, tol = 1e-8, maxIter = 80) {
+  let a = left;
+  let b = right;
+  const fa = safeEvalExpression(fn, a);
+  const fb = safeEvalExpression(fn, b);
+
+  if (fa === null || fb === null) return null;
+  if (Math.abs(fa) < tol) return a;
+  if (Math.abs(fb) < tol) return b;
+  if (Math.sign(fa) === Math.sign(fb)) return null;
+
+  let c = a;
+  let fc = fa;
+  for (let i = 0; i < maxIter; i++) {
+    c = (a + b) / 2;
+    const fC = safeEvalExpression(fn, c);
+    if (fC === null) return null;
+    if (Math.abs(fC) < tol) return c;
+    if (Math.sign(fa) === Math.sign(fC)) {
+      a = c;
+      fa = fC;
+    } else {
+      b = c;
+      fb = fC;
+    }
+    if (Math.abs(b - a) < tol) return c;
+  }
+  return c;
 }
 
 // ------------------------------------------------------------------------------
