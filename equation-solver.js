@@ -57,9 +57,9 @@ function solveQuadratic(match) {
     steps.push(`<strong style="color: #4cff90;">Verificación: ${aspaSolution.p1}x + ${aspaSolution.p2}x = ${aspaSolution.p1 + aspaSolution.p2}x ✓</strong>`);
     steps.push(`<br><strong>Factorización:</strong> (${aspaSolution.factor1})(${aspaSolution.factor2}) = 0`);
     steps.push(`<br><strong>Soluciones:</strong>`);
-    // Mostrar como x1 y x2 en pasos intermedios
-    steps.push(`${aspaSolution.factor1} = 0 → x1 = ${formatNumber(aspaSolution.x1)}`);
-    steps.push(`${aspaSolution.factor2} = 0 → x2 = ${formatNumber(aspaSolution.x2)}`);
+    // Mostrar como x₁ y x₂ en pasos intermedios (subíndice pequeño)
+    steps.push(`${aspaSolution.factor1} = 0 → x<sub>1</sub> = ${formatNumber(aspaSolution.x1)}`);
+    steps.push(`${aspaSolution.factor2} = 0 → x<sub>2</sub> = ${formatNumber(aspaSolution.x2)}`);
     
     return {
       error: false,
@@ -102,9 +102,9 @@ function solveQuadratic(match) {
   const x1 = (-b + sqrtDiscriminant) / (2 * a);
   const x2 = (-b - sqrtDiscriminant) / (2 * a);
   
-  // Mostrar como x1 y x2 en pasos intermedios
-  steps.push(`<strong style="color: #4cff90;">x1 = ${formatNumber(x1)}</strong>`);
-  steps.push(`<strong style="color: #4cff90;">x2 = ${formatNumber(x2)}</strong>`);
+  // Mostrar como x₁ y x₂ en pasos intermedios
+  steps.push(`<strong style="color: #4cff90;">x<sub>1</sub> = ${formatNumber(x1)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x<sub>2</sub> = ${formatNumber(x2)}</strong>`);
   
   return {
     error: false,
@@ -140,9 +140,9 @@ function solveQuadraticNoX(match) {
   steps.push(`${a}x² = ${-c}`);
   steps.push(`x² = ${-c / a}`);
   steps.push(`x = ±√${-c / a}`);
-  // intermedio: x1/x2
-  steps.push(`<strong style="color: #4cff90;">x1 = ${formatNumber(x1)}</strong>`);
-  steps.push(`<strong style="color: #4cff90;">x2 = ${formatNumber(x2)}</strong>`);
+  // intermedio: x₁/x₂
+  steps.push(`<strong style="color: #4cff90;">x<sub>1</sub> = ${formatNumber(x1)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x<sub>2</sub> = ${formatNumber(x2)}</strong>`);
   
   return {
     error: false,
@@ -239,7 +239,7 @@ function solveLinear(match) {
   steps.push(`${a}x + ${b} = 0`);
   steps.push(`${a}x = ${-b}`);
   steps.push(`x = ${-b} / ${a}`);
-  steps.push(`<strong style="color: #4cff90;">x1 = ${formatNumber(x)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x<sub>1</sub> = ${formatNumber(x)}</strong>`);
   
   return {
     error: false,
@@ -338,9 +338,9 @@ function solveGeneralEquation(equation) {
   // ordenar por valor (x1 = soluciones[0], x2 = soluciones[1])
   solutions.sort((a, b) => a - b);
 
-  steps.push(`<br><strong>Soluciones encontradas (pasos intermedios muestran x1/x2):</strong>`);
+  steps.push(`<br><strong>Soluciones encontradas (pasos intermedios muestran x₁/x₂):</strong>`);
   solutions.forEach((s, idx) => {
-    steps.push(`x${idx+1} = ${formatNumber(s)}`);
+    steps.push(`x<sub>${idx+1}</sub> = ${formatNumber(s)}`);
   });
 
   return {
@@ -402,9 +402,15 @@ export function formatSolution(result) {
   if (result.solutions) {
     html += `<div style="margin-top: 20px; padding: 18px; background: linear-gradient(135deg, rgba(76,255,144,0.06), rgba(76,144,255,0.04)); border: 1px solid rgba(76,255,144,0.08); border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.5);">`;
     html += `<strong style="color: #4cff90; font-size: 18px;">✓ SOLUCIONES FINALES:</strong><br>`;
-    // Mostrar como x/y (minúsculas) respetando el orden (x1 -> x, x2 -> y)
+    // Mostrar x₁ y x₂ en la salida final (intermedio)
     if (result.solutions.length >= 2) {
-      html += `<div style="margin-top: 8px;">x/y = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}/${formatNumber(result.solutions[1])}</strong></div>`;
+      html += `<div style="margin-top: 8px;">x<sub>1</sub> = <strong style="color: #ffd700; font-size: 18px;">${formatNumber(result.solutions[0])}</strong></div>`;
+      html += `<div style="margin-top: 4px;">x<sub>2</sub> = <strong style="color: #ffd700; font-size: 18px;">${formatNumber(result.solutions[1])}</strong></div>`;
+      // Resolución final según tu pedido: x = x1, y = x2
+      html += `<hr style="opacity:0.08;margin:10px 0;">`;
+      html += `<div style="margin-top: 8px; font-size:16px;">Resolución final:</div>`;
+      html += `<div style="margin-top:6px;">x = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}</strong></div>`;
+      html += `<div style="margin-top:4px;">y = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[1])}</strong></div>`;
     } else {
       html += `<div style="margin-top: 8px;">x = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}</strong></div>`;
     }
@@ -608,12 +614,15 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
         const markerXs = solutions.map(s => margin + (s - minX) * scaleX);
         markerXs.forEach((mx, idx) => {
             ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(mx, centerY, 8 * DPR, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = `${11 * DPR}px Rajdhani`; ctx.textAlign = 'center'; ctx.fillText(`x${idx+1}`, mx, centerY - 18 * DPR);
+            ctx.fillStyle = '#fff'; ctx.font = `${11 * DPR}px Rajdhani`; ctx.textAlign = 'center'; ctx.fillText(`x\u208${idx+1}`, mx, centerY - 18 * DPR);
         });
-        // combined label x/y centered between first two
+        // Mostrar etiqueta con valores separados (x = ..., y = ...) entre las dos raíces
         if (solutions.length >= 2) {
             const midX = (markerXs[0] + markerXs[1]) / 2;
-            ctx.fillStyle = '#fff'; ctx.font = `${13 * DPR}px Rajdhani`; ctx.fillText(`${formatNumber(solutions[0])}/${formatNumber(solutions[1])}`, midX, centerY - 32 * DPR);
+            ctx.fillStyle = '#fff'; ctx.font = `${13 * DPR}px Rajdhani`;
+            ctx.textAlign = 'center';
+            ctx.fillText(`x = ${formatNumber(solutions[0])}`, midX, centerY - 32 * DPR);
+            ctx.fillText(`y = ${formatNumber(solutions[1])}`, midX, centerY - 16 * DPR);
         }
     }
 
