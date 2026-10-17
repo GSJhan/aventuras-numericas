@@ -1,53 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Aventuras Numéricas</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="description" content="Juego educativo - redirigiendo a la pantalla de acceso" />
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4c90ff">
-  <link rel="apple-touch-icon" href="spiderman.png">
 </head>
-<body class="auth-page">
-  <div class="particles" id="particles"></div>
-  <div class="auth-container">
-    <div class="logo-area">
-      <div class="logo-icon">
-        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-          <circle cx="40" cy="40" r="38" stroke="#4c90ff" stroke-width="3" fill="rgba(76,144,255,0.08)"/>
-          <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="38" fill="#4c90ff" font-family="Orbitron">∑</text>
-        </svg>
-      </div>
-      <h1>Aventuras<br>Numéricas</h1>
-    </div>
-    <div class="card">
-      <h2 id="authTitle">Crear Cuenta</h2>
-      <input type="text" id="username" placeholder="Nombre de usuario" autocomplete="off"/>
-      <input type="password" id="password" placeholder="Contraseña"/>
-      <button id="authBtn" class="btn-primary">Crear Cuenta</button>
-      <p id="authMessage"></p>
-    </div>
-    <p class="switch-auth">¿Ya tienes cuenta? <a id="switchLink">Inicia aquí</a></p>
-  </div>
-  <script type="module" src="main.js"></script>
+<body>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker registrado', reg))
-          .catch(err => console.log('Error al registrar Service Worker', err));
-      });
-    }
-
-    const p = document.getElementById('particles');
-    for (let i = 0; i < 40; i++) {
-      const d = document.createElement('div');
-      d.className = 'particle';
-      d.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;animation-delay:${Math.random()*6}s;animation-duration:${4+Math.random()*6}s`;
-      p.appendChild(d);
-    }
+    // Redirige automáticamente a la página de autenticación (auth.html)
+    // Usamos replace para evitar que el usuario vuelva a esta página con "back"
+    window.location.replace('auth.html');
   </script>
+  <noscript>
+    <p>Si tu navegador no soporta JavaScript, haz clic <a href="auth.html">aquí</a> para ir a la pantalla de acceso.</p>
+  </noscript>
 </body>
 </html>
