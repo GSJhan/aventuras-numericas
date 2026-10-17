@@ -1,4 +1,4 @@
-// Sistema de Logros - 100+ Logros organizados por categorías
+// Sistema de Logros - 100 Logros organizados por categorías
 
 export const ACHIEVEMENTS = {
   // Categoría: Principiante
