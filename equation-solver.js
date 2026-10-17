@@ -59,8 +59,8 @@ function solveQuadratic(match) {
     steps.push(`<strong style="color: #4cff90;">Verificación: ${aspaSolution.p1}x + ${aspaSolution.p2}x = ${aspaSolution.p1 + aspaSolution.p2}x ✓</strong>`);
     steps.push(`<br><strong>Factorización:</strong> (${aspaSolution.factor1})(${aspaSolution.factor2}) = 0`);
     steps.push(`<br><strong>Soluciones:</strong>`);
-    steps.push(`${aspaSolution.factor1} = 0 → x₁ = ${aspaSolution.x1.toFixed(4)}`);
-    steps.push(`${aspaSolution.factor2} = 0 → x₂ = ${aspaSolution.x2.toFixed(4)}`);
+    steps.push(`${aspaSolution.factor1} = 0 → X = ${formatNumber(aspaSolution.x1)}`);
+    steps.push(`${aspaSolution.factor2} = 0 → Y = ${formatNumber(aspaSolution.x2)}`);
     
     return {
       error: false,
@@ -103,8 +103,8 @@ function solveQuadratic(match) {
   const x1 = (-b + sqrtDiscriminant) / (2 * a);
   const x2 = (-b - sqrtDiscriminant) / (2 * a);
   
-  steps.push(`<strong style="color: #4cff90;">x₁ = ${x1.toFixed(4)}</strong>`);
-  steps.push(`<strong style="color: #4cff90;">x₂ = ${x2.toFixed(4)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">X = ${formatNumber(x1)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">Y = ${formatNumber(x2)}</strong>`);
   
   return {
     error: false,
@@ -140,8 +140,8 @@ function solveQuadraticNoX(match) {
   steps.push(`${a}x² = ${-c}`);
   steps.push(`x² = ${-c / a}`);
   steps.push(`x = ±√${-c / a}`);
-  steps.push(`<strong style="color: #4cff90;">x₁ = ${x1.toFixed(4)}</strong>`);
-  steps.push(`<strong style="color: #4cff90;">x₂ = ${x2.toFixed(4)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">X = ${formatNumber(x1)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">Y = ${formatNumber(x2)}</strong>`);
   
   return {
     error: false,
@@ -201,7 +201,7 @@ function tryAspaSolution(a, b, c) {
 
 function createAspaDiagram(a, b, c, p1, p2, r, s, m, n) {
   return `
-    <div style="background: rgba(76,144,255,0.1); border: 2px solid rgba(76,144,255,0.3); border-radius: 8px; padding: 20px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px; color: #e8eaff;">
+    <div style="background: rgba(76,144,255,0.1); border: 2px solid rgba(76,144,255,0.3); border-radius: 8px; padding: 20px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 12px[...]
       <div style="text-align: center; margin-bottom: 15px;"><strong style="font-size: 14px;">ASPA SIMPLE</strong></div>
       <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 10px;">
         <div style="text-align: right;">
@@ -238,7 +238,7 @@ function solveLinear(match) {
   steps.push(`${a}x + ${b} = 0`);
   steps.push(`${a}x = ${-b}`);
   steps.push(`x = ${-b} / ${a}`);
-  steps.push(`<strong style="color: #4cff90;">x = ${x.toFixed(4)}</strong>`);
+  steps.push(`<strong style="color: #4cff90;">x = ${formatNumber(x)}</strong>`);
   
   return {
     error: false,
@@ -262,9 +262,12 @@ export function formatSolution(result) {
   if (result.solutions) {
     html += `<div style="margin-top: 20px; padding: 20px; background: rgba(76,255,144,0.15); border: 2px solid #4cff90; border-radius: 12px; box-shadow: 0 0 15px rgba(76,255,144,0.2);">`;
     html += `<strong style="color: #4cff90; font-size: 18px;">✓ SOLUCIONES FINALES:</strong><br>`;
-    result.solutions.forEach((sol, idx) => {
-      html += `<div style="margin-top: 5px;">x<sub style="font-size: 12px;">${idx + 1}</sub> = <strong style="color: #ffd700; font-size: 20px;">${sol.toFixed(4)}</strong></div>`;
-    });
+    // Mostrar como X;Y respetando el orden (x1 -> X, x2 -> Y)
+    if (result.solutions.length >= 2) {
+      html += `<div style="margin-top: 5px;">X;Y = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])};${formatNumber(result.solutions[1])}</strong></div>`;
+    } else {
+      html += `<div style="margin-top: 5px;">X = <strong style="color: #ffd700; font-size: 20px;">${formatNumber(result.solutions[0])}</strong></div>`;
+    }
     html += `</div>`;
   }
 
@@ -284,6 +287,17 @@ export function formatSolution(result) {
   
   html += `</div>`;
   return html;
+}
+
+// Formatea números: no muestra decimales innecesarios (3.0000 -> 3), pero mantiene decimales significativos
+function formatNumber(num) {
+  if (num === null || num === undefined) return String(num);
+  if (!isFinite(num)) return String(num);
+  const rounded = Math.round(num);
+  if (Math.abs(num - rounded) < 1e-9) return String(rounded);
+  // Mostrar hasta 6 decimales, quitando ceros finales
+  let s = Number(num).toFixed(6).replace(/\.?0+$/, '');
+  return s;
 }
 
 function drawGraph(canvas, a, b, c, solutions) {
@@ -378,8 +392,10 @@ function drawGraph(canvas, a, b, c, solutions) {
     
     // Raíces con efecto de pulso (puntos rojos brillantes)
     if (solutions) {
+        const canvasXs = [];
         solutions.forEach((sol, idx) => {
             const canvasX = centerX + sol * scaleX;
+            canvasXs.push(canvasX);
             
             ctx.fillStyle = '#ff4d6d';
             ctx.shadowBlur = 20;
@@ -392,8 +408,24 @@ function drawGraph(canvas, a, b, c, solutions) {
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 12px Rajdhani';
             ctx.textAlign = 'center';
-            ctx.fillText(`x${idx+1}`, canvasX, centerY - 15);
+            // Antes mostrábamos x1/x2; ahora mostramos combinado X;Y respetando el orden
         });
+
+        if (solutions.length >= 2) {
+            // Mostrar etiqueta combinada entre las dos raíces: X;Y donde X = x1 y Y = x2
+            const midX = (canvasXs[0] + canvasXs[1]) / 2;
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Rajdhani';
+            ctx.textAlign = 'center';
+            const label = `${formatNumber(solutions[0])};${formatNumber(solutions[1])}`;
+            ctx.fillText(label, midX, centerY - 15);
+        } else if (solutions.length === 1) {
+            const canvasX = canvasXs[0];
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Rajdhani';
+            ctx.textAlign = 'center';
+            ctx.fillText(formatNumber(solutions[0]), canvasX, centerY - 15);
+        }
     }
 
     // Etiquetas de ejes
