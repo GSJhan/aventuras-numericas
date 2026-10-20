@@ -380,6 +380,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 /* BATALLA */
 .battle-arena { padding: 30px; text-align: center; }
+.battle-title-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; color: var(--accent); font-family: 'Orbitron', sans-serif; font-size: 14px; }
+.battle-bet-label { color: #ffd166; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
 .battle-header-players {
   display: flex; justify-content: space-around; align-items: center;
   margin-bottom: 30px; gap: 20px;
@@ -387,7 +389,14 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 .battle-player { text-align: center; }
 .b-avatar { font-size: 48px; margin-bottom: 10px; }
 .b-name { font-weight: bold; font-size: 18px; margin-bottom: 10px; }
-.b-score { font-size: 32px; color: #4cff90; font-weight: bold; }
+.team-label { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 5px; }
+.team-blue { color: #4c90ff; }
+.team-red { color: #ff4d6d; }
+.b-score { font-size: 32px; color: #4cff90; font-weight: bold; transition: color .25s ease, text-shadow .25s ease; }
+.battle-player.team-leading .b-score { color: #4cff90; text-shadow: 0 0 16px #4cff90; }
+.battle-player.team-draw .b-score { color: #ffb347; text-shadow: 0 0 14px #ff8c00; }
+.battle-player.team-leading .b-name { color: #4cff90; }
+.battle-player.team-draw .b-name { color: #ffb347; }
 .battle-vs { font-size: 24px; font-weight: bold; color: var(--accent); }
 
 .battle-timer-bar {
@@ -402,6 +411,9 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   font-weight: bold; font-size: 18px; color: #fff; z-index: 1;
 }
+.battle-preparation { min-height: 22px; margin-top: -18px; margin-bottom: 16px; color: #ffd166; font-weight: 700; letter-spacing: .5px; }
+.battle-result-stat { display: inline-block; margin-top: 5px; font-size: 16px; }
+.battle-result-streak { display: inline-block; margin-top: 12px; color: #ffd166; font-weight: 700; }
 
 /* QUESTION BOX - TRANSPARENTE */
 .question-box {

@@ -169,12 +169,21 @@ async function initBattle() {
     }
   });
 
-  let timeLeft = 3;
+  let timeLeft = 5;
+  const preparation = document.getElementById('battlePreparation');
+  const answerInput = document.getElementById('battleAnsInput');
+  const answerButton = document.querySelector('#battleGame .btn-primary');
+  if (answerInput) answerInput.disabled = true;
+  if (answerButton) answerButton.disabled = true;
   const prepInterval = setInterval(() => {
-    document.getElementById('battleQuestionText').textContent = '¡PREPÁRATE! ' + timeLeft;
+    if (preparation) preparation.textContent = `Prepárate: ${timeLeft}`;
+    document.getElementById('battleQuestionText').textContent = '¡PREPÁRATE!';
     timeLeft--;
     if (timeLeft < 0) {
       clearInterval(prepInterval);
+      if (preparation) preparation.textContent = '¡A JUGAR!';
+      if (answerInput) answerInput.disabled = false;
+      if (answerButton) answerButton.disabled = false;
       startBattleTimer();
       showBattleQuestion();
     }
@@ -182,11 +191,22 @@ async function initBattle() {
 }
 
 function updateBattleUI() {
-  const isP1 = duelData.challenger === currentUser;
   document.getElementById('p1Name').textContent = duelData.challenger;
   document.getElementById('p2Name').textContent = duelData.opponent;
-  document.getElementById('p1Score').textContent = duelData.p1Score;
-  document.getElementById('p2Score').textContent = duelData.p2Score;
+  const p1Score = Number(duelData.p1Score || 0);
+  const p2Score = Number(duelData.p2Score || 0);
+  document.getElementById('p1Score').textContent = p1Score;
+  document.getElementById('p2Score').textContent = p2Score;
+  document.getElementById('battleBetLabel').textContent = `Apuesta: ${Number(duelData.bet || 0)} 💰`;
+  const p1 = document.querySelector('.battle-player:first-child');
+  const p2 = document.querySelector('.battle-player:last-child');
+  [p1, p2].forEach(player => player?.classList.remove('team-leading', 'team-draw'));
+  if (p1 && p2) {
+    if (p1Score === p2Score) {
+      p1.classList.add('team-draw');
+      p2.classList.add('team-draw');
+    } else (p1Score > p2Score ? p1 : p2).classList.add('team-leading');
+  }
 }
 
 function startBattleTimer() {
@@ -216,13 +236,22 @@ function showBattleQuestion() {
 }
 
 window.checkBattleAnswer = async () => {
+  if (document.getElementById('battleAnsInput')?.disabled) return;
   const ans = parseInt(document.getElementById('battleAnsInput').value);
+  if (Number.isNaN(ans)) return;
+  const isP1 = duelData.challenger === currentUser;
+  const correctKey = isP1 ? 'p1Correct' : 'p2Correct';
+  const wrongKey = isP1 ? 'p1Wrong' : 'p2Wrong';
+  const currentCorrect = Number(duelData[correctKey] || 0);
+  const currentWrong = Number(duelData[wrongKey] || 0);
   if (ans === currentProblem.ans) {
-    const isP1 = duelData.challenger === currentUser;
-    const update = isP1 ? { p1Score: duelData.p1Score + 1 } : { p2Score: duelData.p2Score + 1 };
+    const update = isP1
+      ? { p1Score: Number(duelData.p1Score || 0) + 1, [correctKey]: currentCorrect + 1 }
+      : { p2Score: Number(duelData.p2Score || 0) + 1, [correctKey]: currentCorrect + 1 };
     await setDoc(doc(db, 'duels', activeDuelId), update, { merge: true });
     showBattleQuestion();
   } else {
+    await setDoc(doc(db, 'duels', activeDuelId), { [wrongKey]: currentWrong + 1 }, { merge: true });
     document.getElementById('battleAnsInput').value = '';
   }
 };
@@ -239,6 +268,10 @@ async function finishBattle() {
   const isP1 = duelData.challenger === currentUser;
   const myScore = isP1 ? duelData.p1Score : duelData.p2Score;
   const opScore = isP1 ? duelData.p2Score : duelData.p1Score;
+  const correct = Number(duelData[isP1 ? 'p1Correct' : 'p2Correct'] || 0);
+  const wrong = Number(duelData[isP1 ? 'p1Wrong' : 'p2Wrong'] || 0);
+  const total = correct + wrong;
+  const precision = total ? Math.round((correct / total) * 100) : 0;
   if (battleResultHandled) return;
   battleResultHandled = true;
   const winner = myScore > opScore ? duelData.challenger : myScore < opScore ? duelData.opponent : 'draw';
@@ -252,10 +285,13 @@ async function finishBattle() {
     icon = '🏆';
     user.coins += Number(duelData.bet || 0);
     user.duelsWon = (user.duelsWon || 0) + 1;
+    user.duelCurrentStreak = Number(user.duelCurrentStreak || 0) + 1;
+    user.duelBestStreak = Math.max(Number(user.duelBestStreak || 0), user.duelCurrentStreak);
   } else if (myScore < opScore) {
     resultMsg = `PERDISTE. -${duelData.bet} monedas`;
     icon = '💀';
     user.coins -= Number(duelData.bet || 0);
+    user.duelCurrentStreak = 0;
   } else {
     resultMsg = '¡EMPATE! Se devuelven las monedas';
     icon = '🤝';
@@ -265,7 +301,9 @@ async function finishBattle() {
   await saveUser();
   localStorage.removeItem('activeDuel');
   
-  window.showCustomModal('Resultado de Batalla', resultMsg, icon, () => {
+  const streak = Number(user.duelCurrentStreak || 0);
+  const resultSummary = `${resultMsg}<br><span class="battle-result-stat">Correctas: ${correct}</span><br><span class="battle-result-stat">Fallos: ${wrong}</span><br><span class="battle-result-stat">Precisión: ${precision}%</span><br><span class="battle-result-streak">Racha de victorias: ${streak}</span>`;
+  window.showCustomModal('Resultado de Batalla', resultSummary, icon, () => {
     window.location.href = 'menu.html';
   });
 }
@@ -503,7 +541,7 @@ function updateInfinityDisplay() {
 window.showCustomModal = (title, message, icon, callback) => {
   const modal = document.getElementById('customModal');
   document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalMessage').textContent = message;
+  document.getElementById('modalMessage').innerHTML = message;
   document.getElementById('modalIcon').textContent = icon;
   modal.classList.remove('hidden');
   document.getElementById('modalConfirmBtn').onclick = () => {

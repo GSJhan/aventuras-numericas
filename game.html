@@ -324,23 +324,30 @@
 
     <div id="battleSection" class="section hidden">
       <div class="battle-arena">
+        <div class="battle-title-row">
+          <span>⚔️ BATALLA MATEMÁTICA</span>
+          <span id="battleBetLabel" class="battle-bet-label">Apuesta: 0 💰</span>
+        </div>
         <div class="battle-header-players">
           <div class="battle-player">
             <div id="p1Avatar" class="b-avatar">👤</div>
+            <div class="team-label team-blue">TEAM 1</div>
             <div id="p1Name" class="b-name">Tú</div>
             <div id="p1Score" class="b-score">0</div>
           </div>
           <div class="battle-vs">VS</div>
           <div class="battle-player">
             <div id="p2Avatar" class="b-avatar">👤</div>
+            <div class="team-label team-red">TEAM 2</div>
             <div id="p2Name" class="b-name">Oponente</div>
             <div id="p2Score" class="b-score">0</div>
           </div>
         </div>
         <div class="battle-timer-bar">
           <div id="battleTimerFill" class="timer-fill"></div>
-          <div id="battleTimerText" class="timer-text">30s</div>
+          <div id="battleTimerText" class="timer-text">60s</div>
         </div>
+        <div id="battlePreparation" class="battle-preparation">Prepárate: 5</div>
         <div id="battleGame" style="text-align:center; margin-top:20px;">
           <div class="question-box" id="battleQuestionText">Cargando...</div>
           <input type="number" id="battleAnsInput" class="ans-input" placeholder="?" style="font-size:32px; text-align:center; width:100%; padding:15px; margin-top:15px;" />
