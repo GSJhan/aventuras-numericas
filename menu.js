@@ -392,13 +392,17 @@ function showSkillsPanel() {
   if (!statsContainer || !user) return;
 
   const skills = user.skills || {};
-  const skillValue = key => Math.max(0, Math.min(10, Number(skills[key]) || 0));
+  const xpInfo = getXpProgress(user.xp || 0);
+  const streak = Number(user.duelCurrentStreak || 0);
+  const infinity = Number(user.infinityBestStreak || user.infinityStreak || 0);
+  const coins = Number(user.coins || 0);
   const skillMeta = [
-    { key: 'algebra', icon: '∑', label: 'Álgebra', desc: 'Ecuaciones y operaciones', value: skillValue('algebra'), max: 10, color: '#4c90ff' },
-    { key: 'geometry', icon: '△', label: 'Geometría', desc: 'Formas, áreas y medidas', value: skillValue('geometry'), max: 10, color: '#9b7cff' },
-    { key: 'speed', icon: 'ϟ', label: 'Velocidad', desc: 'Respuestas rápidas', value: skillValue('speed'), max: 10, color: '#4cff90' },
-    { key: 'precision', icon: '◎', label: 'Precisión', desc: 'Respuestas correctas', value: skillValue('precision'), max: 10, color: '#ffd166' },
-    { key: 'infinity', icon: '∞', label: 'Infinito', desc: 'Rachas sin límite', value: skillValue('infinity'), max: 10, color: '#ff7a7a' }
+    { icon: '🔥', label: 'Racha', desc: 'Victorias consecutivas', value: streak, max: Math.max(10, streak), color: '#ff7a7a' },
+    { icon: 'ϟ', label: 'Velocidad', desc: 'Ritmo de respuestas', value: Math.max(0, Math.min(10, Number(skills.speed) || 0)), max: 10, color: '#4cff90' },
+    { icon: '◎', label: 'Precisión', desc: 'Respuestas correctas', value: Math.max(0, Math.min(10, Number(skills.precision) || 0)), max: 10, color: '#ffd166' },
+    { icon: '∞', label: 'Infinito', desc: 'Mejor racha sin límite', value: infinity, max: Math.max(10, infinity), color: '#ff4d6d' },
+    { icon: '💰', label: 'Monedas', desc: 'Saldo disponible', value: coins, max: Math.max(1000, coins), color: '#ffd166', display: `${coins}` },
+    { icon: '⭐', label: 'Nivel', desc: `${xpInfo.currentLevelXP} / 500 XP`, value: xpInfo.level, max: Math.max(10, xpInfo.level), color: '#4c90ff', display: `${xpInfo.level}` }
   ];
 
   statsContainer.innerHTML = skillMeta.map(skill => `
@@ -406,58 +410,15 @@ function showSkillsPanel() {
       <div class="skill-card-top">
         <span class="skill-icon">${skill.icon}</span>
         <div class="skill-card-name"><strong>${skill.label}</strong><small>${skill.desc}</small></div>
-        <strong class="skill-value">${skill.value}/${skill.max}</strong>
+        <strong class="skill-value">${skill.display || `${skill.value}/${skill.max}`}</strong>
       </div>
       <div class="skill-bar">
         <span class="skill-fill" style="width:${(skill.value/skill.max)*100}%; background:${skill.color};"></span>
       </div>
     </div>
   `).join('');
-  const total = skillMeta.reduce((sum, skill) => sum + skill.value, 0);
   const totalNode = document.getElementById('skillsTotal');
-  if (totalNode) totalNode.textContent = `${total} / 50`;
-
-  const canvas = document.getElementById('skillsRadar');
-  if (!canvas) return;
-
-  if (typeof Chart !== 'undefined') {
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      if (canvas.__chart) canvas.__chart.destroy();
-      canvas.__chart = new Chart(canvas, {
-        type: 'radar',
-        data: {
-          labels: ['Álgebra', 'Geometría', 'Velocidad', 'Precisión', 'Infinito'],
-          datasets: [{
-            label: 'Habilidades',
-            data: skillMeta.map(skill => Number(skill.value) || 0),
-            backgroundColor: 'rgba(76,144,255,0.25)',
-            borderColor: '#4c90ff',
-            borderWidth: 2,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#4c90ff',
-            pointRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              suggestedMin: 0,
-              suggestedMax: 10,
-              pointLabels: { color: '#e8eaff', font: { family: 'Rajdhani' } },
-              grid: { color: 'rgba(255,255,255,0.1)' },
-              angleLines: { color: 'rgba(255,255,255,0.08)' }
-            }
-          },
-          plugins: {
-            legend: { labels: { color: '#e8eaff' } }
-          }
-        }
-      });
-    }
-  }
+  if (totalNode) totalNode.textContent = `Nivel ${xpInfo.level}`;
 }
 
 function renderAchievementStatsPanel(achievements, unlockedMap) {

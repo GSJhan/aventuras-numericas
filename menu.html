@@ -99,15 +99,10 @@
 
     <div id="skillsSection" class="section hidden">
       <div class="skills-heading">
-        <div><h2>⭐ Tus Habilidades</h2><p>Mejora tus estadísticas resolviendo desafíos.</p></div>
-        <div id="skillsTotal" class="skills-total">0 / 50</div>
+        <div><h2>⭐ Tu progreso</h2><p>Resumen de tus estadísticas en Aventuras Numéricas.</p></div>
+        <div id="skillsTotal" class="skills-total">Nivel 1</div>
       </div>
-      <div class="skills-container">
-        <div class="skills-radar-container">
-          <canvas id="skillsRadar" width="300" height="300"></canvas>
-        </div>
-        <div id="skillsStats" class="skills-stats"></div>
-      </div>
+      <div id="skillsStats" class="skills-stats general-stats-grid"></div>
     </div>
 
     <div id="rankingSection" class="section hidden">
@@ -212,7 +207,6 @@
     <button id="floatingMusicBtn" class="music-btn off">🔇</button>
   </div>
   <audio id="bgMusic" loop></audio>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module" src="menu.js?v=20261020"></script>
 </body>
 </html>
