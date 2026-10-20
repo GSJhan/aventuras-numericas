@@ -1,4 +1,4 @@
-// Power state normalization
+// Estado del poder: normalización
 function ensurePowerState() {
   if (!user) return;
   user.powerDoubleOwned = Number(user.powerDoubleOwned || 0);
@@ -69,7 +69,7 @@ window.buyPower = async function(powerId, cost) {
   window.showTienda();
 };
 
-// --- AVATAR EDITOR (CON COMPRA DE SKINS) ---
+// --- EDITOR DE AVATARES (CON COMPRA DE SKINS) ---
 window.showAvatarEditor = function() {
   let html = '<div class="avatar-grid">';
   AVATARS.forEach(avatar => {
@@ -82,7 +82,7 @@ window.showAvatarEditor = function() {
       <div class="avatar-option ${isSelected ? 'selected' : ''}">
         <img src="${getAvatarSrc(avatar)}" class="avatar-choice-img">
         <div style="margin-top:10px; font-size:12px;">${avatar}</div>
-        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar}')` : `window.buyAvatar('${avatar}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.3s;">
+        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar}')` : `window.buyAvatar('${avatar}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:8px; font-weight:bold;">
           ${btnText}
         </button>
       </div>

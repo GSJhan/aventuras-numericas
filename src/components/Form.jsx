@@ -3,29 +3,29 @@ import styled from 'styled-components';
 
 /**
  * Form.jsx
- * Replaces the login/register UI with correct flow:
- * - "Acceso" = login into an existing account (calls props.onLogin)
- * - "Registro" = create new account (calls props.onRegister)
- * After successful registration the card flips back to Acceso and shows a message
- * Props (optional):
+ * Reemplaza la interfaz de acceso/registro con el flujo correcto:
+ * - "Acceso" = inicia sesión en una cuenta existente (llama a props.onLogin)
+ * - "Registro" = crea una nueva cuenta (llama a props.onRegister)
+ * Después de un registro exitoso, la tarjeta vuelve a "Acceso" y muestra un mensaje.
+ * Props (opcionales):
  *  - onLogin({ username, password }) => Promise<{ success: boolean, message?: string }>
  *  - onRegister({ username, password }) => Promise<{ success: boolean, message?: string }>
- *  - onSuccess() => called after successful login (e.g. navigate to menu)
+ *  - onSuccess() => llamado después de iniciar sesión (por ejemplo, navegar al menú)
  *
- * Note: The component uses CSS variables from the global stylesheet to match the site's theme
- * (e.g. --bg, --accent, --accent2, --text). If you want Firebase integration here, pass handlers
- * that call Firestore like in your existing main.js.
+ * Nota: el componente usa variables CSS del estilo global para mantener el tema del sitio
+ * (por ejemplo: --bg, --accent, --accent2, --text). Si quieres integrar Firebase aquí,
+ * pasa handlers que llamen a Firestore como en tu main.js existente.
  */
 
 const Form = ({ onLogin, onRegister, onSuccess }) => {
-  // toggleChecked: false -> front (Acceso), true -> back (Registro)
+  // toggleChecked: false -> frente (Acceso), true -> atrás (Registro)
   const [toggleChecked, setToggleChecked] = useState(false);
 
-  // login fields (Acceso)
+  // campos de acceso
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
 
-  // register fields (Registro)
+  // campos de registro
   const [regUser, setRegUser] = useState('');
   const [regPass, setRegPass] = useState('');
 
@@ -34,7 +34,7 @@ const Form = ({ onLogin, onRegister, onSuccess }) => {
 
   const safeCall = async (fn, args) => {
     try {
-      if (!fn) return { success: false, message: 'No handler provided' };
+      if (!fn) return { success: false, message: 'No se proporcionó un manejador' };
       return await fn(args);
     } catch (e) {
       return { success: false, message: e?.message || 'Error inesperado' };
@@ -71,13 +71,13 @@ const Form = ({ onLogin, onRegister, onSuccess }) => {
     setLoading(false);
 
     if (res && res.success) {
-      // Important: DO NOT auto-login. Flip back to Acceso so user can login.
+      // Importante: no inicies sesión automáticamente. Vuelve a Acceso para que el usuario entre.
       setToggleChecked(false);
       setMessage({ type: 'ok', text: res.message || 'Cuenta creada. Ahora inicia sesión.' });
-      // Optionally prefill the login fields with the newly created username
+      // Opcionalmente, precarga el nombre de usuario recién creado
       setLoginUser(regUser.trim());
       setLoginPass('');
-      // keep regPass cleared for security
+      // limpia regPass por seguridad
       setRegPass('');
     } else {
       setMessage({ type: 'error', text: res?.message || 'No se pudo crear la cuenta' });
@@ -176,7 +176,7 @@ const StyledWrapper = styled.div`
     display:flex; justify-content:center; align-items:center; padding: 24px;
   }
 
-  /* switch card */
+  /* tarjeta de cambio */
   .switch {
     transform: translateY(0);
     position: relative;
@@ -245,7 +245,7 @@ const StyledWrapper = styled.div`
   .toggle:checked ~ .card-side:before { text-decoration: none; }
   .toggle:checked ~ .card-side:after { text-decoration: underline; }
 
-  /* card */
+  /* tarjeta */
   .flip-card__inner {
     width: 320px; max-width: 92vw;
     height: 380px;
@@ -281,7 +281,7 @@ const StyledWrapper = styled.div`
   .flip-card__input::placeholder { color: var(--font-color-sub); opacity: 0.9; }
   .flip-card__input:focus { border: 2px solid var(--input-focus); }
 
-  .flip-card__btn { margin: 8px 0 0 0; width: 140px; height: 42px; border-radius: 6px; border: 2px solid var(--main-color); background-color: var(--bg-color); box-shadow: 4px 4px 0 var(--main-color); font-size: 15px; font-weight: 700; color: var(--font-color); cursor: pointer; }
+  .flip-card__btn { margin: 8px 0 0 0; width: 140px; height: 42px; border-radius: 6px; border: 2px solid var(--main-color); background-color: var(--bg-color); box-shadow: 4px 4px 0 var(--main-color); color: var(--font-color); font-weight: 800; cursor: pointer; }
   .flip-card__btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
   .form-message { margin-top: 14px; text-align: center; font-weight: 700; }

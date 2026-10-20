@@ -23,7 +23,7 @@
     .brand{margin-bottom:18px}
     .brand h1{margin:0;font-family:'Orbitron',monospace;font-size:28px}
 
-    /* toggle */
+    /* cambiar */
     .toggle-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px}
     .toggle-label{font-size:14px;color:var(--muted)}
     .switch{width:54px;height:28px;border-radius:16px;border:2px solid var(--border);display:inline-block;position:relative;cursor:pointer;background:transparent}
@@ -31,7 +31,7 @@
     .switch.on{background:rgba(255,255,255,0.03)}
     .switch.on .knob{left:29px}
 
-    /* card */
+    /* tarjeta */
     .card{width:340px;max-width:92vw;margin:0 auto;background:transparent;padding:18px;border-radius:6px;border:3px solid var(--border);}
     .card-inner{background:rgba(0,0,0,0.6);padding:18px;border-radius:6px}
     .card h2{margin:0 0 14px 0;font-family:'Orbitron',monospace;font-size:20px}
@@ -112,7 +112,7 @@
     const switchHintAccess = document.getElementById('switchHintAccess');
     const switchHintRegister = document.getElementById('switchHintRegister');
 
-    let mode = 'access'; // default access
+    let mode = 'access'; // acceso por defecto
 
     function setMode(m) {
       mode = m;
@@ -151,10 +151,10 @@
       const u = accessUser.value.trim();
       const p = accessPass.value.trim();
       if(!u || !p){ showMessage('Completa usuario y contraseña', false); return; }
-      // call adapter
+      // llamado al adaptador
       showMessage('Verificando...', true);
       const res = await onLogin({ username: u, password: p });
-      if(res.success){ showMessage(res.message || 'Acceso correcto', true); // set currentUser already in adapter
+      if(res.success){ showMessage(res.message || 'Acceso correcto', true); // el adaptador ya guarda currentUser
         setTimeout(()=>{ window.location.href = 'menu.html'; }, 700);
       } else {
         showMessage(res.message || 'Usuario o contraseña incorrectos', false);
@@ -170,14 +170,14 @@
       showMessage('Creando cuenta...', true);
       const res = await onRegister({ username: u, password: p });
       if(res.success){ showMessage('Cuenta creada. Ahora inicia sesión.', true);
-        // switch to access and prefill username
+        // cambiar a acceso y rellenar el usuario
         setMode('access'); accessUser.value = u; accessPass.value = '';
       } else {
         showMessage(res.message || 'No se pudo crear la cuenta', false);
       }
     });
 
-    // initialize default
+    // inicializar por defecto
     setMode('access');
   </script>
 </body>

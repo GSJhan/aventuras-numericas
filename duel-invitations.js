@@ -1,4 +1,4 @@
-// Sistema de Invitaciones a Duelos
+// Sistema de invitaciones a duelos
 export class DuelInvitation {
   constructor(invitedUsername, invitedUserId) {
     this.invitedUsername = invitedUsername;
@@ -44,10 +44,15 @@ export class DuelInvitation {
       <div style="margin: 20px 0;">
         <p style="color: #a78bfa; font-size: 14px; margin: 10px 0;"><strong>${this.invitedUsername}</strong> te ha retado a un duelo</p>
         <div style="background: rgba(255, 77, 109, 0.1); border: 2px solid rgba(255, 77, 109, 0.3); border-radius: 10px; padding: 15px; margin: 15px 0;">
-          <div style="color: #ffd700; font-size: 32px; margin-bottom: 10px;">⏱️</div>\n          <div id="duel-timer" style="color: #4cff90; font-size: 24px; font-weight: bold;">60 seg</div>\n          <div style="color: #a78bfa; font-size: 12px; margin-top: 10px;">Tiempo para aceptar</div>\n        </div>\n      </div>\n      
-n      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-        <button id="duel-accept-btn" style="background: linear-gradient(135deg, #4cff90, #2ecc71); color: #000; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif;">✓ Aceptar</button>
-        <button id="duel-decline-btn" style="background: linear-gradient(135deg, #ff4d6d, #c41e3a); color: #fff; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif;">✕ Rechazar</button>\n      </div>\n    `;
+          <div style="color: #ffd700; font-size: 32px; margin-bottom: 10px;">⏱️</div>
+          <div id="duel-timer" style="color: #4cff90; font-size: 24px; font-weight: bold;">60 seg</div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+          <button id="duel-accept-btn" style="background: linear-gradient(135deg, #4cff90, #2ecc71); color: #000; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">ACEPTAR</button>
+          <button id="duel-decline-btn" style="background: linear-gradient(135deg, #ff4d6d, #c41e3a); color: #fff; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">RECHAZAR</button>
+        </div>
+      </div>
+    `;
 
     document.body.appendChild(modal);
 
@@ -74,7 +79,7 @@ n      <div style="display: flex; gap: 10px; justify-content: center; margin-top
     `;
     document.body.appendChild(topBar);
 
-    // Event listeners
+    // Eventos
     document.getElementById('duel-close-btn').onclick = () => this.minimize();
     document.getElementById('duel-accept-btn').onclick = () => this.accept();
     document.getElementById('duel-decline-btn').onclick = () => this.decline();
@@ -98,7 +103,7 @@ n      <div style="display: flex; gap: 10px; justify-content: center; margin-top
     if (timerEl) timerEl.textContent = `${this.timeRemaining} seg`;
     if (barTimerEl) barTimerEl.textContent = `${this.timeRemaining} seg`;
 
-    // Cambiar color según tiempo restante
+    // Cambia de color según el tiempo restante
     if (this.timeRemaining <= 10) {
       if (timerEl) timerEl.style.color = '#ff4d6d';
       if (barTimerEl) barTimerEl.style.color = '#ffff00';
@@ -135,14 +140,14 @@ n      <div style="display: flex; gap: 10px; justify-content: center; margin-top
     clearInterval(this.intervalId);
     console.log(`Duelo rechazado de ${this.invitedUsername}`);
     this.cleanup();
-    alert(`Duelo rechazado`);
+    alert('Duelo rechazado');
   }
 
   expire() {
     clearInterval(this.intervalId);
     console.log(`Invitación de duelo expirada`);
     this.cleanup();
-    alert(`La invitación de duelo ha expirado`);
+    alert('La invitación de duelo ha expirado');
   }
 
   cleanup() {

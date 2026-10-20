@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Reuse the same firebase configuration (does not modify existing config)
+// Reutiliza la misma configuración de Firebase (no modifica la configuración actual)
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
   authDomain: "aventuras-numericas.firebaseapp.com",
@@ -16,9 +16,9 @@ const db = getFirestore(app);
 
 /**
  * onRegister({ username, password })
- * - creates a new user document if it does not exist
- * - returns { success: boolean, message: string }
- * NOTE: This adapter intentionally follows the existing user shape used in main.js
+ * - crea un documento de usuario si no existe
+ * - devuelve { success: boolean, message: string }
+ * Nota: este adaptador sigue la estructura de usuarios usada en main.js
  */
 export async function onRegister({ username, password }) {
   if (!username || !password) return { success: false, message: 'Completa todos los campos' };
@@ -69,13 +69,13 @@ export async function onRegister({ username, password }) {
   };
 
   await setDoc(userRef, newUser);
-  // Important: do NOT set localStorage here; registration should NOT auto-login
+  // Importante: no pongas localStorage aquí; el registro no debe iniciar sesión automáticamente
   return { success: true, message: 'Cuenta creada correctamente' };
 }
 
 /**
  * onLogin({ username, password })
- * - verifies credentials and sets localStorage currentUser on success
+ * - verifica las credenciales y guarda currentUser en localStorage si todo va bien
  */
 export async function onLogin({ username, password }) {
   if (!username || !password) return { success: false, message: 'Completa todos los campos' };
@@ -85,7 +85,7 @@ export async function onLogin({ username, password }) {
   const user = snap.data();
   if (user.password !== password) return { success: false, message: 'Contraseña incorrecta' };
 
-  // success: set currentUser like the rest of the app expects
+  // éxito: guarda currentUser como espera el resto de la app
   localStorage.setItem('currentUser', username);
   return { success: true, message: 'Inicio de sesión correcto' };
 }
