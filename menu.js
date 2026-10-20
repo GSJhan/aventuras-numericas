@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAllAchievements } from './achievements.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSy83l2S3KIA2LR4MwbUMVgzdTVJxE6l67M",
@@ -127,7 +128,7 @@ function renderThemeButtons() {
     { id: 'fondo2', name: 'Neón' }
   ].map(theme => `
     <button class="theme-option ${activeTheme === theme.id ? 'active' : ''}" data-theme="${theme.id}" title="${theme.name}">
-      <div style="width:100%; height:100%; background: linear-gradient(135deg, ${theme.id === 'ciudad' ? '#1d4ed8, #0f172a' : theme.id === 'galaxia' ? '#312e81, #111827' : theme.id === 'parque' ? '#166534, #14532d' : theme.id === 'fondo1' ? '#1f2937, #0f766e' : '#7c3aed, #0f172a'});"></div>
+      <div style="width:100%; height:100%; background: linear-gradient(135deg, ${theme.id === 'ciudad' ? '#1d4ed8, #0f172a' : theme.id === 'galaxia' ? '#312e81, #111827' : theme.id === 'parque' ? '#064e3b, #111827' : theme.id === 'fondo1' ? '#14532d, #111827' : '#7c3aed, #111827'}); border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);"></div>
     </button>
   `).join('');
 
@@ -317,31 +318,170 @@ function showSkillsPanel() {
   }
 }
 
-function showRankingPanel() {
+function renderAchievementStatsPanel(achievements, unlockedMap) {
+  const unlockedCount = achievements.filter(a => unlockedMap[a.id] === true).length;
+  const percent = Math.round((unlockedCount / achievements.length) * 100);
+
+  return `
+    <div style="margin-bottom: 18px; padding: 16px; background: rgba(20,28,54,0.75); border: 1px solid rgba(76,144,255,0.25); border-radius: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+        <strong style="color:#fff;">Progreso</strong>
+        <span style="color:#4c90ff; font-weight:700;">${unlockedCount}/${achievements.length}</span>
+      </div>
+      <div style="height:12px; border-radius: 999px; overflow:hidden; background: rgba(255,255,255,0.08);">
+        <div style="width:${percent}%; height:100%; background: linear-gradient(90deg, #4c90ff, #4cff90); border-radius: 999px;"></div>
+      </div>
+      <div style="margin-top: 8px; color:#dfe8ff; opacity:0.85;">${percent}% completado</div>
+    </div>
+  `;
+}
+
+function renderAchievementsPanel() {
+  const list = document.getElementById('logrosList');
+  if (!list || !user) return;
+
+  const achievements = getAllAchievements();
+  const unlockedMap = user.logros || {};
+
+  const grouped = {};
+  achievements.forEach(item => {
+    if (!grouped[item.category]) grouped[item.category] = [];
+    grouped[item.category].push(item);
+  });
+
+  const cardsHtml = Object.entries(grouped).map(([category, items]) => {
+    const itemsHtml = items.map(item => {
+      const unlocked = unlockedMap[item.id] === true;
+      return `
+        <div style="padding: 12px 14px; border: 1px solid rgba(76,144,255,0.2); background: ${unlocked ? 'rgba(76,144,255,0.12)' : 'rgba(15,23,42,0.8)'}; border-radius: 12px; opacity: ${unlocked ? 1 : 0.72};">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span style="font-size:26px;">${item.icon}</span>
+            <div style="flex:1;">
+              <div style="font-weight:700; color:${unlocked ? '#fff' : '#d9e3ff'};">${item.title}</div>
+              <div style="font-size:12px; color:#b9c8ee;">${item.desc}</div>
+            </div>
+            <span style="font-size: 18px;">${unlocked ? '✅' : '🔒'}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div style="margin-bottom: 18px;">
+        <h3 style="margin: 0 0 12px; color:#4c90ff; text-transform:uppercase; letter-spacing:1px; font-size:13px;">${category}</h3>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+          ${itemsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  list.innerHTML = `
+    <div style="padding: 18px; border-radius: 20px; background: rgba(10,17,33,0.7); border: 1px solid rgba(76,144,255,0.2);">
+      ${renderAchievementStatsPanel(achievements, unlockedMap)}
+      ${cardsHtml}
+    </div>
+  `;
+}
+
+async function showRankingPanel() {
   const podium = document.getElementById('rankingPodium');
   const list = document.getElementById('rankingList');
   if (!podium || !list) return;
 
-  const ranking = [
-    { username: 'Nina', xp: 1820 },
-    { username: 'Ari', xp: 1700 },
-    { username: user?.username || safeGetCurrentUser() || 'Tú', xp: user?.xp || 0 },
-    { username: 'Marta', xp: 1200 },
-    { username: 'Lucas', xp: 950 }
-  ].sort((a, b) => b.xp - a.xp);
+  try {
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const ranking = [];
+    usersSnap.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      ranking.push({
+        username: docSnap.id,
+        xp: Number(data.xp || 0),
+        coins: Number(data.coins || 0),
+        avatar: data.skin || 'spiderman'
+      });
+    });
 
-  podium.innerHTML = `
-    <div class="podium-item silver">#2<br>${ranking[1].username}</div>
-    <div class="podium-item gold">#1<br>${ranking[0].username}</div>
-    <div class="podium-item bronze">#3<br>${ranking[2].username}</div>
-  `;
+    const sorted = ranking.sort((a, b) => b.xp - a.xp || b.coins - a.coins);
+    const currentUserName = user?.username || safeGetCurrentUser() || 'Tú';
+    const topThree = sorted.slice(0, 3);
+    while (topThree.length < 3) {
+      topThree.push({ username: currentUserName, xp: Number(user?.xp || 0), coins: Number(user?.coins || 0), avatar: user?.skin || 'spiderman' });
+    }
 
-  list.innerHTML = ranking.map((entry, index) => `
-    <div class="rank-row ${entry.username === (user?.username || safeGetCurrentUser()) ? 'me' : ''}">
-      <span>#${index + 1} ${entry.username}</span>
-      <span>${entry.xp} XP</span>
-    </div>
-  `).join('');
+    podium.innerHTML = `
+      <div class="podium-item silver">#2<br>${topThree[1]?.username || '—'}</div>
+      <div class="podium-item gold">#1<br>${topThree[0]?.username || '—'}</div>
+      <div class="podium-item bronze">#3<br>${topThree[2]?.username || '—'}</div>
+    `;
+
+    list.innerHTML = sorted.map((entry, index) => `
+      <div class="rank-row ${entry.username === currentUserName ? 'me' : ''}">
+        <span>#${index + 1} ${entry.username}</span>
+        <span>${entry.xp} XP</span>
+      </div>
+    `).slice(0, 10).join('');
+  } catch (error) {
+    console.error('Error cargando ranking:', error);
+    podium.innerHTML = '<div class="podium-item gold">#1<br>Sin datos</div>';
+    list.innerHTML = '<div class="rank-row"><span>Ranking no disponible</span></div>';
+  }
+}
+
+async function showBattlesPanel() {
+  const container = document.getElementById('battlesContent');
+  if (!container || !user) return;
+
+  try {
+    const currentUserName = safeGetCurrentUser();
+    const querySnapshot = await getDocs(collection(db, 'duels'));
+    const myBattles = [];
+
+    querySnapshot.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      const isMatch = (data.player1 === currentUserName || data.player2 === currentUserName) && data.status === 'finished';
+      if (isMatch) {
+        myBattles.push({
+          id: docSnap.id,
+          ...data,
+          result: data.winner === currentUserName ? 'victoria' : (data.winner && data.winner !== 'draw' ? 'derrota' : 'empate')
+        });
+      }
+    });
+
+    myBattles.sort((a, b) => (b.finishedAt || b.timestamp || 0) - (a.finishedAt || a.timestamp || 0));
+
+    if (!myBattles.length) {
+      container.innerHTML = `
+        <div style="padding: 24px 18px; text-align:center; background: rgba(20,28,54,0.75); border-radius: 18px; border: 1px solid rgba(76,144,255,0.2); color:#dfe8ff; opacity:0.8;">
+          Aún no tienes batallas finalizadas.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = myBattles.map(item => {
+      const opponent = item.player1 === currentUserName ? item.player2 : item.player1;
+      const statusLabel = item.result === 'victoria' ? 'Victoria' : item.result === 'derrota' ? 'Derrota' : 'Empate';
+      const badgeColor = item.result === 'victoria' ? '#4cff90' : item.result === 'derrota' ? '#ff7a7a' : '#ffd166';
+      const scoreText = item.player1Score != null && item.player2Score != null ? `${item.player1Score} - ${item.player2Score}` : 'Sin marcador';
+      const formattedDate = item.finishedAt ? new Date(item.finishedAt).toLocaleString() : new Date(item.timestamp || Date.now()).toLocaleString();
+
+      return `
+        <div style="margin-bottom: 14px; padding: 16px; border-radius: 14px; background: rgba(12,18,35,0.8); border: 1px solid rgba(76,144,255,0.2);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+            <strong style="color:#fff;">${opponent}</strong>
+            <span style="background:${badgeColor}; color:#091525; border-radius:999px; padding:4px 10px; font-size: 11px; font-weight:700;">${statusLabel}</span>
+          </div>
+          <div style="color:#dfe8ff; opacity:0.85; margin-bottom: 6px;">Marcador: ${scoreText}</div>
+          <div style="color:#dfe8ff; opacity:0.75; font-size: 12px;">Apuesta: ${item.bet || 0} 💰 • ${formattedDate}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error cargando batallas:', error);
+    container.innerHTML = '<div style="padding:18px; text-align:center; color:#fff;">No se pudieron cargar las batallas.</div>';
+  }
 }
 
 window.showTienda = function () {
@@ -405,7 +545,7 @@ window.showAvatarEditor = function () {
       <div class="avatar-option ${selected ? 'selected' : ''}">
         <img src="${getAvatarSrc(avatar.id)}" class="avatar-choice-img" onerror="this.src='spiderman.png'" alt="${avatar.name}">
         <div style="margin-top:10px; font-size:12px;">${avatar.name}</div>
-        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar.id}')` : `window.buyAvatar('${avatar.id}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:8px; font-weight:bold;">
+        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar.id}')` : `window.buyAvatar('${avatar.id}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:10px; cursor:pointer;">
           ${btnText}
         </button>
       </div>
@@ -493,6 +633,8 @@ async function loadCurrentUserData() {
     renderProfile();
     showSkillsPanel();
     showRankingPanel();
+    renderAchievementsPanel();
+    showBattlesPanel();
     window.showTienda();
     window.showAvatarEditor();
     showFriendsList();
@@ -531,8 +673,10 @@ function showSection(sectionName) {
   if (sectionName === 'skills') showSkillsPanel();
   if (sectionName === 'ranking') showRankingPanel();
   if (sectionName === 'tienda') window.showTienda();
+  if (sectionName === 'logros') renderAchievementsPanel();
   if (sectionName === 'avatar') window.showAvatarEditor();
   if (sectionName === 'friends') showFriendsList();
+  if (sectionName === 'battles') showBattlesPanel();
 }
 
 function bindLogoutButton() {
@@ -585,6 +729,8 @@ window.showTienda = window.showTienda;
 window.buyPower = window.buyPower;
 window.buyAvatar = window.buyAvatar;
 window.selectAvatar = window.selectAvatar;
+window.showLogros = renderAchievementsPanel;
+window.showBattlesPanel = showBattlesPanel;
 window.minimizeBattleInvite = function () {
   const modal = document.getElementById('battleInviteModal');
   if (modal) modal.classList.add('hidden');
@@ -606,7 +752,6 @@ async function initMenu() {
   bindLogoutButton();
   bindMusicToggle();
   renderThemeButtons();
-  window.showTienda = window.showTienda;
   await loadCurrentUserData();
   showSection('profile');
 }
