@@ -561,13 +561,13 @@ export function formatSolution(result) {
   if ((result.type === 'quadratic' || result.type === 'general') && result.a !== undefined || result.type === 'general') {
     html += `<div style="margin-top: 20px; text-align: center;">`;
     html += `<strong style="color: #4c90ff; display: block; margin-bottom: 10px;">GRÁFICO DE LA PARÁBOLA / FUNCIÓN:</strong>`;
-    html += `<div id="equationGraphContainer" style="display:inline-block; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 12px; border: 1px solid rgba(76,144,255,0.18);">`;
-    html += `<canvas id="equationGraph" width="640" height="360" style="max-width: 100%; display: block; border-radius: 8px;"></canvas>`;
-    html += `<div style="margin-top:8px; display:flex; gap:8px; justify-content:center; align-items:center;">`;
-    html += `<button id="zoomOutBtn" style="background:#122034;color:#fff;border:none;padding:6px 10px;border-radius:6px;">-</button>`;
-    html += `<input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1" style="width:160px;">`;
-    html += `<button id="zoomInBtn" style="background:#122034;color:#fff;border:none;padding:6px 10px;border-radius:6px;">+</button>`;
-    html += `<button id="resetViewBtn" style="background:#122034;color:#fff;border:none;padding:6px 10px;border-radius:6px;">Reset</button>`;
+    html += `<div id="equationGraphContainer" style="display:flex; flex-direction:column; align-items:center; gap:12px; background: rgba(9,16,30,0.5); padding: 16px 16px 12px; border-radius: 14px; border: 1px solid rgba(76,144,255,0.25); box-shadow: inset 0 0 28px rgba(76,144,255,0.08);">`;
+    html += `<canvas id="equationGraph" width="960" height="420" style="display:block; width:100%; max-width:100%; height:auto; border-radius:10px; background: rgba(0,0,0,0.12); touch-action:none; image-rendering:auto;"></canvas>`;
+    html += `<div style="display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; width:100%;">`;
+    html += `<button id="zoomOutBtn" style="background:#122034;color:#fff;border:none;padding:7px 12px;border-radius:8px;cursor:pointer;">-</button>`;
+    html += `<input id="zoomRange" type="range" min="0.5" max="3" step="0.01" value="1" style="width:180px; accent-color:#4c90ff;">`;
+    html += `<button id="zoomInBtn" style="background:#122034;color:#fff;border:none;padding:7px 12px;border-radius:8px;cursor:pointer;">+</button>`;
+    html += `<button id="resetViewBtn" style="background:#122034;color:#fff;border:none;padding:7px 12px;border-radius:8px;cursor:pointer;">Reset</button>`;
     html += `</div>`;
     html += `</div>`;
     html += `</div>`;
@@ -594,16 +594,24 @@ export function formatSolution(result) {
       const zoomOutBtn = document.getElementById('zoomOutBtn');
       const resetViewBtn = document.getElementById('resetViewBtn');
 
-      zoomRange.addEventListener('input', (e) => { state.scale = parseFloat(e.target.value); redraw(); });
-      zoomInBtn.addEventListener('click', () => { state.scale = Math.min(3, state.scale + 0.1); zoomRange.value = state.scale; redraw(); });
-      zoomOutBtn.addEventListener('click', () => { state.scale = Math.max(0.5, state.scale - 0.1); zoomRange.value = state.scale; redraw(); });
-      resetViewBtn.addEventListener('click', () => { state = { scale: 1, translateX: 0, translateY: 0 }; zoomRange.value = 1; redraw(); });
+      if (zoomRange) {
+        zoomRange.addEventListener('input', (e) => { state.scale = parseFloat(e.target.value); redraw(); });
+      }
+      if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => { state.scale = Math.min(3, state.scale + 0.1); if (zoomRange) zoomRange.value = state.scale; redraw(); });
+      }
+      if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => { state.scale = Math.max(0.5, state.scale - 0.1); if (zoomRange) zoomRange.value = state.scale; redraw(); });
+      }
+      if (resetViewBtn) {
+        resetViewBtn.addEventListener('click', () => { state = { scale: 1, translateX: 0, translateY: 0 }; if (zoomRange) zoomRange.value = 1; redraw(); });
+      }
 
       canvas.addEventListener('wheel', (ev) => {
         ev.preventDefault();
         const delta = ev.deltaY > 0 ? -0.05 : 0.05;
         state.scale = Math.max(0.5, Math.min(3, state.scale + delta));
-        zoomRange.value = state.scale;
+        if (zoomRange) zoomRange.value = state.scale;
         redraw();
       });
 
@@ -619,6 +627,8 @@ export function formatSolution(result) {
       canvas.addEventListener('pointerup', (e) => { dragging = false; last = null; canvas.releasePointerCapture(e.pointerId); });
       canvas.addEventListener('pointercancel', () => { dragging = false; last = null; });
 
+      const resizeObserver = new ResizeObserver(() => redraw());
+      resizeObserver.observe(canvas);
       redraw();
     }, 120);
   }
@@ -627,126 +637,166 @@ export function formatSolution(result) {
   return html;
 }
 
+function getGraphBounds(a, b, c, solutions) {
+  const seed = [10, 20, 30, 40, 50, 60, 80, 100];
+
+  let xMax = 10;
+  if (solutions && solutions.length) {
+    const maxRoot = Math.max(0, ...solutions.map(v => Number.isFinite(v) ? Math.abs(v) : 0));
+    xMax = Math.max(xMax, maxRoot + 10);
+  }
+  if (a !== undefined && b !== undefined && c !== undefined) {
+    const vertexX = -b / (2 * a);
+    const sampleStart = Math.max(0, vertexX - 10);
+    const sampleEnd = Math.max(10, vertexX + 10);
+    let yMax = 0;
+    for (let x = sampleStart; x <= sampleEnd; x += 0.2) {
+      const y = a * x * x + b * x + c;
+      if (Number.isFinite(y)) yMax = Math.max(yMax, Math.abs(y));
+    }
+    xMax = Math.max(xMax, sampleEnd + 5);
+    const baseY = Math.max(10, yMax + 10);
+    return { xMin: 0, xMax, yMin: 0, yMax: baseY };
+  }
+
+  const fallbackY = seed.reduce((m, n) => Math.max(m, n), 10);
+  return { xMin: 0, xMax, yMin: 0, yMax: fallbackY + 10 };
+}
+
+function getNiceStep(maxValue) {
+  if (!Number.isFinite(maxValue) || maxValue <= 0) return 1;
+  const rough = maxValue / 8;
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const normalized = rough / magnitude;
+  if (normalized < 1.5) return 1 * magnitude;
+  if (normalized < 2) return 2 * magnitude;
+  if (normalized < 5) return 5 * magnitude;
+  return 10 * magnitude;
+}
+
 function drawGraphInteractive(canvas, a, b, c, solutions, state) {
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth * DPR;
-  const h = canvas.clientHeight * DPR;
-  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  const cssWidth = canvas.clientWidth || 960;
+  const cssHeight = canvas.clientHeight || 420;
+  const w = Math.max(640, Math.round(cssWidth * DPR));
+  const h = Math.max(300, Math.round(cssHeight * DPR));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
 
   ctx.clearRect(0, 0, w, h);
 
-  ctx.save();
-  ctx.translate(state.translateX * DPR, state.translateY * DPR);
-  ctx.scale(state.scale, state.scale);
+  const bounds = getGraphBounds(a, b, c, solutions);
+  const xMin = bounds.xMin;
+  const xMax = bounds.xMax;
+  const yMin = bounds.yMin;
+  const yMax = bounds.yMax;
 
-  const margin = 50 * DPR;
-  const centerX = w / 2;
-  const centerY = h / 2;
+  const pad = 64 * DPR;
+  const plotWidth = w - pad * 2;
+  const plotHeight = h - pad * 2;
 
-  let minX = -10, maxX = 10;
-  if (solutions && solutions.length > 0) {
-    const solMin = Math.min(...solutions);
-    const solMax = Math.max(...solutions);
-    minX = Math.floor(solMin - 4);
-    maxX = Math.ceil(solMax + 4);
-  }
+  const xToCanvas = (x) => pad + ((x - xMin) / (xMax - xMin)) * plotWidth;
+  const yToCanvas = (y) => h - pad - ((y - yMin) / (yMax - yMin)) * plotHeight;
 
-  const scaleX = (w - 2 * margin) / (maxX - minX);
-  const scaleY = (h - 2 * margin) / 20;
+  const xAxisY = yToCanvas(0);
+  const yAxisX = xToCanvas(0);
 
-  ctx.strokeStyle = 'rgba(76,144,255,0.08)';
+  ctx.fillStyle = 'rgba(8,14,24,0.18)';
+  ctx.fillRect(0, 0, w, h);
+
+  const gridColor = 'rgba(76,144,255,0.12)';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1 * DPR;
-  for (let i = Math.ceil(minX); i <= Math.floor(maxX); i++) {
-    const x = margin + (i - minX) * scaleX;
-    ctx.beginPath(); ctx.moveTo(x, margin); ctx.lineTo(x, h - margin); ctx.stroke();
+  const xStep = getNiceStep(xMax - xMin);
+  const yStep = getNiceStep(yMax - yMin);
+
+  for (let x = 0; x <= xMax; x += xStep) {
+    const px = xToCanvas(x);
+    ctx.beginPath();
+    ctx.moveTo(px, pad);
+    ctx.lineTo(px, h - pad);
+    ctx.stroke();
   }
-  for (let i = -10; i <= 10; i++) {
-    const y = centerY - i * scaleY;
-    ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(w - margin, y); ctx.stroke();
+  for (let y = 0; y <= yMax; y += yStep) {
+    const py = yToCanvas(y);
+    ctx.beginPath();
+    ctx.moveTo(pad, py);
+    ctx.lineTo(w - pad, py);
+    ctx.stroke();
   }
 
-  ctx.strokeStyle = 'rgba(76, 144, 255, 0.36)';
+  ctx.strokeStyle = 'rgba(232,234,255,0.4)';
   ctx.lineWidth = 2 * DPR;
-  const axisY = margin + (-minX) * scaleX;
-  ctx.beginPath(); ctx.moveTo(margin, centerY); ctx.lineTo(w - margin, centerY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(axisY, margin); ctx.lineTo(axisY, h - margin); ctx.stroke();
-
-  ctx.fillStyle = 'rgba(232,234,255,0.8)';
-  ctx.font = `${12 * DPR}px Orbitron`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  for (let i = Math.ceil(minX); i <= Math.floor(maxX); i++) {
-    const x = margin + (i - minX) * scaleX;
-    ctx.fillText(i.toString(), x, centerY + 6 * DPR);
-  }
-
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  for (let i = -8; i <= 8; i += 2) {
-    const y = centerY - i * scaleY;
-    ctx.fillText(i.toString(), axisY + 6 * DPR, y);
-  }
-
-  const gradient = ctx.createLinearGradient(margin, 0, w - margin, 0);
-  gradient.addColorStop(0, '#4c90ff');
-  gradient.addColorStop(0.5, '#4cff90');
-  gradient.addColorStop(1, '#4c90ff');
-
-  ctx.strokeStyle = gradient;
-  ctx.lineWidth = 3 * DPR;
-  ctx.lineJoin = 'round';
   ctx.beginPath();
+  ctx.moveTo(pad, xAxisY);
+  ctx.lineTo(w - pad, xAxisY);
+  ctx.moveTo(yAxisX, pad);
+  ctx.lineTo(yAxisX, h - pad);
+  ctx.stroke();
 
+  ctx.fillStyle = 'rgba(232,234,255,0.85)';
+  ctx.font = `${12 * DPR}px Rajdhani`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let x = 0; x <= xMax; x += xStep) {
+    const px = xToCanvas(x);
+    ctx.fillText(String(x), px, xAxisY + 6 * DPR);
+  }
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let y = 0; y <= yMax; y += yStep) {
+    const py = yToCanvas(y);
+    ctx.fillText(String(y), yAxisX - 8 * DPR, py);
+  }
+
+  ctx.beginPath();
+  ctx.lineWidth = 3 * DPR;
+  ctx.strokeStyle = '#4cff90';
   const fn = (x) => {
     if (a !== undefined && b !== undefined && c !== undefined) return a * x * x + b * x + c;
     return 0;
   };
 
-  const step = (maxX - minX) / 2000;
+  const steps = 1500;
   let started = false;
-  for (let x = minX; x <= maxX; x += step) {
-    const yVal = fn(x);
-    const canvasX = margin + (x - minX) * scaleX;
-    const canvasY = centerY - yVal * scaleY;
-    if (!started) { ctx.moveTo(canvasX, canvasY); started = true; } else { ctx.lineTo(canvasX, canvasY); }
+  for (let i = 0; i <= steps; i++) {
+    const x = xMin + (i / steps) * (xMax - xMin);
+    const y = fn(x);
+    const px = xToCanvas(x);
+    const py = yToCanvas(y);
+    if (!Number.isFinite(py)) continue;
+    if (!started) {
+      ctx.moveTo(px, py);
+      started = true;
+    } else {
+      ctx.lineTo(px, py);
+    }
   }
   ctx.stroke();
 
-  ctx.globalAlpha = 0.04;
-  ctx.fillStyle = '#4c90ff';
-  ctx.beginPath();
-  let firstPoint = true;
-  for (let x = minX; x <= maxX; x += step) {
-    const yVal = fn(x);
-    const canvasX = margin + (x - minX) * scaleX;
-    const canvasY = centerY - yVal * scaleY;
-    if (firstPoint) { ctx.moveTo(canvasX, canvasY); firstPoint = false; } else { ctx.lineTo(canvasX, canvasY); }
-  }
-  ctx.lineTo(w - margin, centerY); ctx.lineTo(margin, centerY); ctx.closePath(); ctx.fill();
-  ctx.globalAlpha = 1;
-
   if (solutions && solutions.length) {
-    const markerXs = solutions.map(s => margin + (s - minX) * scaleX);
-    markerXs.forEach((mx, idx) => {
-      ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(mx, centerY, 8 * DPR, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = `${11 * DPR}px Rajdhani`; ctx.textAlign = 'center';
-      const subscript = String.fromCharCode(8320 + (idx + 1));
-      ctx.fillText(`x${subscript}`, mx, centerY - 18 * DPR);
-    });
-    if (solutions.length >= 2) {
-      const midX = (markerXs[0] + markerXs[1]) / 2;
-      ctx.fillStyle = '#fff'; ctx.font = `${13 * DPR}px Rajdhani`;
+    solutions.forEach((s, idx) => {
+      if (!Number.isFinite(s) || s < xMin || s > xMax) return;
+      const px = xToCanvas(s);
+      ctx.fillStyle = '#ff4d6d';
+      ctx.beginPath();
+      ctx.arc(px, xAxisY, 7 * DPR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `${11 * DPR}px Rajdhani`;
       ctx.textAlign = 'center';
-      ctx.fillText(`x = ${formatNumber(solutions[0])}`, midX, centerY - 32 * DPR);
-      ctx.fillText(`y = ${formatNumber(solutions[1])}`, midX, centerY - 16 * DPR);
-    }
+      ctx.fillText(`x${idx + 1}`, px, xAxisY - 18 * DPR);
+    });
   }
 
   ctx.fillStyle = 'rgba(232,234,255,0.9)';
   ctx.font = `${13 * DPR}px Orbitron`;
-  ctx.fillText('X', w - margin - 8 * DPR, centerY + 16 * DPR);
-  ctx.fillText('Y', axisY + 8 * DPR, margin + 6 * DPR);
-
-  ctx.restore();
+  ctx.textAlign = 'center';
+  ctx.fillText('X', w - pad / 2, xAxisY + 22 * DPR);
+  ctx.fillText('Y', yAxisX + 12 * DPR, pad / 2);
 }
 
 function formatNumber(num) {
