@@ -212,12 +212,16 @@ const battleSkinSources = {
 async function loadBattleSkins() {
   if (!duelData || battleSkinsLoaded) return;
   try {
-    const [challengerSnap, opponentSnap] = await Promise.all([
-      getDoc(doc(db, 'users', duelData.challenger)),
-      getDoc(doc(db, 'users', duelData.opponent))
-    ]);
-    const challenger = challengerSnap.exists() ? challengerSnap.data() : {};
-    const opponent = opponentSnap.exists() ? opponentSnap.data() : {};
+    let challenger = { skin: duelData.challengerSkin };
+    let opponent = { skin: duelData.opponentSkin };
+    if (!challenger.skin || !opponent.skin) {
+      const [challengerSnap, opponentSnap] = await Promise.all([
+        getDoc(doc(db, 'users', duelData.challenger)),
+        getDoc(doc(db, 'users', duelData.opponent))
+      ]);
+      challenger = challengerSnap.exists() ? challengerSnap.data() : challenger;
+      opponent = opponentSnap.exists() ? opponentSnap.data() : opponent;
+    }
     const setAvatar = (id, skin) => {
       const node = document.getElementById(id);
       if (!node) return;

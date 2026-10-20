@@ -347,6 +347,7 @@ window.startQuickBattle = async function (friendUsername) {
     await setDoc(doc(db, 'duels', duelId), {
       challenger: currentUserName,
       opponent: friendUsername,
+      challengerSkin: user.skin || 'spiderman',
       player1: currentUserName,
       player2: friendUsername,
       p1Score: 0,
@@ -666,6 +667,7 @@ window.acceptBattle = async function (duelId) {
     hideBattleInvite();
     await setDoc(doc(db, 'duels', duelId), {
       status: 'active',
+      opponentSkin: user?.skin || 'spiderman',
       startTime: Date.now() + 5000,
       preparationDuration: 5,
       duration: 60
