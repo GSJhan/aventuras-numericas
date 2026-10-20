@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAllAchievements } from './achievements.js';
 
 const firebaseConfig = {
@@ -62,6 +62,8 @@ const FALLBACK_FRIENDS = [
 
 let user = null;
 let musicEnabled = false;
+let stopBattleListeners = [];
+let visibleInviteId = null;
 
 function safeGetCurrentUser() {
   return localStorage.getItem('currentUser') || '';
@@ -391,24 +393,28 @@ function showSkillsPanel() {
   const skills = user.skills || {};
   const skillValue = key => Math.max(0, Math.min(10, Number(skills[key]) || 0));
   const skillMeta = [
-    { key: 'algebra', label: 'Álgebra', value: skillValue('algebra'), max: 10, color: '#4c90ff' },
-    { key: 'geometry', label: 'Geometría', value: skillValue('geometry'), max: 10, color: '#7c5cff' },
-    { key: 'speed', label: 'Velocidad', value: skillValue('speed'), max: 10, color: '#4cff90' },
-    { key: 'precision', label: 'Precisión', value: skillValue('precision'), max: 10, color: '#ffd166' },
-    { key: 'infinity', label: 'Infinito', value: skillValue('infinity'), max: 10, color: '#ff7a7a' }
+    { key: 'algebra', icon: '∑', label: 'Álgebra', desc: 'Ecuaciones y operaciones', value: skillValue('algebra'), max: 10, color: '#4c90ff' },
+    { key: 'geometry', icon: '△', label: 'Geometría', desc: 'Formas, áreas y medidas', value: skillValue('geometry'), max: 10, color: '#9b7cff' },
+    { key: 'speed', icon: 'ϟ', label: 'Velocidad', desc: 'Respuestas rápidas', value: skillValue('speed'), max: 10, color: '#4cff90' },
+    { key: 'precision', icon: '◎', label: 'Precisión', desc: 'Respuestas correctas', value: skillValue('precision'), max: 10, color: '#ffd166' },
+    { key: 'infinity', icon: '∞', label: 'Infinito', desc: 'Rachas sin límite', value: skillValue('infinity'), max: 10, color: '#ff7a7a' }
   ];
 
   statsContainer.innerHTML = skillMeta.map(skill => `
-    <div class="skill-card">
-      <div class="skill-head">
-        <span>${skill.label}</span>
-        <strong>${skill.value}/${skill.max}</strong>
+    <div class="skill-card" style="--skill-color:${skill.color}">
+      <div class="skill-card-top">
+        <span class="skill-icon">${skill.icon}</span>
+        <div class="skill-card-name"><strong>${skill.label}</strong><small>${skill.desc}</small></div>
+        <strong class="skill-value">${skill.value}/${skill.max}</strong>
       </div>
       <div class="skill-bar">
         <span class="skill-fill" style="width:${(skill.value/skill.max)*100}%; background:${skill.color};"></span>
       </div>
     </div>
   `).join('');
+  const total = skillMeta.reduce((sum, skill) => sum + skill.value, 0);
+  const totalNode = document.getElementById('skillsTotal');
+  if (totalNode) totalNode.textContent = `${total} / 50`;
 
   const canvas = document.getElementById('skillsRadar');
   if (!canvas) return;
@@ -564,33 +570,72 @@ async function showRankingPanel() {
   }
 }
 
+function renderBattleInvite(item) {
+  const modal = document.getElementById('receiveInviteModal');
+  if (!modal || !item) return;
+  visibleInviteId = item.id;
+  document.getElementById('challengerName').textContent = item.challenger || item.player1 || 'Jugador';
+  document.getElementById('challengerBet').textContent = Number(item.bet || 0);
+  document.getElementById('challengerDuration').textContent = Number(item.duration || 60);
+  modal.classList.remove('hidden');
+  const accept = document.getElementById('acceptBattleBtn');
+  const decline = document.getElementById('declineBattleBtn');
+  if (accept) accept.onclick = () => window.acceptBattle(item.id);
+  if (decline) decline.onclick = () => window.declineBattle(item.id);
+}
+
+function hideBattleInvite() {
+  document.getElementById('receiveInviteModal')?.classList.add('hidden');
+  visibleInviteId = null;
+}
+
+function startBattleRealtimeListeners() {
+  stopBattleListeners.forEach(stop => stop());
+  stopBattleListeners = [];
+  const currentUserName = safeGetCurrentUser();
+  if (!currentUserName) return;
+
+  const incomingQuery = query(collection(db, 'duels'), where('opponent', '==', currentUserName));
+  stopBattleListeners.push(onSnapshot(incomingQuery, snapshot => {
+    const pending = [];
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      if (data.status === 'pending') pending.push({ id: docSnap.id, ...data });
+    });
+    pending.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    if (pending[0]) renderBattleInvite(pending[0]);
+    else hideBattleInvite();
+  }, error => console.warn('No se pudieron escuchar invitaciones:', error)));
+
+  const outgoingQuery = query(collection(db, 'duels'), where('challenger', '==', currentUserName));
+  stopBattleListeners.push(onSnapshot(outgoingQuery, snapshot => {
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      if (data.status === 'active' && !window.location.pathname.endsWith('game.html')) {
+        window.openBattle(docSnap.id);
+      }
+    });
+  }, error => console.warn('No se pudo sincronizar la aceptación:', error)));
+}
+
 async function showBattlesPanel() {
   const container = document.getElementById('battlesContent');
   if (!container || !user) return;
   const currentUserName = safeGetCurrentUser();
   try {
     const snapshot = await getDocs(collection(db, 'duels'));
-    const pendingIncoming = [], pendingOutgoing = [], active = [], finished = [];
+    const pendingOutgoing = [], active = [], finished = [];
     snapshot.forEach(docSnap => {
       const data = docSnap.data() || {};
       const challenger = data.challenger || data.player1;
       const opponent = data.opponent || data.player2;
       const item = { id: docSnap.id, ...data, challenger, opponent };
-      if (data.status === 'pending' && opponent === currentUserName) pendingIncoming.push(item);
-      else if (data.status === 'pending' && challenger === currentUserName) pendingOutgoing.push(item);
+      if (data.status === 'pending' && challenger === currentUserName) pendingOutgoing.push(item);
       else if (data.status === 'active' && (challenger === currentUserName || opponent === currentUserName)) active.push(item);
       else if (data.status === 'finished' && (challenger === currentUserName || opponent === currentUserName)) finished.push(item);
     });
     finished.sort((a, b) => (b.finishedAt || b.timestamp || 0) - (a.finishedAt || a.timestamp || 0));
 
-    const incomingHtml = pendingIncoming.map(item => `
-      <div class="battle-pending-card">
-        <div><strong>${escapeHtml(item.challenger)}</strong> te desafió por <strong>${Number(item.bet || 0)} 💰</strong></div>
-        <div class="invite-actions">
-          <button class="btn-green" onclick="window.acceptBattle('${item.id}')">Aceptar</button>
-          <button class="btn-red" onclick="window.declineBattle('${item.id}')">Rechazar</button>
-        </div>
-      </div>`).join('');
     const outgoingHtml = pendingOutgoing.map(item => `<div class="battle-status-card">Esperando respuesta de <strong>${escapeHtml(item.opponent)}</strong> · Apuesta: ${Number(item.bet || 0)} 💰</div>`).join('');
     const activeHtml = active.map(item => {
       const opponent = item.challenger === currentUserName ? item.opponent : item.challenger;
@@ -606,7 +651,6 @@ async function showBattlesPanel() {
     }).join('') : '<div class="battle-empty">Aún no tienes batallas finalizadas.</div>';
 
     container.innerHTML = `<div class="battle-history">
-      ${incomingHtml ? `<h3>Desafíos recibidos</h3>${incomingHtml}` : ''}
       ${outgoingHtml ? `<h3>Desafíos enviados</h3>${outgoingHtml}` : ''}
       ${activeHtml ? `<h3>Batallas activas</h3>${activeHtml}` : ''}
       <h3>Historial de batallas</h3>${historyHtml}
@@ -619,7 +663,13 @@ async function showBattlesPanel() {
 
 window.acceptBattle = async function (duelId) {
   try {
-    await setDoc(doc(db, 'duels', duelId), { status: 'active', startTime: Date.now(), duration: 60 }, { merge: true });
+    hideBattleInvite();
+    await setDoc(doc(db, 'duels', duelId), {
+      status: 'active',
+      startTime: Date.now() + 5000,
+      preparationDuration: 5,
+      duration: 60
+    }, { merge: true });
     localStorage.setItem('activeDuel', duelId);
     window.location.href = 'game.html?mode=battle';
   } catch (error) { console.error(error); alert('No se pudo aceptar la batalla.'); }
@@ -629,7 +679,7 @@ window.openBattle = function (duelId) {
   window.location.href = 'game.html?mode=battle';
 };
 window.declineBattle = async function (duelId) {
-  try { await setDoc(doc(db, 'duels', duelId), { status: 'declined', finishedAt: Date.now() }, { merge: true }); await showBattlesPanel(); }
+  try { hideBattleInvite(); await setDoc(doc(db, 'duels', duelId), { status: 'declined', finishedAt: Date.now() }, { merge: true }); await showBattlesPanel(); }
   catch (error) { console.error(error); alert('No se pudo rechazar la batalla.'); }
 };
 
@@ -783,6 +833,7 @@ async function loadCurrentUserData() {
     if (!Array.isArray(user.friendRequests)) user.friendRequests = [];
     if (!user.skin) user.skin = 'spiderman';
 
+    startBattleRealtimeListeners();
     setBodyTheme(localStorage.getItem('background') || 'ciudad');
     renderHeader();
     renderProfile();

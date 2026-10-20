@@ -388,6 +388,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 }
 .battle-player { text-align: center; }
 .b-avatar { font-size: 48px; margin-bottom: 10px; }
+.battle-skin { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 10px; border: 3px solid rgba(255,255,255,.75); box-shadow: 0 0 18px rgba(76,144,255,.35); }
 .b-name { font-weight: bold; font-size: 18px; margin-bottom: 10px; }
 .team-label { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 5px; }
 .team-blue { color: #4c90ff; }
@@ -863,10 +864,20 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 .challenge-form { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .challenge-form input { width: 130px; }
 .skills-container { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(240px, 1fr); gap: 24px; align-items: center; }
+.skills-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
+.skills-heading h2 { margin-bottom: 5px; }
+.skills-heading p { margin: 0; opacity: .72; }
+.skills-total { padding: 10px 16px; border: 1px solid rgba(76,144,255,.45); border-radius: 999px; color: #fff; background: rgba(76,144,255,.12); font-weight: 800; white-space: nowrap; }
 .skills-radar-container { position: relative; min-height: 310px; }
 .skills-radar-container canvas { width: 100% !important; height: 310px !important; }
 .skills-stats { display: grid; gap: 12px; }
-.skill-card { padding: 14px; border: 1px solid rgba(76,144,255,.35); border-radius: 12px; background: rgba(15,23,42,.55); }
+.skill-card { padding: 15px; border: 1px solid color-mix(in srgb, var(--skill-color) 38%, transparent); border-radius: 16px; background: linear-gradient(135deg, rgba(15,23,42,.78), rgba(20,28,54,.44)); box-shadow: inset 3px 0 0 var(--skill-color); transition: transform .2s ease, border-color .2s ease; }
+.skill-card:hover { transform: translateY(-2px); border-color: var(--skill-color); }
+.skill-card-top { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
+.skill-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; background: color-mix(in srgb, var(--skill-color) 18%, transparent); color: var(--skill-color); font-size: 22px; font-weight: 800; }
+.skill-card-name { display: flex; flex-direction: column; flex: 1; gap: 2px; }
+.skill-card-name small { opacity: .62; font-size: 11px; }
+.skill-value { color: var(--skill-color); }
 .skill-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
 .skill-bar { height: 9px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.1); }
 .skill-fill { display: block; height: 100%; border-radius: inherit; transition: width .3s ease; }

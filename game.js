@@ -25,6 +25,9 @@ var activeDuelId = localStorage.getItem('activeDuel');
 var isBattleMode = new URLSearchParams(window.location.search).get('mode') === 'battle';
 var duelData = null;
 var battleTimer = null;
+var battlePreparationTimer = null;
+var battleHasStarted = false;
+var battleSkinsLoaded = false;
 var battleResultHandled = false;
 var currentProblem = null;
 var quizStreak = 0;
@@ -164,30 +167,69 @@ async function initBattle() {
     if (!snap.exists()) return;
     duelData = snap.data();
     updateBattleUI();
+    loadBattleSkins();
+    if (duelData.status === 'active' && !battleHasStarted) syncBattleStart();
     if (duelData.status === 'finished' && !battleResultHandled) {
         finishBattle();
     }
   });
+}
 
-  let timeLeft = 5;
+function syncBattleStart() {
+  if (!duelData || battleHasStarted) return;
   const preparation = document.getElementById('battlePreparation');
   const answerInput = document.getElementById('battleAnsInput');
   const answerButton = document.querySelector('#battleGame .btn-primary');
+  const startAt = Number(duelData.startTime || Date.now() + 5000);
   if (answerInput) answerInput.disabled = true;
   if (answerButton) answerButton.disabled = true;
-  const prepInterval = setInterval(() => {
-    if (preparation) preparation.textContent = `Prepárate: ${timeLeft}`;
-    document.getElementById('battleQuestionText').textContent = '¡PREPÁRATE!';
-    timeLeft--;
-    if (timeLeft < 0) {
-      clearInterval(prepInterval);
-      if (preparation) preparation.textContent = '¡A JUGAR!';
-      if (answerInput) answerInput.disabled = false;
-      if (answerButton) answerButton.disabled = false;
-      startBattleTimer();
-      showBattleQuestion();
+  clearInterval(battlePreparationTimer);
+  const tick = () => {
+    const seconds = Math.max(0, Math.ceil((startAt - Date.now()) / 1000));
+    if (seconds > 0) {
+      if (preparation) preparation.textContent = `Prepárate: ${seconds}`;
+      document.getElementById('battleQuestionText').textContent = '¡PREPÁRATE!';
+      return;
     }
-  }, 1000);
+    clearInterval(battlePreparationTimer);
+    battleHasStarted = true;
+    if (preparation) preparation.textContent = '¡A JUGAR!';
+    if (answerInput) answerInput.disabled = false;
+    if (answerButton) answerButton.disabled = false;
+    startBattleTimer(startAt);
+    showBattleQuestion();
+  };
+  tick();
+  if (!battleHasStarted) battlePreparationTimer = setInterval(tick, 250);
+}
+
+const battleSkinSources = {
+  spiderman: 'spiderman.png', batman: 'batman.jpg', ironman: 'ironman.png',
+  goku: 'goku.png', sasuke: 'sasuke.png', kakashi: 'kakashi.jpg',
+  vegeta: 'vegeta.png', itachi: 'itachi.png', zoro: 'zoro.png', luffy: 'luffy.png'
+};
+
+async function loadBattleSkins() {
+  if (!duelData || battleSkinsLoaded) return;
+  try {
+    const [challengerSnap, opponentSnap] = await Promise.all([
+      getDoc(doc(db, 'users', duelData.challenger)),
+      getDoc(doc(db, 'users', duelData.opponent))
+    ]);
+    const challenger = challengerSnap.exists() ? challengerSnap.data() : {};
+    const opponent = opponentSnap.exists() ? opponentSnap.data() : {};
+    const setAvatar = (id, skin) => {
+      const node = document.getElementById(id);
+      if (!node) return;
+      const source = battleSkinSources[skin] || battleSkinSources.spiderman;
+      node.innerHTML = `<img class="battle-skin" src="${source}" alt="Avatar" onerror="this.src='spiderman.png'">`;
+    };
+    setAvatar('p1Avatar', challenger.skin);
+    setAvatar('p2Avatar', opponent.skin);
+    battleSkinsLoaded = true;
+  } catch (error) {
+    console.warn('No se pudieron cargar las skins de la batalla:', error);
+  }
 }
 
 function updateBattleUI() {
@@ -209,21 +251,23 @@ function updateBattleUI() {
   }
 }
 
-function startBattleTimer() {
-  let timeLeft = duelData.duration;
-  const totalTime = duelData.duration;
-  
-  battleTimer = setInterval(() => {
-    timeLeft--;
+function startBattleTimer(startAt) {
+  clearInterval(battleTimer);
+  const duration = Number(duelData.duration || 60);
+  const battleEndsAt = Number(startAt || duelData.startTime || Date.now()) + (duration * 1000);
+  const updateTimer = () => {
+    const timeLeft = Math.max(0, Math.ceil((battleEndsAt - Date.now()) / 1000));
     document.getElementById('battleTimerText').textContent = timeLeft + 's';
-    const percent = (timeLeft / totalTime) * 100;
-    document.getElementById('battleTimerFill').style.width = percent + '%';
-
+    document.getElementById('battleTimerFill').style.width = `${Math.min(100, (timeLeft / duration) * 100)}%`;
     if (timeLeft <= 0) {
       clearInterval(battleTimer);
       endBattle();
     }
-  }, 1000);
+  };
+  updateTimer();
+  battleTimer = setInterval(() => {
+    updateTimer();
+  }, 250);
 }
 
 function showBattleQuestion() {
