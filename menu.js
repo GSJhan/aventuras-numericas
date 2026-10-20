@@ -22,6 +22,8 @@ const DEFAULT_USER = {
   skin: 'spiderman',
   skins: ['spiderman'],
   logros: {},
+  friends: [],
+  friendRequests: [],
   skills: { algebra: 0, geometry: 0, speed: 0, precision: 0, infinity: 0 },
   stats: { facil: 0, normal: 0, dificil: 0, experto: 0, infinito: 0 },
   problemsSolved: 0,
@@ -48,12 +50,6 @@ const AVATARS = [
   { id: 'itachi', name: 'Itachi', src: 'itachi.png' },
   { id: 'zoro', name: 'Zoro', src: 'zoro.png' },
   { id: 'luffy', name: 'Luffy', src: 'luffy.png' }
-];
-
-const POWERS = [
-  { id: 'double', name: 'Doble', icon: '✖️', desc: 'Duplica tus puntos.', cost: 35 },
-  { id: 'fifty', name: '50%', icon: '🎯', desc: 'Reduce la cuenta a la mitad.', cost: 45 },
-  { id: 'light', name: 'Luz', icon: '⚡', desc: 'Poder de ayuda rápida.', cost: 30 }
 ];
 
 const FALLBACK_FRIENDS = [
@@ -120,15 +116,18 @@ function renderThemeButtons() {
   if (!container) return;
 
   const activeTheme = localStorage.getItem('background') || 'ciudad';
-  container.innerHTML = [
-    { id: 'ciudad', name: 'Ciudad' },
-    { id: 'galaxia', name: 'Galaxia' },
-    { id: 'parque', name: 'Parque' },
-    { id: 'fondo1', name: 'Bosque' },
-    { id: 'fondo2', name: 'Neón' }
-  ].map(theme => `
+  const themeData = [
+    { id: 'ciudad', name: 'Ciudad', image: 'ciudad.jpg' },
+    { id: 'galaxia', name: 'Galaxia', image: 'galaxia.jpg' },
+    { id: 'parque', name: 'Parque', image: 'parque.jpg' },
+    { id: 'fondo1', name: 'Bosque', image: 'bosque.jpg' },
+    { id: 'fondo2', name: 'Neón', image: 'neon.jpg' }
+  ];
+
+  container.innerHTML = themeData.map(theme => `
     <button class="theme-option ${activeTheme === theme.id ? 'active' : ''}" data-theme="${theme.id}" title="${theme.name}">
-      <div style="width:100%; height:100%; background: linear-gradient(135deg, ${theme.id === 'ciudad' ? '#1d4ed8, #0f172a' : theme.id === 'galaxia' ? '#312e81, #111827' : theme.id === 'parque' ? '#064e3b, #111827' : theme.id === 'fondo1' ? '#14532d, #111827' : '#7c3aed, #111827'}); border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);"></div>
+      <div class="theme-thumb" style="background-image: url('${theme.image}');"></div>
+      <span>${theme.name}</span>
     </button>
   `).join('');
 
@@ -204,18 +203,33 @@ function renderConfig() {
 
 function buildFriendsHTML(list) {
   if (!list || !list.length) {
-    return `<div class="friend-item"><span>No hay amigos aún</span><button class="btn-small">Añadir</button></div>`;
+    return `
+      <div class="friend-item empty">
+        <span>No hay amigos aún</span>
+        <button class="btn-small" type="button">Añadir</button>
+      </div>
+    `;
   }
 
-  return list.map(friend => `
-    <div class="friend-item">
-      <div>
-        <strong>${friend.username || friend.name || 'Usuario'}</strong>
-        <div style="opacity:0.75; font-size:12px;">XP ${friend.xp || 0}</div>
+  const currentFriends = Array.isArray(user?.friends) ? user.friends : [];
+
+  return list.map(friend => {
+    const username = friend.username || friend.name || 'Usuario';
+    const isFriend = currentFriends.includes(username);
+
+    return `
+      <div class="friend-item">
+        <div class="friend-main">
+          <strong>${username}</strong>
+          <div class="friend-xp">XP ${friend.xp || 0}</div>
+        </div>
+        <div class="friend-actions">
+          ${isFriend ? '<button class="btn-small btn-friend" type="button">Amigos</button>' : `<button class="btn-small" type="button" onclick="window.addFriend('${username}')">Añadir</button>`}
+          ${isFriend ? `<button class="btn-battle" type="button" onclick="window.challengeFriend('${username}')">Batalla</button>` : ''}
+        </div>
       </div>
-      <button class="btn-small" onclick="alert('Solicitud enviada a ${friend.username || friend.name || 'este jugador'}')">Añadir</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 async function loadFriendsFromFirebase() {
@@ -241,46 +255,146 @@ async function showFriendsList() {
 
   const friends = await loadFriendsFromFirebase();
   container.innerHTML = `
-    <div class="friends-list">
-      ${buildFriendsHTML(friends.slice(0, 6))}
+    <div class="search-panel">
+      <div class="search-box">
+        <input id="friendSearchInput" type="text" placeholder="Buscar amigo..." />
+        <button class="btn-small" type="button" onclick="window.filterFriends()">Buscar</button>
+      </div>
+      <div class="friends-list">
+        ${buildFriendsHTML(friends.slice(0, 8))}
+      </div>
+    </div>
+    <div class="search-panel">
+      <div class="search-box">
+        <input id="friendSearchInput2" type="text" placeholder="Buscar..." />
+        <button class="btn-small" type="button" onclick="window.filterFriendsSecondary()">Buscar</button>
+      </div>
+      <div class="friends-list">
+        ${buildFriendsHTML(friends.slice(0, 8))}
+      </div>
     </div>
   `;
-}
 
-async function showAddFriends() {
-  const container = document.getElementById('friendsContent');
-  if (!container) return;
-
-  const friends = await loadFriendsFromFirebase();
-  const html = `
-    <div class="search-box">
-      <input id="friendSearchInput" type="text" placeholder="Buscar amigo..." />
-      <button class="btn-small" type="button" onclick="window.filterFriends()">Buscar</button>
-    </div>
-    <div class="friends-list">
-      ${buildFriendsHTML(friends)}
-    </div>
-  `;
-  container.innerHTML = html;
-  const input = document.getElementById('friendSearchInput');
-  if (input) {
+  const bindFriendSearch = (inputId, filterFn) => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
     input.addEventListener('input', () => {
-      const list = friends.filter(f => (f.username || '').toLowerCase().includes(input.value.toLowerCase()));
-      const listContainer = document.querySelector('#friendsContent .friends-list');
-      if (listContainer) listContainer.innerHTML = buildFriendsHTML(list);
+      const value = input.value.toLowerCase();
+      const list = friends.filter(f => (f.username || '').toLowerCase().includes(value));
+      const listContainer = input.closest('.search-panel')?.querySelector('.friends-list');
+      if (listContainer) listContainer.innerHTML = buildFriendsHTML(list.slice(0, 8));
+      filterFn?.(value);
     });
-  }
+  };
+
+  bindFriendSearch('friendSearchInput');
+  bindFriendSearch('friendSearchInput2');
 }
+
+window.addFriend = async function (friendUsername) {
+  if (!user || !friendUsername) return;
+  const currentUserName = safeGetCurrentUser();
+  if (!currentUserName || friendUsername === currentUserName) return;
+
+  try {
+    const targetRef = doc(db, 'users', friendUsername);
+    const targetSnap = await getDoc(targetRef);
+    if (!targetSnap.exists()) {
+      alert('Ese usuario no existe.');
+      return;
+    }
+
+    const currentFriends = Array.isArray(user.friends) ? user.friends : [];
+    const targetData = targetSnap.data() || {};
+    const targetFriends = Array.isArray(targetData.friends) ? targetData.friends : [];
+
+    if (currentFriends.includes(friendUsername) || targetFriends.includes(currentUserName)) {
+      alert('Ya son amigos.');
+      await showFriendsList();
+      return;
+    }
+
+    user.friends = [...new Set([...currentFriends, friendUsername])];
+    const updatedTarget = {
+      ...targetData,
+      friends: [...new Set([...targetFriends, currentUserName])]
+    };
+
+    await setDoc(doc(db, 'users', currentUserName), user, { merge: true });
+    await setDoc(targetRef, updatedTarget, { merge: true });
+
+    alert(`¡Ahora eres amigo de ${friendUsername}!`);
+    await showFriendsList();
+  } catch (error) {
+    console.error('Error al añadir amigo:', error);
+    alert('No se pudo añadir al amigo.');
+  }
+};
+
+window.challengeFriend = function (friendUsername) {
+  if (!friendUsername) return;
+  showSection('battles');
+  const container = document.getElementById('battlesContent');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="battle-friend-banner">
+      <strong>${friendUsername}</strong>
+      <p>Tu amigo ya está listo para una batalla.</p>
+      <button class="btn-small btn-battle" type="button" onclick="window.startQuickBattle('${friendUsername}')">Desafiar</button>
+    </div>
+  `;
+};
+
+window.startQuickBattle = async function (friendUsername) {
+  const currentUserName = safeGetCurrentUser();
+  if (!currentUserName || !friendUsername) return;
+  const duelId = `duel_${currentUserName}_${friendUsername}_${Date.now()}`;
+
+  try {
+    await setDoc(doc(db, 'duels', duelId), {
+      player1: currentUserName,
+      player2: friendUsername,
+      player1Score: 0,
+      player2Score: 0,
+      bet: 10,
+      status: 'pending',
+      timestamp: Date.now(),
+      winner: null,
+      finishedAt: null
+    });
+    alert(`¡Batalla creada contra ${friendUsername}!`);
+    showSection('battles');
+    await showBattlesPanel();
+  } catch (error) {
+    console.error('Error creando batalla:', error);
+    alert('No se pudo crear la batalla.');
+  }
+};
 
 window.filterFriends = function () {
   const input = document.getElementById('friendSearchInput');
   if (!input) return;
   const value = input.value.toLowerCase();
-  const container = document.querySelector('#friendsContent .friends-list');
+  const container = input.closest('.search-panel')?.querySelector('.friends-list');
   if (!container) return;
-  const all = FALLBACK_FRIENDS.slice();
-  const filtered = all.filter(friend => (friend.username || '').toLowerCase().includes(value));
-  container.innerHTML = buildFriendsHTML(filtered);
+
+  const currentList = (user?.friends || []).map(friend => ({ username: friend, xp: 0 }));
+  const merged = [...currentList, ...FALLBACK_FRIENDS];
+  const filtered = merged.filter(friend => (friend.username || '').toLowerCase().includes(value));
+  container.innerHTML = buildFriendsHTML(filtered.slice(0, 8));
+};
+
+window.filterFriendsSecondary = function () {
+  const input = document.getElementById('friendSearchInput2');
+  if (!input) return;
+  const value = input.value.toLowerCase();
+  const container = input.closest('.search-panel')?.querySelector('.friends-list');
+  if (!container) return;
+
+  loadFriendsFromFirebase().then(friends => {
+    const filtered = friends.filter(friend => (friend.username || '').toLowerCase().includes(value));
+    container.innerHTML = buildFriendsHTML(filtered.slice(0, 8));
+  });
 };
 
 function showSkillsPanel() {
@@ -288,33 +402,66 @@ function showSkillsPanel() {
   if (!statsContainer || !user) return;
 
   const skills = user.skills || { algebra: 0, geometry: 0, speed: 0, precision: 0, infinity: 0 };
-  const entries = Object.entries(skills).map(([key, value]) => `
-    <div class="stat-item">
-      <span>${key}</span>
-      <span>${value}</span>
+  const skillMeta = [
+    { key: 'algebra', label: 'Álgebra', value: skills.algebra || 0, max: 10, color: '#4c90ff' },
+    { key: 'geometry', label: 'Geometría', value: skills.geometry || 0, max: 10, color: '#7c5cff' },
+    { key: 'speed', label: 'Velocidad', value: skills.speed || 0, max: 10, color: '#4cff90' },
+    { key: 'precision', label: 'Precisión', value: skills.precision || 0, max: 10, color: '#ffd166' },
+    { key: 'infinity', label: 'Infinito', value: skills.infinity || 0, max: 10, color: '#ff7a7a' }
+  ];
+
+  statsContainer.innerHTML = skillMeta.map(skill => `
+    <div class="skill-card">
+      <div class="skill-head">
+        <span>${skill.label}</span>
+        <strong>${skill.value}/${skill.max}</strong>
+      </div>
+      <div class="skill-bar">
+        <span class="skill-fill" style="width:${(skill.value/skill.max)*100}%; background:${skill.color};"></span>
+      </div>
     </div>
   `).join('');
-
-  statsContainer.innerHTML = entries;
 
   const canvas = document.getElementById('skillsRadar');
   if (!canvas) return;
 
   if (typeof Chart !== 'undefined') {
-    new Chart(canvas, {
-      type: 'radar',
-      data: {
-        labels: ['Álgebra', 'Geometría', 'Velocidad', 'Precisión', 'Infinito'],
-        datasets: [{
-          label: 'Habilidades',
-          data: [skills.algebra || 0, skills.geometry || 0, skills.speed || 0, skills.precision || 0, skills.infinity || 0],
-          backgroundColor: 'rgba(76,144,255,0.25)',
-          borderColor: '#4c90ff',
-          borderWidth: 2
-        }]
-      },
-      options: { responsive: true, scales: { r: { suggestedMin: 0, suggestedMax: 10 } } }
-    });
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      if (canvas.__chart) canvas.__chart.destroy();
+      canvas.__chart = new Chart(canvas, {
+        type: 'radar',
+        data: {
+          labels: ['Álgebra', 'Geometría', 'Velocidad', 'Precisión', 'Infinito'],
+          datasets: [{
+            label: 'Habilidades',
+            data: skillMeta.map(skill => Number(skill.value) || 0),
+            backgroundColor: 'rgba(76,144,255,0.25)',
+            borderColor: '#4c90ff',
+            borderWidth: 2,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#4c90ff',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              suggestedMin: 0,
+              suggestedMax: 10,
+              pointLabels: { color: '#e8eaff', font: { family: 'Rajdhani' } },
+              grid: { color: 'rgba(255,255,255,0.1)' },
+              angleLines: { color: 'rgba(255,255,255,0.08)' }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: '#e8eaff' } }
+          }
+        }
+      });
+    }
   }
 }
 
@@ -397,17 +544,18 @@ async function showRankingPanel() {
       ranking.push({
         username: docSnap.id,
         xp: Number(data.xp || 0),
-        coins: Number(data.coins || 0),
-        avatar: data.skin || 'spiderman'
+        coins: Number(data.coins || 0)
       });
     });
 
-    const sorted = ranking.sort((a, b) => b.xp - a.xp || b.coins - a.coins);
     const currentUserName = user?.username || safeGetCurrentUser() || 'Tú';
-    const topThree = sorted.slice(0, 3);
-    while (topThree.length < 3) {
-      topThree.push({ username: currentUserName, xp: Number(user?.xp || 0), coins: Number(user?.coins || 0), avatar: user?.skin || 'spiderman' });
+    const currentIndex = ranking.findIndex(entry => entry.username === currentUserName);
+    if (currentIndex === -1) {
+      ranking.push({ username: currentUserName, xp: Number(user?.xp || 0), coins: Number(user?.coins || 0) });
     }
+
+    const sorted = ranking.sort((a, b) => b.xp - a.xp || b.coins - a.coins);
+    const topThree = sorted.slice(0, 3);
 
     podium.innerHTML = `
       <div class="podium-item silver">#2<br>${topThree[1]?.username || '—'}</div>
@@ -491,7 +639,11 @@ window.showTienda = function () {
   const container = document.getElementById('tiendaPoderes');
   if (!container) return;
 
-  container.innerHTML = POWERS.map(power => {
+  container.innerHTML = [
+    { id: 'double', name: 'Doble', icon: '✖️', desc: 'Duplica tus puntos.', cost: 35 },
+    { id: 'fifty', name: '50%', icon: '🎯', desc: 'Reduce la cuenta a la mitad.', cost: 45 },
+    { id: 'light', name: 'Luz', icon: '⚡', desc: 'Poder de ayuda rápida.', cost: 30 }
+  ].map(power => {
     const owned = power.id === 'double'
       ? (user.powerDoubleOwned || 0)
       : power.id === 'fifty'
@@ -539,13 +691,13 @@ window.showAvatarEditor = function () {
     const owned = Array.isArray(user.skins) && user.skins.includes(avatar.id);
     const selected = user.skin === avatar.id;
     const btnText = owned ? (selected ? '✓ Equipado' : 'Equipar') : 'Comprar (500 💰)';
-    const btnClass = owned ? (selected ? 'btn-gray' : 'btn-green') : 'btn-primary';
+    const btnClass = owned ? (selected ? 'avatar-btn equiped' : 'avatar-btn equip') : 'avatar-btn buy';
 
     return `
       <div class="avatar-option ${selected ? 'selected' : ''}">
         <img src="${getAvatarSrc(avatar.id)}" class="avatar-choice-img" onerror="this.src='spiderman.png'" alt="${avatar.name}">
-        <div style="margin-top:10px; font-size:12px;">${avatar.name}</div>
-        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar.id}')` : `window.buyAvatar('${avatar.id}')`}" style="width:100%; margin-top:8px; padding:8px; border:none; border-radius:10px; cursor:pointer;">
+        <div class="avatar-name">${avatar.name}</div>
+        <button class="${btnClass}" onclick="${owned ? `window.selectAvatar('${avatar.id}')` : `window.buyAvatar('${avatar.id}')`}">
           ${btnText}
         </button>
       </div>
@@ -594,6 +746,8 @@ async function saveUser() {
   const currentUserName = safeGetCurrentUser();
   if (!currentUserName) return;
   user.username = currentUserName;
+  user.friends = Array.isArray(user.friends) ? user.friends : [];
+  user.friendRequests = Array.isArray(user.friendRequests) ? user.friendRequests : [];
   const userRef = doc(db, 'users', currentUserName);
   await setDoc(userRef, user, { merge: true });
   renderProfile();
@@ -623,9 +777,9 @@ async function loadCurrentUserData() {
       ...snapshot.data()
     };
 
-    if (!Array.isArray(user.skins) || user.skins.length === 0) {
-      user.skins = ['spiderman'];
-    }
+    if (!Array.isArray(user.skins) || user.skins.length === 0) user.skins = ['spiderman'];
+    if (!Array.isArray(user.friends)) user.friends = [];
+    if (!Array.isArray(user.friendRequests)) user.friendRequests = [];
     if (!user.skin) user.skin = 'spiderman';
 
     setBodyTheme(localStorage.getItem('background') || 'ciudad');
@@ -722,7 +876,7 @@ function bindMusicToggle() {
 }
 
 window.showFriendsList = showFriendsList;
-window.showAddFriends = showAddFriends;
+window.showAddFriends = showFriendsList;
 window.showSection = showSection;
 window.showAvatarEditor = window.showAvatarEditor;
 window.showTienda = window.showTienda;
