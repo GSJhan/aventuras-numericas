@@ -4,16 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Menú - Aventuras Numéricas</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css?v=20261020">
+  <link rel="manifest" href="manifest.json?v=20261020">
   <meta name="theme-color" content="#4c90ff">
 </head>
 <body>
+  <script>
+    (function () {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          registrations.forEach(function (registration) {
+            registration.unregister();
+          });
+        }).catch(function () {});
+      }
+    })();
+  </script>
+
   <div class="bg-blob one"></div>
   <div class="bg-blob two"></div>
   <div class="bg-blob three"></div>
-
   <div class="header">
     <div class="header-left">
       <h1 id="displayUsername">Usuario</h1>
@@ -83,9 +97,6 @@
       </button>
     </div>
 
-<!-- La barra de XP ha sido movida al encabezado -->
-
-    <!-- SECCIÓN HABILIDADES -->
     <div id="skillsSection" class="section hidden">
       <h2>⭐ Tus Habilidades</h2>
       <div class="skills-container">
@@ -96,32 +107,27 @@
       </div>
     </div>
 
-    <!-- SECCIÓN RANKING -->
     <div id="rankingSection" class="section hidden">
       <h2>🏅 Ranking Global</h2>
       <div id="rankingPodium" class="podium-container"></div>
       <div id="rankingList" class="ranking-list"></div>
     </div>
 
-    <!-- SECCIÓN TIENDA -->
     <div id="tiendaSection" class="section hidden">
       <h2>🛍️ Tienda de Poderes</h2>
       <div id="tiendaPoderes" class="tienda-grid"></div>
     </div>
 
-    <!-- SECCIÓN LOGROS -->
     <div id="logrosSection" class="section hidden">
       <h2>🏆 Tus Logros (100+)</h2>
       <div id="logrosList"></div>
     </div>
 
-    <!-- SECCIÓN AVATAR -->
     <div id="avatarSection" class="section hidden">
       <h2>👤 Cambiar Avatar</h2>
       <div id="avatarEditor"></div>
     </div>
 
-    <!-- SECCIÓN AJUSTES -->
     <div id="configSection" class="section hidden">
       <h2>⚙️ Ajustes</h2>
       <div class="card">
@@ -129,20 +135,15 @@
         <div id="musicStatusText" style="margin-bottom: 10px; opacity: 0.8;">Estado: Desactivada</div>
         <button id="toggleMusicBtnConfig" class="btn-primary">Activar Música</button>
       </div>
-      
       <h3 style="margin-top: 20px; color: var(--accent); font-family: 'Orbitron';">Temas Visuales</h3>
-      <div id="themesContainer" class="themes-grid">
-        <!-- Los temas se cargarán dinámicamente -->
-      </div>
+      <div id="themesContainer" class="themes-grid"></div>
     </div>
 
-    <!-- SECCIÓN PERFIL -->
     <div id="profileSection" class="section hidden">
       <h2>🆔 Mi Perfil</h2>
       <div id="profileContent" class="profile-card"></div>
     </div>
 
-    <!-- SECCIÓN AMIGOS -->
     <div id="friendsSection" class="section hidden">
       <h2>👥 Amigos</h2>
       <div class="friends-tabs">
@@ -152,7 +153,6 @@
       <div id="friendsContent"></div>
     </div>
 
-    <!-- SECCIÓN BATALLAS -->
     <div id="battlesSection" class="section hidden">
       <h2>⚔️ Batallas de Apuestas</h2>
       <div id="battlesContent">
@@ -161,7 +161,6 @@
       </div>
     </div>
 
-    <!-- MODAL DE INVITACIÓN DE BATALLA (TIPO CLASH ROYALE) -->
     <div id="battleInviteModal" class="battle-invite-modal hidden">
       <div class="battle-invite-content">
         <div class="battle-invite-header">
@@ -179,12 +178,10 @@
       </div>
     </div>
 
-    <!-- NOTIFICACIÓN DE BATALLA PENDIENTE (MINIMIZADA) -->
     <div id="battlePendingBadge" class="battle-pending-badge hidden" onclick="window.restoreBattleInvite()">
       ⚔️ Batalla Pendiente
     </div>
 
-    <!-- MODAL DE RECIBIR INVITACIÓN -->
     <div id="receiveInviteModal" class="battle-invite-modal hidden">
       <div class="battle-invite-content">
         <h3>¡Desafío Recibido!</h3>
@@ -200,7 +197,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE NOTIFICACIÓN -->
   <div id="customModal" class="modal-overlay hidden">
     <div class="modal-content">
       <div id="modalIcon" class="modal-icon">✅</div>
@@ -215,6 +211,6 @@
   </div>
   <audio id="bgMusic" loop></audio>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="module" src="menu.js"></script>
+  <script type="module" src="menu.js?v=20261020"></script>
 </body>
 </html>
