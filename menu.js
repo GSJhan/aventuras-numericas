@@ -201,32 +201,38 @@ function renderConfig() {
   if (toggleButton) toggleButton.textContent = musicEnabled ? 'Pausar Música' : 'Activar Música';
 }
 
-function buildFriendsHTML(list) {
-  if (!list || !list.length) {
-    return `
-      <div class="friend-item empty">
-        <span>No hay amigos aún</span>
-        <button class="btn-small" type="button">Añadir</button>
-      </div>
-    `;
-  }
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[character]));
+}
 
-  const currentFriends = Array.isArray(user?.friends) ? user.friends : [];
+function setFriendsTab(activeTab) {
+  document.querySelectorAll('.friends-tabs .tab-btn').forEach(button => {
+    button.classList.toggle('active', button.dataset.tab === activeTab);
+  });
+}
+
+function buildFriendsHTML(list, mode = 'list') {
+  if (!list || !list.length) {
+    return `<div class="friend-item empty"><span>${mode === 'list' ? 'Aún no tienes amigos.' : 'No se encontraron usuarios.'}</span></div>`;
+  }
 
   return list.map(friend => {
     const username = friend.username || friend.name || 'Usuario';
-    const isFriend = currentFriends.includes(username);
+    const safeUsername = escapeHtml(username);
+    const xp = Number(friend.xp || 0);
+    const action = mode === 'list'
+      ? `<button class="btn-battle" type="button" onclick="window.challengeFriend('${safeUsername}')">Desafiar</button>`
+      : `<button class="btn-small" type="button" onclick="window.addFriend('${safeUsername}')">Añadir</button>`;
 
     return `
       <div class="friend-item">
         <div class="friend-main">
-          <strong>${username}</strong>
-          <div class="friend-xp">XP ${friend.xp || 0}</div>
+          <strong>${safeUsername}</strong>
+          <div class="friend-xp">XP ${xp}</div>
         </div>
-        <div class="friend-actions">
-          ${isFriend ? '<button class="btn-small btn-friend" type="button">Amigos</button>' : `<button class="btn-small" type="button" onclick="window.addFriend('${username}')">Añadir</button>`}
-          ${isFriend ? `<button class="btn-battle" type="button" onclick="window.challengeFriend('${username}')">Batalla</button>` : ''}
-        </div>
+        <div class="friend-actions">${action}</div>
       </div>
     `;
   }).join('');
@@ -237,58 +243,49 @@ async function loadFriendsFromFirebase() {
     const usersSnap = await getDocs(collection(db, 'users'));
     const users = [];
     usersSnap.forEach(docSnap => {
-      const data = docSnap.data();
-      if (docSnap.id !== safeGetCurrentUser()) {
-        users.push({ username: docSnap.id, ...data });
-      }
+      if (docSnap.id !== safeGetCurrentUser()) users.push({ username: docSnap.id, ...docSnap.data() });
     });
-    return users.length ? users : FALLBACK_FRIENDS;
+    return users;
   } catch (error) {
-    console.warn('No se pudieron cargar los amigos desde Firebase:', error);
-    return FALLBACK_FRIENDS;
+    console.warn('No se pudieron cargar los usuarios desde Firebase:', error);
+    return [];
+  }
+}
+
+function renderFriendsPanel(title, inputId, list, mode) {
+  const container = document.getElementById('friendsContent');
+  if (!container) return;
+  setFriendsTab(mode === 'list' ? 'list' : 'add');
+  container.innerHTML = `
+    <div class="friends-panel">
+      <div class="friends-panel-title">${title}</div>
+      ${mode === 'add' ? `<div class="search-box">
+        <input id="${inputId}" type="search" placeholder="Buscar por nombre..." autocomplete="off" />
+        <button class="btn-small" type="button" onclick="window.filterFriends()">Buscar</button>
+      </div>` : ''}
+      <div id="${mode === 'add' ? 'allUsersList' : 'myFriendsList'}" class="friends-list">
+        ${buildFriendsHTML(list, mode)}
+      </div>
+    </div>
+  `;
+  if (mode === 'add') {
+    const input = document.getElementById(inputId);
+    input?.addEventListener('input', () => window.filterFriends());
   }
 }
 
 async function showFriendsList() {
-  const container = document.getElementById('friendsContent');
-  if (!container) return;
+  const allUsers = await loadFriendsFromFirebase();
+  const friendNames = new Set(Array.isArray(user?.friends) ? user.friends : []);
+  const friends = allUsers.filter(friend => friendNames.has(friend.username));
+  renderFriendsPanel('Tus amigos', 'friendSearchInput', friends, 'list');
+}
 
-  const friends = await loadFriendsFromFirebase();
-  container.innerHTML = `
-    <div class="search-panel">
-      <div class="search-box">
-        <input id="friendSearchInput" type="text" placeholder="Buscar amigo..." />
-        <button class="btn-small" type="button" onclick="window.filterFriends()">Buscar</button>
-      </div>
-      <div class="friends-list">
-        ${buildFriendsHTML(friends.slice(0, 8))}
-      </div>
-    </div>
-    <div class="search-panel">
-      <div class="search-box">
-        <input id="friendSearchInput2" type="text" placeholder="Buscar..." />
-        <button class="btn-small" type="button" onclick="window.filterFriendsSecondary()">Buscar</button>
-      </div>
-      <div class="friends-list">
-        ${buildFriendsHTML(friends.slice(0, 8))}
-      </div>
-    </div>
-  `;
-
-  const bindFriendSearch = (inputId, filterFn) => {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    input.addEventListener('input', () => {
-      const value = input.value.toLowerCase();
-      const list = friends.filter(f => (f.username || '').toLowerCase().includes(value));
-      const listContainer = input.closest('.search-panel')?.querySelector('.friends-list');
-      if (listContainer) listContainer.innerHTML = buildFriendsHTML(list.slice(0, 8));
-      filterFn?.(value);
-    });
-  };
-
-  bindFriendSearch('friendSearchInput');
-  bindFriendSearch('friendSearchInput2');
+async function showAddFriends() {
+  const allUsers = await loadFriendsFromFirebase();
+  const friendNames = new Set(Array.isArray(user?.friends) ? user.friends : []);
+  const candidates = allUsers.filter(friend => !friendNames.has(friend.username));
+  renderFriendsPanel('Añadir un amigo', 'friendSearchInput', candidates, 'add');
 }
 
 window.addFriend = async function (friendUsername) {
@@ -299,31 +296,17 @@ window.addFriend = async function (friendUsername) {
   try {
     const targetRef = doc(db, 'users', friendUsername);
     const targetSnap = await getDoc(targetRef);
-    if (!targetSnap.exists()) {
-      alert('Ese usuario no existe.');
-      return;
-    }
+    if (!targetSnap.exists()) { alert('Ese usuario no existe.'); return; }
 
     const currentFriends = Array.isArray(user.friends) ? user.friends : [];
     const targetData = targetSnap.data() || {};
     const targetFriends = Array.isArray(targetData.friends) ? targetData.friends : [];
-
-    if (currentFriends.includes(friendUsername) || targetFriends.includes(currentUserName)) {
-      alert('Ya son amigos.');
-      await showFriendsList();
-      return;
-    }
+    if (currentFriends.includes(friendUsername)) { alert('Ya son amigos.'); return; }
 
     user.friends = [...new Set([...currentFriends, friendUsername])];
-    const updatedTarget = {
-      ...targetData,
-      friends: [...new Set([...targetFriends, currentUserName])]
-    };
-
     await setDoc(doc(db, 'users', currentUserName), user, { merge: true });
-    await setDoc(targetRef, updatedTarget, { merge: true });
-
-    alert(`¡Ahora eres amigo de ${friendUsername}!`);
+    await setDoc(targetRef, { ...targetData, friends: [...new Set([...targetFriends, currentUserName])] }, { merge: true });
+    alert(`¡${friendUsername} se agregó a tus amigos!`);
     await showFriendsList();
   } catch (error) {
     console.error('Error al añadir amigo:', error);
@@ -332,82 +315,83 @@ window.addFriend = async function (friendUsername) {
 };
 
 window.challengeFriend = function (friendUsername) {
-  if (!friendUsername) return;
-  showSection('battles');
-  const container = document.getElementById('battlesContent');
-  if (!container) return;
-  container.innerHTML = `
-    <div class="battle-friend-banner">
-      <strong>${friendUsername}</strong>
-      <p>Tu amigo ya está listo para una batalla.</p>
-      <button class="btn-small btn-battle" type="button" onclick="window.startQuickBattle('${friendUsername}')">Desafiar</button>
+  const container = document.getElementById('friendsContent');
+  if (!container || !friendUsername) return;
+  document.getElementById('challengeComposer')?.remove();
+  const composer = document.createElement('div');
+  composer.id = 'challengeComposer';
+  composer.className = 'challenge-composer';
+  composer.innerHTML = `
+    <div><strong>Desafiar a ${escapeHtml(friendUsername)}</strong><p>Elige la cantidad de monedas de la apuesta.</p></div>
+    <div class="challenge-form">
+      <input id="challengeBetInput" type="number" min="10" step="1" value="10" aria-label="Cantidad de monedas" />
+      <button class="btn-battle" type="button" onclick="window.startQuickBattle('${escapeHtml(friendUsername)}')">Enviar desafío</button>
+      <button class="btn-small" type="button" onclick="document.getElementById('challengeComposer')?.remove()">Cancelar</button>
     </div>
   `;
+  container.prepend(composer);
+  document.getElementById('challengeBetInput')?.focus();
 };
 
 window.startQuickBattle = async function (friendUsername) {
   const currentUserName = safeGetCurrentUser();
+  const bet = Number(document.getElementById('challengeBetInput')?.value);
   if (!currentUserName || !friendUsername) return;
-  const duelId = `duel_${currentUserName}_${friendUsername}_${Date.now()}`;
+  if (!Number.isInteger(bet) || bet < 10) { alert('La apuesta mínima es de 10 monedas.'); return; }
+  if (Number(user?.coins || 0) < bet) { alert('No tienes suficientes monedas para esa apuesta.'); return; }
 
+  const duelId = `duel_${currentUserName}_${friendUsername}_${Date.now()}`;
   try {
     await setDoc(doc(db, 'duels', duelId), {
+      challenger: currentUserName,
+      opponent: friendUsername,
       player1: currentUserName,
       player2: friendUsername,
+      p1Score: 0,
+      p2Score: 0,
       player1Score: 0,
       player2Score: 0,
-      bet: 10,
+      bet,
+      duration: 60,
       status: 'pending',
       timestamp: Date.now(),
       winner: null,
       finishedAt: null
     });
-    alert(`¡Batalla creada contra ${friendUsername}!`);
+    alert(`¡Desafío enviado por ${bet} monedas!`);
+    document.getElementById('challengeComposer')?.remove();
     showSection('battles');
-    await showBattlesPanel();
   } catch (error) {
     console.error('Error creando batalla:', error);
-    alert('No se pudo crear la batalla.');
+    alert('No se pudo crear el desafío.');
   }
 };
 
-window.filterFriends = function () {
+window.filterFriends = async function () {
   const input = document.getElementById('friendSearchInput');
-  if (!input) return;
-  const value = input.value.toLowerCase();
-  const container = input.closest('.search-panel')?.querySelector('.friends-list');
-  if (!container) return;
-
-  const currentList = (user?.friends || []).map(friend => ({ username: friend, xp: 0 }));
-  const merged = [...currentList, ...FALLBACK_FRIENDS];
-  const filtered = merged.filter(friend => (friend.username || '').toLowerCase().includes(value));
-  container.innerHTML = buildFriendsHTML(filtered.slice(0, 8));
+  const container = document.getElementById('allUsersList');
+  if (!input || !container) return;
+  const value = input.value.trim().toLowerCase();
+  const allUsers = await loadFriendsFromFirebase();
+  const friendNames = new Set(Array.isArray(user?.friends) ? user.friends : []);
+  const filtered = allUsers.filter(friend => !friendNames.has(friend.username) && friend.username.toLowerCase().includes(value));
+  container.innerHTML = buildFriendsHTML(filtered, 'add');
 };
 
-window.filterFriendsSecondary = function () {
-  const input = document.getElementById('friendSearchInput2');
-  if (!input) return;
-  const value = input.value.toLowerCase();
-  const container = input.closest('.search-panel')?.querySelector('.friends-list');
-  if (!container) return;
-
-  loadFriendsFromFirebase().then(friends => {
-    const filtered = friends.filter(friend => (friend.username || '').toLowerCase().includes(value));
-    container.innerHTML = buildFriendsHTML(filtered.slice(0, 8));
-  });
-};
+window.filterFriendsSecondary = window.filterFriends;
 
 function showSkillsPanel() {
   const statsContainer = document.getElementById('skillsStats');
   if (!statsContainer || !user) return;
 
-  const skills = user.skills || { algebra: 0, geometry: 0, speed: 0, precision: 0, infinity: 0 };
+  const skills = user.skills || {};
+  const skillValue = key => Math.max(0, Math.min(10, Number(skills[key]) || 0));
   const skillMeta = [
-    { key: 'algebra', label: 'Álgebra', value: skills.algebra || 0, max: 10, color: '#4c90ff' },
-    { key: 'geometry', label: 'Geometría', value: skills.geometry || 0, max: 10, color: '#7c5cff' },
-    { key: 'speed', label: 'Velocidad', value: skills.speed || 0, max: 10, color: '#4cff90' },
-    { key: 'precision', label: 'Precisión', value: skills.precision || 0, max: 10, color: '#ffd166' },
-    { key: 'infinity', label: 'Infinito', value: skills.infinity || 0, max: 10, color: '#ff7a7a' }
+    { key: 'algebra', label: 'Álgebra', value: skillValue('algebra'), max: 10, color: '#4c90ff' },
+    { key: 'geometry', label: 'Geometría', value: skillValue('geometry'), max: 10, color: '#7c5cff' },
+    { key: 'speed', label: 'Velocidad', value: skillValue('speed'), max: 10, color: '#4cff90' },
+    { key: 'precision', label: 'Precisión', value: skillValue('precision'), max: 10, color: '#ffd166' },
+    { key: 'infinity', label: 'Infinito', value: skillValue('infinity'), max: 10, color: '#ff7a7a' }
   ];
 
   statsContainer.innerHTML = skillMeta.map(skill => `
@@ -579,58 +563,71 @@ async function showRankingPanel() {
 async function showBattlesPanel() {
   const container = document.getElementById('battlesContent');
   if (!container || !user) return;
-
+  const currentUserName = safeGetCurrentUser();
   try {
-    const currentUserName = safeGetCurrentUser();
-    const querySnapshot = await getDocs(collection(db, 'duels'));
-    const myBattles = [];
-
-    querySnapshot.forEach(docSnap => {
+    const snapshot = await getDocs(collection(db, 'duels'));
+    const pendingIncoming = [], pendingOutgoing = [], active = [], finished = [];
+    snapshot.forEach(docSnap => {
       const data = docSnap.data() || {};
-      const isMatch = (data.player1 === currentUserName || data.player2 === currentUserName) && data.status === 'finished';
-      if (isMatch) {
-        myBattles.push({
-          id: docSnap.id,
-          ...data,
-          result: data.winner === currentUserName ? 'victoria' : (data.winner && data.winner !== 'draw' ? 'derrota' : 'empate')
-        });
-      }
+      const challenger = data.challenger || data.player1;
+      const opponent = data.opponent || data.player2;
+      const item = { id: docSnap.id, ...data, challenger, opponent };
+      if (data.status === 'pending' && opponent === currentUserName) pendingIncoming.push(item);
+      else if (data.status === 'pending' && challenger === currentUserName) pendingOutgoing.push(item);
+      else if (data.status === 'active' && (challenger === currentUserName || opponent === currentUserName)) active.push(item);
+      else if (data.status === 'finished' && (challenger === currentUserName || opponent === currentUserName)) finished.push(item);
     });
+    finished.sort((a, b) => (b.finishedAt || b.timestamp || 0) - (a.finishedAt || a.timestamp || 0));
 
-    myBattles.sort((a, b) => (b.finishedAt || b.timestamp || 0) - (a.finishedAt || a.timestamp || 0));
-
-    if (!myBattles.length) {
-      container.innerHTML = `
-        <div style="padding: 24px 18px; text-align:center; background: rgba(20,28,54,0.75); border-radius: 18px; border: 1px solid rgba(76,144,255,0.2); color:#dfe8ff; opacity:0.8;">
-          Aún no tienes batallas finalizadas.
+    const incomingHtml = pendingIncoming.map(item => `
+      <div class="battle-pending-card">
+        <div><strong>${escapeHtml(item.challenger)}</strong> te desafió por <strong>${Number(item.bet || 0)} 💰</strong></div>
+        <div class="invite-actions">
+          <button class="btn-green" onclick="window.acceptBattle('${item.id}')">Aceptar</button>
+          <button class="btn-red" onclick="window.declineBattle('${item.id}')">Rechazar</button>
         </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = myBattles.map(item => {
-      const opponent = item.player1 === currentUserName ? item.player2 : item.player1;
-      const statusLabel = item.result === 'victoria' ? 'Victoria' : item.result === 'derrota' ? 'Derrota' : 'Empate';
-      const badgeColor = item.result === 'victoria' ? '#4cff90' : item.result === 'derrota' ? '#ff7a7a' : '#ffd166';
-      const scoreText = item.player1Score != null && item.player2Score != null ? `${item.player1Score} - ${item.player2Score}` : 'Sin marcador';
-      const formattedDate = item.finishedAt ? new Date(item.finishedAt).toLocaleString() : new Date(item.timestamp || Date.now()).toLocaleString();
-
-      return `
-        <div style="margin-bottom: 14px; padding: 16px; border-radius: 14px; background: rgba(12,18,35,0.8); border: 1px solid rgba(76,144,255,0.2);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-            <strong style="color:#fff;">${opponent}</strong>
-            <span style="background:${badgeColor}; color:#091525; border-radius:999px; padding:4px 10px; font-size: 11px; font-weight:700;">${statusLabel}</span>
-          </div>
-          <div style="color:#dfe8ff; opacity:0.85; margin-bottom: 6px;">Marcador: ${scoreText}</div>
-          <div style="color:#dfe8ff; opacity:0.75; font-size: 12px;">Apuesta: ${item.bet || 0} 💰 • ${formattedDate}</div>
-        </div>
-      `;
+      </div>`).join('');
+    const outgoingHtml = pendingOutgoing.map(item => `<div class="battle-status-card">Esperando respuesta de <strong>${escapeHtml(item.opponent)}</strong> · Apuesta: ${Number(item.bet || 0)} 💰</div>`).join('');
+    const activeHtml = active.map(item => {
+      const opponent = item.challenger === currentUserName ? item.opponent : item.challenger;
+      return `<div class="battle-status-card"><div>Batalla activa contra <strong>${escapeHtml(opponent)}</strong> · Apuesta: ${Number(item.bet || 0)} 💰</div><button class="btn-battle" onclick="window.openBattle('${item.id}')">Continuar batalla</button></div>`;
     }).join('');
+    const historyHtml = finished.length ? finished.map(item => {
+      const opponent = item.challenger === currentUserName ? item.opponent : item.challenger;
+      const myScore = item.challenger === currentUserName ? Number(item.p1Score ?? item.player1Score ?? 0) : Number(item.p2Score ?? item.player2Score ?? 0);
+      const opponentScore = item.challenger === currentUserName ? Number(item.p2Score ?? item.player2Score ?? 0) : Number(item.p1Score ?? item.player1Score ?? 0);
+      const result = item.winner === currentUserName ? 'Victoria' : item.winner === 'draw' ? 'Empate' : item.winner ? 'Derrota' : (myScore === opponentScore ? 'Empate' : myScore > opponentScore ? 'Victoria' : 'Derrota');
+      const color = result === 'Victoria' ? '#4cff90' : result === 'Derrota' ? '#ff7a7a' : '#ffd166';
+      return `<div class="battle-history-card"><div><strong>${escapeHtml(opponent)}</strong><span class="battle-result" style="color:${color}">${result}</span></div><div>Marcador: ${myScore} - ${opponentScore}</div><small>Apuesta: ${Number(item.bet || 0)} 💰 · ${new Date(item.finishedAt || item.timestamp).toLocaleString()}</small></div>`;
+    }).join('') : '<div class="battle-empty">Aún no tienes batallas finalizadas.</div>';
+
+    container.innerHTML = `<div class="battle-history">
+      ${incomingHtml ? `<h3>Desafíos recibidos</h3>${incomingHtml}` : ''}
+      ${outgoingHtml ? `<h3>Desafíos enviados</h3>${outgoingHtml}` : ''}
+      ${activeHtml ? `<h3>Batallas activas</h3>${activeHtml}` : ''}
+      <h3>Historial de batallas</h3>${historyHtml}
+    </div>`;
   } catch (error) {
     console.error('Error cargando batallas:', error);
-    container.innerHTML = '<div style="padding:18px; text-align:center; color:#fff;">No se pudieron cargar las batallas.</div>';
+    container.innerHTML = '<div class="battle-empty">No se pudieron cargar las batallas.</div>';
   }
 }
+
+window.acceptBattle = async function (duelId) {
+  try {
+    await setDoc(doc(db, 'duels', duelId), { status: 'active', startTime: Date.now(), duration: 60 }, { merge: true });
+    localStorage.setItem('activeDuel', duelId);
+    window.location.href = 'game.html?mode=battle';
+  } catch (error) { console.error(error); alert('No se pudo aceptar la batalla.'); }
+};
+window.openBattle = function (duelId) {
+  localStorage.setItem('activeDuel', duelId);
+  window.location.href = 'game.html?mode=battle';
+};
+window.declineBattle = async function (duelId) {
+  try { await setDoc(doc(db, 'duels', duelId), { status: 'declined', finishedAt: Date.now() }, { merge: true }); await showBattlesPanel(); }
+  catch (error) { console.error(error); alert('No se pudo rechazar la batalla.'); }
+};
 
 window.showTienda = function () {
   if (!user) return;
@@ -876,7 +873,7 @@ function bindMusicToggle() {
 }
 
 window.showFriendsList = showFriendsList;
-window.showAddFriends = showFriendsList;
+window.showAddFriends = showAddFriends;
 window.showSection = showSection;
 window.showAvatarEditor = window.showAvatarEditor;
 window.showTienda = window.showTienda;

@@ -147,8 +147,8 @@
     <div id="friendsSection" class="section hidden">
       <h2>👥 Amigos</h2>
       <div class="friends-tabs">
-        <button onclick="window.showFriendsList()" class="tab-btn active">Lista</button>
-        <button onclick="window.showAddFriends()" class="tab-btn">Añadir</button>
+        <button onclick="window.showFriendsList()" class="tab-btn active" data-tab="list">Lista</button>
+        <button onclick="window.showAddFriends()" class="tab-btn" data-tab="add">Añadir</button>
       </div>
       <div id="friendsContent"></div>
     </div>
@@ -156,8 +156,7 @@
     <div id="battlesSection" class="section hidden">
       <h2>⚔️ Batallas de Apuestas</h2>
       <div id="battlesContent">
-        <p style="text-align:center; opacity:0.7;">Selecciona un amigo para desafiarlo</p>
-        <div id="battleFriendsList" class="friends-list"></div>
+        <div class="battle-empty">Aquí aparecerá el historial de tus batallas y los desafíos pendientes.</div>
       </div>
     </div>
 

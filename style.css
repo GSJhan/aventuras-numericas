@@ -838,3 +838,34 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
   position: relative;
   z-index: 2;
 }
+
+
+/* Paneles corregidos de amigos, habilidades, batallas y ambientes */
+#friendsContent { display: block; }
+.friends-panel { width: 100%; }
+.friends-panel-title { margin-bottom: 14px; color: var(--accent); font-weight: 700; }
+.friend-actions { display: flex; gap: 8px; align-items: center; }
+.btn-battle { padding: 8px 16px; font-size: 14px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: 0; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 700; }
+.challenge-composer { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 18px; padding: 16px; border: 2px solid var(--accent); border-radius: 14px; background: rgba(20,28,54,.8); }
+.challenge-composer p { margin: 5px 0 0; opacity: .8; }
+.challenge-form { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.challenge-form input { width: 130px; }
+.skills-container { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(240px, 1fr); gap: 24px; align-items: center; }
+.skills-radar-container { position: relative; min-height: 310px; }
+.skills-radar-container canvas { width: 100% !important; height: 310px !important; }
+.skills-stats { display: grid; gap: 12px; }
+.skill-card { padding: 14px; border: 1px solid rgba(76,144,255,.35); border-radius: 12px; background: rgba(15,23,42,.55); }
+.skill-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.skill-bar { height: 9px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.1); }
+.skill-fill { display: block; height: 100%; border-radius: inherit; transition: width .3s ease; }
+.battle-history h3 { color: var(--accent); margin: 18px 0 10px; }
+.battle-pending-card, .battle-status-card, .battle-history-card, .battle-empty { padding: 16px; margin-bottom: 10px; border-radius: 14px; border: 1px solid rgba(76,144,255,.3); background: rgba(15,23,42,.65); }
+.battle-pending-card { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.battle-history-card > div:first-child { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
+.battle-history-card small { opacity: .72; display: block; margin-top: 7px; }
+.battle-result { font-weight: 700; }
+.theme-thumb { position: absolute; inset: 0 0 30px; background-size: cover; background-position: center; transition: transform .25s ease, filter .25s ease; }
+.theme-option::after { content: ''; position: absolute; inset: 0 0 30px; background: linear-gradient(180deg, transparent 35%, rgba(5,10,25,.65)); pointer-events: none; }
+.theme-option span { position: absolute; z-index: 1; bottom: 0; left: 0; right: 0; height: 30px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; }
+.theme-option:hover .theme-thumb { transform: scale(1.06); filter: saturate(1.2); }
+@media (max-width: 700px) { .skills-container { grid-template-columns: 1fr; } .battle-pending-card { align-items: stretch; flex-direction: column; } .challenge-form { margin-left: 0; } }

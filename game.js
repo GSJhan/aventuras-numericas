@@ -25,6 +25,7 @@ var activeDuelId = localStorage.getItem('activeDuel');
 var isBattleMode = new URLSearchParams(window.location.search).get('mode') === 'battle';
 var duelData = null;
 var battleTimer = null;
+var battleResultHandled = false;
 var currentProblem = null;
 var quizStreak = 0;
 var infinityStreak = 0;
@@ -163,7 +164,7 @@ async function initBattle() {
     if (!snap.exists()) return;
     duelData = snap.data();
     updateBattleUI();
-    if (duelData.status === 'finished') {
+    if (duelData.status === 'finished' && !battleResultHandled) {
         finishBattle();
     }
   });
@@ -238,6 +239,10 @@ async function finishBattle() {
   const isP1 = duelData.challenger === currentUser;
   const myScore = isP1 ? duelData.p1Score : duelData.p2Score;
   const opScore = isP1 ? duelData.p2Score : duelData.p1Score;
+  if (battleResultHandled) return;
+  battleResultHandled = true;
+  const winner = myScore > opScore ? duelData.challenger : myScore < opScore ? duelData.opponent : 'draw';
+  await setDoc(doc(db, 'duels', activeDuelId), { winner, finishedAt: Date.now() }, { merge: true });
   
   let resultMsg = '';
   let icon = '';
@@ -245,16 +250,16 @@ async function finishBattle() {
   if (myScore > opScore) {
     resultMsg = `¡GANASTE! +${duelData.bet} monedas`;
     icon = '🏆';
-    user.coins += duelData.bet;
+    user.coins += Number(duelData.bet || 0);
     user.duelsWon = (user.duelsWon || 0) + 1;
   } else if (myScore < opScore) {
     resultMsg = `PERDISTE. -${duelData.bet} monedas`;
     icon = '💀';
-    user.coins -= duelData.bet;
+    user.coins -= Number(duelData.bet || 0);
   } else {
     resultMsg = '¡EMPATE! Se devuelven las monedas';
     icon = '🤝';
-    user.coins += duelData.bet;
+    user.coins += Number(duelData.bet || 0);
   }
 
   await saveUser();
