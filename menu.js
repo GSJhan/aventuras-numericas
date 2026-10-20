@@ -419,6 +419,41 @@ function showSkillsPanel() {
   `).join('');
   const totalNode = document.getElementById('skillsTotal');
   if (totalNode) totalNode.textContent = `Nivel ${xpInfo.level}`;
+
+  const radar = document.getElementById('skillsRadar');
+  const radarStats = skillMeta.filter(skill => skill.label !== 'Monedas');
+  if (radar && typeof Chart !== 'undefined') {
+    radar.__chart?.destroy();
+    radar.__chart = new Chart(radar.getContext('2d'), {
+      type: 'radar',
+      data: {
+        labels: radarStats.map(skill => skill.label),
+        datasets: [{
+          label: 'Progreso',
+          data: radarStats.map(skill => Math.min(10, (skill.value / skill.max) * 10)),
+          backgroundColor: 'rgba(76,144,255,.16)',
+          borderColor: '#4c90ff',
+          borderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          pointBackgroundColor: radarStats.map(skill => skill.color),
+          pointBorderColor: radarStats.map(skill => skill.color),
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { r: {
+          min: 0, max: 10, ticks: { display: false, stepSize: 2 },
+          angleLines: { color: 'rgba(255,255,255,.12)' },
+          grid: { color: 'rgba(255,255,255,.13)' },
+          pointLabels: { color: '#e8eaff', font: { family: 'Rajdhani', size: 12, weight: '600' } }
+        }},
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
 }
 
 function renderAchievementStatsPanel(achievements, unlockedMap) {
