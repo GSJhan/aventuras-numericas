@@ -704,6 +704,10 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
   const xAxisY = yToCanvas(0);
   const yAxisX = xToCanvas(0);
 
+  ctx.save();
+  ctx.translate(state.translateX * DPR, state.translateY * DPR);
+  ctx.scale(state.scale, state.scale);
+
   ctx.fillStyle = 'rgba(8,14,24,0.18)';
   ctx.fillRect(0, 0, w, h);
 
@@ -797,6 +801,7 @@ function drawGraphInteractive(canvas, a, b, c, solutions, state) {
   ctx.textAlign = 'center';
   ctx.fillText('X', w - pad / 2, xAxisY + 22 * DPR);
   ctx.fillText('Y', yAxisX + 12 * DPR, pad / 2);
+  ctx.restore();
 }
 
 function formatNumber(num) {
